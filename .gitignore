@@ -29,3 +29,4 @@ node_modules/
 dist/
 
 >>>>>>> 0b45ad5 (Add .gitignore to exclude unnecessary files and directories)
+frontend/frontend_backup/
