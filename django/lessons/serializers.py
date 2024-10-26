@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Level, Lesson, Flashcard, Quiz, QuizQuestion, LevelTest, LevelTestQuestion, UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress
+from .models import Level, Lesson, Flashcard, Quiz, QuizQuestion, UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress
 
 class LevelSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,16 +24,6 @@ class QuizSerializer(serializers.ModelSerializer):
 class QuizQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizQuestion
-        fields = '__all__'
-
-class LevelTestSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LevelTest
-        fields = '__all__'
-
-class LevelTestQuestionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LevelTestQuestion
         fields = '__all__'
 
 class UserProgressSerializer(serializers.ModelSerializer):
