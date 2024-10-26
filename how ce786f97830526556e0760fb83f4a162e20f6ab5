@@ -1,0 +1,53 @@
+[33mcommit ce786f97830526556e0760fb83f4a162e20f6ab5[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: BadrRibzat <badrribzat@gmail.com>
+Date:   Sat Oct 26 12:12:46 2024 +0100
+
+     A Detailed README file with explanation for each structure and it's proposes and setting up with the overview and technologies stack
+
+[33mcommit c516be53881e5ff150f940b39e6695b21cfd234e[m
+Author: BadrRibzat <badrribzat@gmail.com>
+Date:   Sat Oct 26 11:23:14 2024 +0100
+
+    Update .gitignore to ignore frontend_backup
+
+[33mcommit 1f6ef628888cecd4f6ad062ff0fcdfa1ddb4f72d[m
+Author: BadrRibzat <badrribzat@gmail.com>
+Date:   Sat Oct 26 10:17:41 2024 +0100
+
+    Add testing configurations and scripts
+
+[33mcommit 6e2a5892576b914e1a5d6192c55af2f00888dadc[m
+Author: BadrRibzat <badrribzat@gmail.com>
+Date:   Sat Oct 26 10:17:15 2024 +0100
+
+    Add core backend files and essential components
+
+[33mcommit dc3cb0d57dc3ee89fe547d875976dac65e3f1b78[m
+Author: BadrRibzat <badrribzat@gmail.com>
+Date:   Sat Oct 26 10:15:39 2024 +0100
+
+    Add .gitignore to exclude unnecessary files and directories
+
+[33mcommit b3e84b864252d3107998c047aaca4c6fae4baf26[m
+Author: BadrRibzat <badrribzat@gmail.com>
+Date:   Sat Aug 31 17:40:12 2024 +0100
+
+    Initial commit for Learn-English project: Set up Django structure and Vue.js frontend
+
+[33mcommit 4adf8ed85e62a2d6bf379555da046c30e7525e2a[m
+Author: BadrRibzat <badrribzat@gmail.com>
+Date:   Sat Aug 31 13:31:26 2024 +0100
+
+    Initial commit
+
+[33mcommit 66b355d7030125cfe35fbe962ec2ce7a33e7fa6e[m
+Author: BadrRibzat <badrribzat@gmail.com>
+Date:   Sat Aug 31 13:23:25 2024 +0100
+
+    Initial commit
+
+[33mcommit fba1d8a7e27d793a134a4e32baac1af29555473b[m
+Author: BadrRibzat <badrribzat@gmail.com>
+Date:   Sat Aug 31 12:52:54 2024 +0100
+
+    first commit
