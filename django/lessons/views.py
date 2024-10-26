@@ -1,16 +1,3 @@
-
-from rest_framework import viewsets
-from .models import Lesson, Test
-from .serializers import LessonSerializer, TestSerializer
-
-class LessonViewSet(viewsets.ModelViewSet):
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
-
-class TestViewSet(viewsets.ModelViewSet):
-    queryset = Test.objects.all()
-    serializer_class = TestSerializer
-
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -151,4 +138,3 @@ def level_test_submit(request, pk):
             return Response({'status': 'test completed', 'score': score})
     except LevelTest.DoesNotExist:
         return Response({'error': 'Level test not found'}, status=status.HTTP_404_NOT_FOUND)
-
