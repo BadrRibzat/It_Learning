@@ -1,14 +1,5 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
-from .views import LessonViewSet, TestViewSet
-
-router = DefaultRouter()
-router.register(r'lessons', LessonViewSet)
-router.register(r'tests', TestViewSet)
-
-urlpatterns = [
-    path('', include(router.urls)),
 from .views import (
     LevelViewSet, LessonViewSet, FlashcardViewSet, QuizViewSet, QuizQuestionViewSet,
     LevelTestViewSet, LevelTestQuestionViewSet, UserProgressViewSet, UserFlashcardProgressViewSet,
@@ -34,5 +25,4 @@ urlpatterns = [
     path('recommend-next-lesson/', recommend_next_lesson, name='recommend_next_lesson'),
     path('flashcard-submit/<int:pk>/', flashcard_submit, name='flashcard-submit'),
     path('level-test-submit/<int:pk>/', level_test_submit, name='level-test-submit'),
-
 ]

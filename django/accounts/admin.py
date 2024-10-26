@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-# File: accounts/admin.py
-from django.contrib import admin
-from .models import User
-
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'language')
-    search_fields = ('username', 'email')
-
-=======
 from django.contrib import admin
 from .models import User, Badge, UserBadge, ProfilePicture, Note
 from lessons.models import UserFlashcardProgress, UserLevelProgress
@@ -53,4 +42,3 @@ admin.site.register(ProfilePicture, ProfilePictureAdmin)
 admin.site.register(Note, NoteAdmin)
 admin.site.register(UserFlashcardProgress, UserFlashcardProgressAdmin)
 admin.site.register(UserLevelProgress, UserLevelProgressAdmin)
->>>>>>> ac2b48c (Add core backend files and essential components)

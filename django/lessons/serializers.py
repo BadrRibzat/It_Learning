@@ -1,19 +1,4 @@
 from rest_framework import serializers
-
-from .models import Lesson, Test
-
-class TestSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Test
-        fields = ['id', 'questions']
-
-class LessonSerializer(serializers.ModelSerializer):
-    test = TestSerializer(read_only=True)
-    
-    class Meta:
-        model = Lesson
-        fields = ['id', 'title', 'level', 'order', 'test']
-
 from .models import Level, Lesson, Flashcard, Quiz, QuizQuestion, LevelTest, LevelTestQuestion, UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress
 
 class LevelSerializer(serializers.ModelSerializer):
@@ -70,4 +55,3 @@ class UserLevelProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserLevelProgress
         fields = ['id', 'user', 'level', 'completed', 'date_completed', 'correct_answers', 'total_questions']
-
