@@ -2,34 +2,16 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .serializers import LevelSerializer, LessonSerializer, FlashcardSerializer, QuizSerializer, QuizQuestionSerializer, LevelTestSerializer, LevelTestQuestionSerializer, UserProgressSerializer, UserFlashcardProgressSerializer, UserQuizAttemptSerializer, UserLevelProgressSerializer
-from django.core.cache import cache
-from django.db.models import Prefetch
-from accounts.models import Badge, UserBadge
-from .models import (
-    Level, Lesson, Flashcard, Quiz, QuizQuestion, LevelTest, LevelTestQuestion,
-    UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress
-)
+from .serializers import LevelSerializer, LessonSerializer, FlashcardSerializer, QuizSerializer, QuizQuestionSerializer, UserProgressSerializer, UserFlashcardProgressSerializer, UserQuizAttemptSerializer, UserLevelProgressSerializer
+from .models import Level, Lesson, Flashcard, Quiz, QuizQuestion, UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress
 
 class LevelViewSet(viewsets.ModelViewSet):
     queryset = Level.objects.all()
     serializer_class = LevelSerializer
 
 class LessonViewSet(viewsets.ModelViewSet):
-    queryset = Lesson.objects.all().select_related('level').prefetch_related(
-        Prefetch('flashcard_set', queryset=Flashcard.objects.all().select_related('lesson'))
-    ).order_by('level__level_order', 'level_order')
+    queryset = Lesson.objects.all().select_related('level').order_by('level__level_order', 'level_order')
     serializer_class = LessonSerializer
-
-    def list(self, request, *args, **kwargs):
-        cache_key = 'lessons_list'
-        cached_data = cache.get(cache_key)
-        if cached_data:
-            return Response(cached_data)
-
-        response = super().list(request, *args, **kwargs)
-        cache.set(cache_key, response.data, timeout=60 * 15)
-        return response
 
 class FlashcardViewSet(viewsets.ModelViewSet):
     queryset = Flashcard.objects.all().order_by('id')
@@ -42,14 +24,6 @@ class QuizViewSet(viewsets.ModelViewSet):
 class QuizQuestionViewSet(viewsets.ModelViewSet):
     queryset = QuizQuestion.objects.all()
     serializer_class = QuizQuestionSerializer
-
-class LevelTestViewSet(viewsets.ModelViewSet):
-    queryset = LevelTest.objects.all()
-    serializer_class = LevelTestSerializer
-
-class LevelTestQuestionViewSet(viewsets.ModelViewSet):
-    queryset = LevelTestQuestion.objects.all()
-    serializer_class = LevelTestQuestionSerializer
 
 class UserProgressViewSet(viewsets.ModelViewSet):
     queryset = UserProgress.objects.all()
@@ -90,13 +64,16 @@ def flashcard_submit(request, pk):
             user=request.user, flashcard=flashcard)
 
         if is_correct:
-            progress.complete_flashcard()
+            progress.completed = True
+            progress.save()
             request.user.points += 5
             request.user.save()
 
         lesson_progress, created = UserProgress.objects.get_or_create(
             user=request.user, lesson=flashcard.lesson)
-        lesson_progress.update_progress(is_correct)
+        lesson_progress.correct_answers += 1 if is_correct else 0
+        lesson_progress.total_questions += 1
+        lesson_progress.save()
 
         return Response({
             'is_correct': is_correct,
@@ -128,10 +105,8 @@ def level_test_submit(request, pk):
             user.level += 1
             user.points += 100
             user.save()
-            level_progress.complete_level()
-
-            badge, created = Badge.objects.get_or_create(name="Level Up", description="Leveled up!")
-            UserBadge.objects.create(user=user, badge=badge)
+            level_progress.completed = True
+            level_progress.save()
 
             return Response({'status': 'level up', 'points_earned': 100, 'score': score})
         else:
