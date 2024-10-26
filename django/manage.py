@@ -7,6 +7,27 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+
+from decouple import config
+from dotenv import load_dotenv
+
+def main():
+    """Run administrative tasks."""
+    # Load environment variables from .env file
+    load_dotenv()
+
+    # Verify environment variables
+    print("DB_NAME:", os.getenv('DB_NAME'))
+    print("DB_USER:", os.getenv('DB_USER'))
+    print("DB_PASSWORD:", os.getenv('DB_PASSWORD'))
+    print("DB_HOST:", os.getenv('DB_HOST'))
+    print("DB_PORT:", os.getenv('DB_PORT'))
+
+    if 'test' in sys.argv:
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.test_settings')
+    else:
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

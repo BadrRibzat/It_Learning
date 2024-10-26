@@ -1,0 +1,9 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+  <h1>Custom Lesson View</h1>
+  <ul>
+  {% for lesson in lessons %}
+    <li>{{ lesson.title }}</li>
+  {% endfor %}
+  </ul>
+{% endblock %}
