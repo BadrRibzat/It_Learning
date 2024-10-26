@@ -1,296 +1,264 @@
-# Learn-English: A Full-Stack Web Application
+Learn English Django Backend
+This is the backend for the Learn English application, built using Django and Django REST Framework. It provides the necessary APIs for user management, lesson management, chatbot interactions, and more.
 
-# Overview
-Learn-English is a comprehensive web application designed to help non-English speakers learn the English language through interactive lessons, flashcards, and progress tracking. This project integrates various technologies to provide a seamless learning experience and serves as a testament to the iterative development process, demonstrating the challenges faced and the solutions implemented along the way.
-
-# Table of Contents
-Project Description
-Technologies Used
-Development Journey
+Table of Contents
 Features
-Installation
-Usage
-Future Enhancements
-Acknowledgments
 
-# Project Description
-Learn-English aims to empower non-English speakers by offering a variety of educational tools, including:
+Project Structure
 
-Interactive flashcards for vocabulary learning
-Fill-in-the-blank questions to reinforce understanding
-User profiles to track progress
-Support for multiple languages
-Technologies Used
-Throughout the development of Learn-English, I explored and utilized various technologies, including:
+Setup
 
-# Frontend:
+Configuration
 
-Vue.js 3: For building the user interface.
-Vuex: State management for efficient data handling.
-Vite.js: For fast development and build processes.
-TailwindCSS: For styling and responsive design.
-# Backend:
+Running the Server
 
-Django: A powerful web framework for the backend.
-Django REST Framework: For creating RESTful APIs.
-Djongo: To integrate MongoDB with Django seamlessly.
-Node.js and Express.js: For server-side operations and API handling.
-Database:
+Testing
 
-Postgresql: To store user data, lessons, and progress.
-Other Tools:
+API Endpoints
 
-Dialogflow: For chatbot integration to assist users.
-i18n: For internationalization support in multiple languages.
-Development Journey
-The development of Learn-English involved several iterations and explorations of different technologies and frameworks. Below is a summary of the key steps taken:
+Contributing
 
-Initial Setup: Started with basic technologies like Flask and MySQL but faced scalability issues.
-Transition to Django: After encountering challenges, switched to Django for better framework capabilities.
-Integration of Postgresql: Initially used SQL databases.
-Frontend Framework Exploration: Experimented with Angular and React before  ettling on Vue.js for its simplicity and performance.
-UI/UX Improvements: Iterated through various designs using TailwindCSS to enhance user experience.
-Chatbot Development: Integrated Dialogflow to provide interactive support to users.
-# Features
-User authentication and profile management.
-Interactive flashcards for vocabulary reinforcement.
-Dynamic lesson plans with tracking features.
-Multi-language support for diverse user accessibility.
-Chatbot assistance for real-time help and queries.
+License
 
-# Installation
-To get started with Learn-English, follow these steps:
+Features
+User Management: Register, login, logout, and manage user profiles.
 
-Clone the repository:
+Lesson Management: Create, retrieve, and update lessons.
 
-bash
-Copy code
-git clone https://github.com/badrribzat/learn-english.git
-cd learn-english
-Set up the backend:
+Chatbot: Interact with an authenticated and anonymous chatbot.
 
-bash
-Copy code
-cd backend
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
-Set up the frontend:
+Authentication: JWT-based authentication with token refresh and blacklist.
 
-bash
-Copy code
-cd frontend
-npm install
-npm run serve
-Usage
-Once the application is running, you can access the frontend at http://localhost:8080 and the backend at http://localhost:8000. Create an account to start learning and track your progress.
+Internationalization: Support for multiple languages.
 
-# Future Enhancements
-Mobile App Development: To extend accessibility to mobile users.
-Advanced Analytics: To provide detailed progress reports for users.
-Gamification: To make learning more engaging through rewards and challenges.
-Acknowledgments
-A special thanks to my mentors, peers, and all the resources that guided me through this project. This journey has been a valuable learning experience in full-stack development.
+Rate Limiting: Throttling for API endpoints.
 
+Email Notifications: Password reset and other email notifications.
 
-# Learn_English Project Tree Structure Detail:
-badr@badr-MacBookAir:~/Learn_English$ tree django/accounts/ -I '__pycache__'
-django/accounts/
-├── admin.py
-├── apps.py
-├── exceptions.py
-├── __init__.py
-├── management
-│   └── commands
-│       └── populate_accounts.py
-├── migrations
-│   ├── 0001_initial.py
-│   ├── 0002_initial.py
-│   └── __init__.py
-├── models.py
-├── permissions.py
-├── serializers.py
-├── tasks.py
-├── test_accounts.py
-├── tests.py
-├── urls.py
-├── utils.py
-└── views.py
+OAuth2: Google OAuth2 integration for authentication.
 
-3 directories, 17 files
-
-badr@badr-MacBookAir:~/Learn_English$ tree django/chatbot/ -I '__pycache__'
-django/chatbot/
-├── admin.py
-├── apps.py
-├── __init__.py
-├── management
-│   └── commands
-│       └── populate_chatbot.py
-├── migrations
-│   ├── 0001_initial.py
-│   └── __init__.py
-├── models.py
-├── serializers.py
-├── test_chatbot.py
-├── tests.py
-├── urls.py
-└── views.py
-
-3 directories, 12 files
-
-badr@badr-MacBookAir:~/Learn_English$ tree django/backend/ -I '__pycache__'
-django/backend/
-├── asgi.py
-├── celery.py
-├── google_oauth2_credentials.json
-├── __init__.py
-├── settings.py
-├── test_settings.py
-├── urls.py
-└── wsgi.py
-
-0 directories, 8 files
-
-
-badr@badr-MacBookAir:~/Learn_English$ tree django/lessons/ -I '__pycache__'
-django/lessons/
-├── admin.py
-├── apps.py
-├── __init__.py
-├── management
-│   └── commands
-│       ├── init_db.py
-│       └── populate_lessons.py
-├── migrations
-│   ├── 0001_initial.py
-│   └── __init__.py
-├── models.py
-├── serializers.py
-├── templates
-│   └── admin
-│       └── custom_lesson_view.html
-├── test_lessons.py
-├── tests.py
-├── urls.py
-└── views.py
-
-5 directories, 14 files
-
-badr@badr-MacBookAir:~/Learn_English$ tree django/ -I 'env|__pycache__|profile_pictures|media|htmlcov'
+Project Structure
 django/
-├── accounts
-│   ├── admin.py
-│   ├── apps.py
-│   ├── exceptions.py
-│   ├── __init__.py
-│   ├── management
-│   │   └── commands
-│   │       └── populate_accounts.py
-│   ├── migrations
-│   │   ├── 0001_initial.py
-│   │   ├── 0002_initial.py
-│   │   └── __init__.py
-│   ├── models.py
-│   ├── permissions.py
-│   ├── serializers.py
-│   ├── tasks.py
-│   ├── test_accounts.py
-│   ├── tests.py
-│   ├── urls.py
-│   ├── utils.py
-│   └── views.py
-├── backend
-│   ├── asgi.py
-│   ├── celery.py
-│   ├── google_oauth2_credentials.json
-│   ├── __init__.py
-│   ├── settings.py
-│   ├── test_settings.py
-│   ├── urls.py
-│   └── wsgi.py
-├── chatbot
-│   ├── admin.py
-│   ├── apps.py
-│   ├── __init__.py
-│   ├── management
-│   │   └── commands
-│   │       └── populate_chatbot.py
-│   ├── migrations
-│   │   ├── 0001_initial.py
-│   │   └── __init__.py
-│   ├── models.py
-│   ├── serializers.py
-│   ├── test_chatbot.py
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
+├── accounts/
+│   ├── admin.py
+│   ├── apps.py
+│   ├── exceptions.py
+│   ├── __init__.py
+│   ├── management/
+│   │   └── commands/
+│   │       └── populate_accounts.py
+│   ├── migrations/
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_initial.py
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── permissions.py
+│   ├── serializers.py
+│   ├── tasks.py
+│   ├── test_accounts.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── utils.py
+│   └── views.py
+├── backend/
+│   ├── asgi.py
+│   ├── celery.py
+│   ├── google_oauth2_credentials.json
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── test_settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── chatbot/
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── management/
+│   │   └── commands/
+│   │       └── populate_chatbot.py
+│   ├── migrations/
+│   │   ├── 0001_initial.py
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── test_chatbot.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
 ├── conftest.py
 ├── debug.log
-├── flashcards
-│   ├── admin.py
-│   ├── apps.py
-│   ├── __init__.py
-│   ├── models.py
-│   ├── serializers.py
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
-├── lessons
-│   ├── admin.py
-│   ├── apps.py
-│   ├── __init__.py
-│   ├── management
-│   │   └── commands
-│   │       ├── init_db.py
-│   │       └── populate_lessons.py
-│   ├── migrations
-│   │   ├── 0001_initial.py
-│   │   └── __init__.py
-│   ├── models.py
-│   ├── serializers.py
-│   ├── templates
-│   │   └── admin
-│   │       └── custom_lesson_view.html
-│   ├── test_lessons.py
-│   ├── tests.py
-│   ├── urls.py
-│   └── views.py
+├── htmlcov/
+├── lessons/
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── management/
+│   │   └── commands/
+│   │       ├── init_db.py
+│   │       └── populate_lessons.py
+│   ├── migrations/
+│   │   ├── 0001_initial.py
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── templates/
+│   │   └── admin/
+│   │       └── custom_lesson_view.html
+│   ├── test_lessons.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
 ├── manage.py
+├── media/
 ├── pytest.ini
 ├── pytest_results.xml
 ├── report.xml
 ├── requirements.txt
-├── templates
-│   └── password_reset_email.html
+├── templates/
+│   └── password_reset_email.html
 ├── test_endpoints.sh
 ├── test_results.xml
-└── tests
+└── tests/
     ├── __init__.py
     └── test_manage.py
 
-18 directories, 71 files
+Setup
+Prerequisites
+Python 3.10
 
-# Explanation for the structure:
+PostgreSQL
 
-As you have mentioned the Learn_English django backend project contains three main application: 
+Redis (for Celery)
 
-accounts App: 
-Authentication system 
-Register
-Login
-logout
-Profile Updates (CRUD)
-Forget Password
-Reset Progress
+Virtualenv (optional but recommended)
 
-chatbot App: 
-a chatbot to be trained using machin learning frameworks to help users interact with and help for practicing with users
+Installation
+Clone the repository:
+git clone https://github.com/badrribzat/Learn_English.git
+cd Learn_English
 
-lessons App:
-a lessons progrem with it's content and logic for the Learn_English Project with notes that will makes users able to creates, updates, delete Notes (CRUD) for their learning preposes
+Create a virtual environment and activate it:
+python3 -m venv env
+source env/bin/activate
 
-backend App: 
-the main default django settings project and configurations
+Install dependencies:
+pip install -r django/requirements.txt
 
+Set up the database:
+
+Create a PostgreSQL database and user.
+
+Update the .env file with your database credentials.
+
+Apply migrations:
+python django/manage.py migrate
+
+Create a superuser:
+python django/manage.py createsuperuser
+
+Configuration
+Environment Variables
+
+Create a .env file in the django directory with the following content. 
+Replace the placeholders with your actual values:
+SECRET_KEY=<your_secret_key>
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+FRONTEND_URL=http://localhost:3000
+DB_NAME=<your_database_name>
+DB_USER=<your_database_user>
+DB_PASSWORD=<your_database_password>
+DB_HOST=localhost
+DB_PORT=5432
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=<your_email_host_user>
+EMAIL_HOST_PASSWORD=<your_email_host_password>
+GOOGLE_OAUTH2_CLIENT_ID=<your_google_oauth2_client_id>
+GOOGLE_OAUTH2_CLIENT_SECRET=<your_google_oauth2_client_secret>
+GOOGLE_OAUTH2_REDIRECT_URI=http://localhost:8000/oauth2callback/
+DJANGO_SECRET_KEY=<your_django_secret_key>
+
+Running the Server
+Start the Django development server:
+python django/manage.py runserver
+
+Access the admin interface:
+
+Open your browser and go to http://localhost:8000/admin/.
+
+Testing
+Running Tests
+Run all tests:
+pytest django/
+
+Run specific tests:
+pytest django/tests/test_manage.py
+
+Test Endpoints
+You can use the test_endpoints.sh script to test various API endpoints:
+./django/test_endpoints.sh
+
+API Endpoints
+Authentication
+POST /api/register/ - Register a new user.
+
+POST /api/login/ - Login and get JWT tokens.
+
+POST /api/logout/ - Logout and blacklist tokens.
+
+POST /api/token/refresh/ - Refresh JWT access token.
+
+User Management
+GET /api/profile/ - Get user profile.
+
+GET /api/statistics/ - Get user statistics.
+
+POST /api/upload-profile-picture/ - Upload profile picture.
+
+POST /api/password-reset/ - Request password reset.
+
+Lesson Management
+GET /api/lessons/ - Get all lessons.
+
+GET /api/lessons/{id}/ - Get a specific lesson.
+
+POST /api/update-current-lesson/ - Update current lesson.
+
+Chatbot
+POST /api/chatbot/ - Interact with the chatbot.
+
+Other Endpoints
+GET /api/levels/ - Get all levels.
+
+GET /api/quizzes/ - Get all quizzes.
+
+GET /api/flashcards/ - Get flashcards for a lesson.
+
+POST /api/user-flashcard-progress/ - Submit flashcard progress.
+
+POST /api/user-quiz-attempts/ - Submit quiz attempt.
+
+POST /api/level-test-submit/{id}/ - Submit level test.
+
+POST /api/notes/ - Create a note.
+
+GET /api/notes/ - Get all notes.
+
+PUT /api/notes/{id}/ - Update a note.
+
+DELETE /api/notes/{id}/ - Delete a note.
+
+GET /api/user-progress/ - Get user progress.
+
+POST /api/reset-progress/ - Reset user progress.
+
+Contributing
+Contributions are welcome! Please read the contributing guidelines before getting started.
+
+License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+development process still in progress for the frontend
 
