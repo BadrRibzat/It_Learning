@@ -1,2 +1,31 @@
+<<<<<<< HEAD
 venv/
 node_modules/
+=======
+# Ignore Python bytecode and cache
+__pycache__/
+*.pyc
+
+# Ignore environment files
+.env
+.env/
+
+# Ignore coverage, test, and log files
+.coverage
+*.xml
+*.log
+pytest_results.xml
+pytest.ini
+
+# Ignore virtual environment folder
+.venv/
+
+# Ignore media/uploads
+media/
+profile_pictures/
+
+# Node and other dependencies (for frontend)
+node_modules/
+dist/
+
+>>>>>>> 0b45ad5 (Add .gitignore to exclude unnecessary files and directories)
