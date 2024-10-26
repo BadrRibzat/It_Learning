@@ -22,9 +22,9 @@ class LessonAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
 class FlashcardAdmin(admin.ModelAdmin):
-    list_display = ('word', 'lesson', 'meaning', 'question')
+    list_display = ('word', 'lesson', 'definition')  # Corrected field names
     list_filter = ('lesson',)
-    search_fields = ('word', 'meaning', 'question')
+    search_fields = ('word', 'definition')  # Corrected field names
 
 class QuizAdmin(admin.ModelAdmin):
     list_display = ('title', 'lesson')
@@ -32,9 +32,9 @@ class QuizAdmin(admin.ModelAdmin):
     search_fields = ('title',)
 
 class QuizQuestionAdmin(admin.ModelAdmin):
-    list_display = ('question', 'quiz', 'correct_answer')
+    list_display = ('question_text', 'quiz', 'correct_answer')  # Corrected field name
     list_filter = ('quiz',)
-    search_fields = ('question',)
+    search_fields = ('question_text',)  # Corrected field name
 
 class LevelTestAdmin(admin.ModelAdmin):
     list_display = ('level',)
@@ -42,9 +42,9 @@ class LevelTestAdmin(admin.ModelAdmin):
     search_fields = ('level__name',)
 
 class LevelTestQuestionAdmin(admin.ModelAdmin):
-    list_display = ('question', 'level_test', 'correct_answer')
+    list_display = ('question_text', 'level_test', 'correct_answer')  # Corrected field name
     list_filter = ('level_test',)
-    search_fields = ('question',)
+    search_fields = ('question_text',)  # Corrected field name
 
 class UserQuizAttemptAdmin(admin.ModelAdmin):
     list_display = ('user', 'quiz', 'score', 'date_attempted')

@@ -26,7 +26,7 @@ class NoteAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'content')
 
 class UserFlashcardProgressAdmin(admin.ModelAdmin):
-    list_display = ('user', 'flashcard', 'completed', 'correct_attempts')
+    list_display = ('user', 'flashcard', 'completed', 'date_completed')  # Corrected field name
     list_filter = ('completed',)
     search_fields = ('user__username', 'flashcard__word')
 
