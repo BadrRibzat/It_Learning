@@ -21,7 +21,7 @@ class Lesson(models.Model):
 class Flashcard(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     word = models.CharField(max_length=255)
-    definition = models.TextField()
+    definition = models.TextField(default="No definition available")
 
     def __str__(self):
         return self.word
@@ -35,25 +35,25 @@ class Quiz(models.Model):
 
 class QuizQuestion(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
-    question_text = models.TextField()
+    question_text = models.TextField(default="Default Question Text")  # Add default value
     correct_answer = models.CharField(max_length=255)
-    options = models.JSONField()
+    options = models.JSONField(default=list)
 
     def __str__(self):
         return self.question_text
 
 class LevelTest(models.Model):
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, default="Default Level Test Title")
 
     def __str__(self):
         return self.title
 
 class LevelTestQuestion(models.Model):
     level_test = models.ForeignKey(LevelTest, on_delete=models.CASCADE)
-    question_text = models.TextField()
+    question_text = models.TextField(default="Default Question Text")  # Add default value
     correct_answer = models.CharField(max_length=255)
-    options = models.JSONField()
+    options = models.JSONField(default=list)
 
     def __str__(self):
         return self.question_text
