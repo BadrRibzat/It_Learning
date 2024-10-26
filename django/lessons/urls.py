@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     LevelViewSet, LessonViewSet, FlashcardViewSet, QuizViewSet, QuizQuestionViewSet,
     UserProgressViewSet, UserFlashcardProgressViewSet, UserQuizAttemptViewSet, UserLevelProgressViewSet,
-    recommend_next_lesson, flashcard_submit, level_test_submit
+    recommend_next_lesson, flashcard_submit, level_test_submit, LevelTestViewSet, LevelTestQuestionViewSet
 )
 
 router = DefaultRouter()
@@ -12,6 +12,8 @@ router.register(r'lessons', LessonViewSet)
 router.register(r'flashcards', FlashcardViewSet)
 router.register(r'quizzes', QuizViewSet)
 router.register(r'quiz-questions', QuizQuestionViewSet)
+router.register(r'level-tests', LevelTestViewSet)
+router.register(r'level-test-questions', LevelTestQuestionViewSet)
 router.register(r'user-progress', UserProgressViewSet)
 router.register(r'user-flashcard-progress', UserFlashcardProgressViewSet)
 router.register(r'user-quiz-attempts', UserQuizAttemptViewSet)
