@@ -42,6 +42,22 @@ class QuizQuestion(models.Model):
     def __str__(self):
         return self.question_text
 
+class LevelTest(models.Model):
+    level = models.ForeignKey(Level, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.title
+
+class LevelTestQuestion(models.Model):
+    level_test = models.ForeignKey(LevelTest, on_delete=models.CASCADE)
+    question_text = models.TextField()
+    correct_answer = models.CharField(max_length=255)
+    options = models.JSONField()
+
+    def __str__(self):
+        return self.question_text
+
 class UserProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)

@@ -2,8 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .serializers import LevelSerializer, LessonSerializer, FlashcardSerializer, QuizSerializer, QuizQuestionSerializer, UserProgressSerializer, UserFlashcardProgressSerializer, UserQuizAttemptSerializer, UserLevelProgressSerializer
-from .models import Level, Lesson, Flashcard, Quiz, QuizQuestion, UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress
+from .serializers import LevelSerializer, LessonSerializer, FlashcardSerializer, QuizSerializer, QuizQuestionSerializer, UserProgressSerializer, UserFlashcardProgressSerializer, UserQuizAttemptSerializer, UserLevelProgressSerializer, LevelTestSerializer, LevelTestQuestionSerializer
+from .models import Level, Lesson, Flashcard, Quiz, QuizQuestion, UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress, LevelTest, LevelTestQuestion
 
 class LevelViewSet(viewsets.ModelViewSet):
     queryset = Level.objects.all()
@@ -24,6 +24,14 @@ class QuizViewSet(viewsets.ModelViewSet):
 class QuizQuestionViewSet(viewsets.ModelViewSet):
     queryset = QuizQuestion.objects.all()
     serializer_class = QuizQuestionSerializer
+
+class LevelTestViewSet(viewsets.ModelViewSet):
+    queryset = LevelTest.objects.all()
+    serializer_class = LevelTestSerializer
+
+class LevelTestQuestionViewSet(viewsets.ModelViewSet):
+    queryset = LevelTestQuestion.objects.all()
+    serializer_class = LevelTestQuestionSerializer
 
 class UserProgressViewSet(viewsets.ModelViewSet):
     queryset = UserProgress.objects.all()
