@@ -205,6 +205,13 @@ REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
 
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:8080')
 
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    ]
+
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",
@@ -246,8 +253,3 @@ DEFAULT_FROM_EMAIL = 'badrribzat@gmail.com'
 
 # Test Runner
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-    ]
