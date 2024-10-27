@@ -116,8 +116,6 @@ def level_test_submit(request, pk):
             level_progress.completed = True
             level_progress.save()
 
-            return Response({'status': 'level up', 'points_earned': 100, 'score': score})
-        else:
-            return Response({'status': 'test completed', 'score': score})
+        return Response({'status': 'level up', 'points_earned': 100, 'score': score})
     except LevelTest.DoesNotExist:
         return Response({'error': 'Level test not found'}, status=status.HTTP_404_NOT_FOUND)
