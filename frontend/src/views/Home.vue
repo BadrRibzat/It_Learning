@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-background">
+  <div class="bg-white">
     <HeroSection />
     <FeatureSection />
     <DemoFlashcard />
