@@ -309,4 +309,3 @@ def check_user(request):
             'password_correct': user.check_password(password)
         })
     return Response({'user_exists': False})
-
