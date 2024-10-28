@@ -20,7 +20,13 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "orContinueWith": "Or continue with",
-    "googleAuth": "Google"
+    "googleAuth": "Google",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "name": "Name",
+    "login.link": "Login",
+    "register.link": "Register"
   },
   "common": {
     "loading": "Loading..."
@@ -71,5 +77,47 @@
   "about": {
     "title": "About Us",
     "description": "Learn more about our app and mission."
+  },
+  "try_it_yourself": "Try It Yourself",
+  "interactive_demo_description": "Engage with our interactive demo to experience the learning process.",
+  "click_to_flip": "Click to flip",
+  "type_your_answer": "Type your answer",
+  "dashboard": {
+    "title": "Dashboard",
+    "progressOverview": "Progress Overview",
+    "recentActivity": "Recent Activity",
+    "recommendedLessons": "Recommended Lessons",
+    "continueLearning": "Continue Learning"
+  },
+  "home": {
+    "heroSection": {
+      "title": "Learn languages with interactive flashcards",
+      "description": "Boost your language skills with our engaging and effective flashcard system. Start your journey to fluency today!"
+    },
+    "featureSection": {
+      "title": "A better way to learn languages",
+      "description": "Our flashcard system is designed to help you learn faster and retain information longer."
+    },
+    "testimonialSection": {
+      "title": "Hear from our satisfied learners",
+      "description": "Discover how our flashcard system has helped people achieve their language learning goals."
+    }
+  },
+  "flashcard": {
+    "correct": "Correct! Well done! 🎉",
+    "incorrect": "Not quite. The correct word is \"{word}\". Try again!"
+  },
+  "quiz": {
+    "title": "Quiz",
+    "startQuiz": "Start Quiz",
+    "submitQuiz": "Submit Quiz"
+  },
+  "notes": {
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "chat": {
+    "title": "Chat",
+    "typeMessage": "Type a message..."
   }
 }
