@@ -1,6 +1,6 @@
 <template>
   <div class="chat-view">
-    <h1>Chat</h1>
+    <h1 class="text-3xl font-bold mb-4">Chat</h1>
     <ChatWindow />
   </div>
 </template>

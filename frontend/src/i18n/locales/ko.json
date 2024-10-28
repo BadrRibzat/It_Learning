@@ -67,5 +67,9 @@
   "chatbot": {
     "title": "챗봇",
     "typeMessage": "메시지 입력..."
+  },
+  "about": {
+    "title": "우리에 대해",
+    "description": "우리 앱과 미션에 대해 자세히 알아보세요."
   }
 }
