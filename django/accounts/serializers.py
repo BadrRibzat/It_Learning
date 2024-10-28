@@ -71,4 +71,3 @@ class NoteSerializer(serializers.ModelSerializer):
         model = Note
         fields = ['id', 'user', 'content', 'created_at', 'note_type']
         read_only_fields = ['id', 'created_at', 'user']
-
