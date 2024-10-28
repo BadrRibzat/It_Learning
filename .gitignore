@@ -1,10 +1,8 @@
-<<<<<<< HEAD
 venv/
 node_modules/
-=======
 # Ignore Python bytecode and cache
-__pycache__/
-*.pyc
+**/__pycache__/
+**/migrations/
 
 # Ignore environment files
 .env
@@ -28,5 +26,4 @@ profile_pictures/
 node_modules/
 dist/
 
->>>>>>> 0b45ad5 (Add .gitignore to exclude unnecessary files and directories)
 frontend/frontend_backup/

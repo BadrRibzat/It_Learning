@@ -1,0 +1,71 @@
+{
+  "hello": "مرحبا",
+  "welcome": "مرحبا بك في تطبيقنا!",
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "submit": "تسجيل الدخول",
+      "success": "تم تسجيل الدخول بنجاح",
+      "error": "فشل تسجيل الدخول"
+    },
+    "register": {
+      "title": "التسجيل",
+      "submit": "التسجيل",
+      "success": "تم التسجيل بنجاح",
+      "error": "فشل التسجيل",
+      "passwordMismatch": "كلمات المرور غير متطابقة"
+    },
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "rememberMe": "تذكرني",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "هل لديك حساب؟",
+    "orContinueWith": "أو تابع مع",
+    "googleAuth": "جوجل"
+  },
+  "common": {
+    "loading": "جار التحميل..."
+  },
+  "lessons": {
+    "availableLessons": "الدروس المتاحة",
+    "exploreAndLearn": "استكشف وتعلم",
+    "noLessonsFound": "لم يتم العثور على دروس",
+    "tryAdjustingFilters": "حاول ضبط الفلاتر",
+    "loadMore": "تحميل المزيد",
+    "completed": "مكتمل",
+    "continue": "استمر",
+    "start": "ابدأ",
+    "difficulty": {
+      "beginner": "مبتدئ",
+      "intermediate": "متوسط",
+      "advanced": "متقدم"
+    },
+    "sort": {
+      "newest": "الأحدث",
+      "rating": "التقييم",
+      "popular": "الأكثر شعبية"
+    },
+    "allLevels": "جميع المستويات",
+    "allCategories": "جميع الفئات"
+  },
+  "notes": {
+    "title": "الملاحظات",
+    "createNote": "إنشاء ملاحظة",
+    "editNote": "تعديل الملاحظة",
+    "deleteNote": "حذف الملاحظة",
+    "save": "حفظ",
+    "cancel": "إلغاء"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "personalInformation": "المعلومات الشخصية",
+    "statistics": "الإحصائيات",
+    "totalLessonsCompleted": "إجمالي الدروس المكتملة",
+    "totalPoints": "إجمالي النقاط",
+    "currentLevel": "المستوى الحالي",
+    "save": "حفظ"
+  },
+  "chatbot": {
+    "title": "روبوت الدردشة",
+    "typeMessage": "اكتب رسالة..."
+  }
+}
