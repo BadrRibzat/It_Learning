@@ -67,5 +67,9 @@
   "chatbot": {
     "title": "Chatbot",
     "typeMessage": "Escribe un mensaje..."
+  },
+  "about": {
+    "title": "Acerca de nosotros",
+    "description": "Aprende más sobre nuestra aplicación y nuestra misión."
   }
 }

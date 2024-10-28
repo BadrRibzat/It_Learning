@@ -22,6 +22,7 @@ const routes = [
       { path: 'notes', name: 'Notes', component: () => import('@/views/notes/Notes.vue'), meta: { requiresAuth: true } },
       { path: 'quiz/:quizId', name: 'Quiz', component: () => import('@/views/lessons/Quiz.vue'), meta: { requiresAuth: true } },
       { path: 'chat', name: 'Chat', component: () => import('@/views/chat/ChatView.vue'), meta: { requiresAuth: true } },
+      { path: 'about', name: 'About', component: () => import('@/views/About.vue') }, // Add this line
     ],
   },
   {
