@@ -1,12 +1,10 @@
-venv/
-node_modules/
 # Ignore Python bytecode and cache
 **/__pycache__/
 **/migrations/
 
 # Ignore environment files
 .env
-.env/
+**/env/
 
 # Ignore coverage, test, and log files
 .coverage
@@ -17,6 +15,7 @@ pytest.ini
 
 # Ignore virtual environment folder
 .venv/
+venv/
 
 # Ignore media/uploads
 media/
@@ -26,4 +25,65 @@ profile_pictures/
 node_modules/
 dist/
 
+# Ignore frontend backup
 frontend/frontend_backup/
+
+# Ignore sensitive files
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.der
+*.p7b
+*.p7c
+*.cer
+*.csr
+*.p7r
+*.p7s
+*.p10
+
+# Ignore cache directories
+**/cache/
+**/tmp/
+
+# Ignore IDE-specific files
+.idea/
+.vscode/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore database files
+*.sqlite3
+*.db
+
+# Ignore build artifacts
+build/
+dist/
+*.egg-info/
+
+# Ignore local configuration files
+local_settings.py
+
+# Ignore Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore npm and yarn lock files
+package-lock.json
+yarn.lock
+
+# Ignore other common files
+*.swp
+*.swo
+*.swn
+*.orig
+*.bak
+*.old
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pyzw
