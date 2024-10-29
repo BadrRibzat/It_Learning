@@ -8,10 +8,11 @@ router = DefaultRouter()
 router.register(r'notes', NoteViewSet, basename='note')
 
 urlpatterns = [
-    path('register/', RegisterView.as_view(), name='register'),
-    path('login/', LoginView.as_view(), name='login'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('logout/', LogoutView.as_view(), name='logout'),
+    path('login/', LoginView.as_view(), name='token_obtain_pair'),
+    path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('logout/', LogoutView.as_view(), name='auth_logout'),
+    path('register/', RegisterView.as_view(), name='auth_register'),
+
     path('profile/', ProfileView.as_view(), name='user_profile'),
     path('statistics/', UserStatisticsView.as_view(), name='user_statistics'),
     path('password-reset/', PasswordResetView.as_view(), name='password_reset'),

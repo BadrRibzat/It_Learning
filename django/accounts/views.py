@@ -79,40 +79,20 @@ class RegisterView(APIView):
         logger.debug(f"Serializer errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class LoginView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
-        user = User.objects.filter(email=email).first()
-        if user is None or not user.check_password(password):
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'user': UserSerializer(user).data,
-        }, status=status.HTTP_200_OK)
-
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+class LoginView(TokenObtainPairView):
+    pass
 
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         try:
-            refresh_token = request.data.get('refresh_token')
-            if refresh_token is None:
-                return Response({'detail': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
-
+            refresh_token = request.data["refresh_token"]
             token = RefreshToken(refresh_token)
             token.blacklist()
-
-            return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class UploadProfilePictureView(APIView):
     """

@@ -3,7 +3,9 @@ import axios from '../axios';
 export const authService = {
   login: (credentials) => axios.post('/api/login/', credentials),
   register: (userData) => axios.post('/api/register/', userData),
-  logout: () => axios.post('/api/logout/'),
+  logout: (token) => axios.post('/api/logout/', {}, {
+  headers: { Authorization: `Bearer ${token}` }
+}),
   resetPassword: (email) => axios.post('/api/password-reset/', { email }),
   confirmResetPassword: (data) => axios.post('/api/password-reset-confirm/', data),
   getProfile: () => axios.get('/api/profile/'),
