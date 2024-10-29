@@ -59,19 +59,19 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="bg-gray-100 p-4 rounded-lg">
             <h3 class="text-lg font-bold mb-2">Total Lessons Completed</h3>
-            <p class="text-gray-600">{{ statistics.lessonsCompleted || 0 }}</p>
+            <p class="text-gray-600">{{ statistics.completed_lessons || 0 }}</p>
           </div>
           <div class="bg-gray-100 p-4 rounded-lg">
             <h3 class="text-lg font-bold mb-2">Total Points</h3>
-            <p class="text-gray-600">{{ statistics.totalPoints || 0 }}</p>
+            <p class="text-gray-600">{{ statistics.total_points || 0 }}</p>
           </div>
           <div class="bg-gray-100 p-4 rounded-lg">
             <h3 class="text-lg font-bold mb-2">Current Level</h3>
-            <p class="text-gray-600">{{ statistics.currentLevel || 1 }}</p>
+            <p class="text-gray-600">{{ statistics.current_level || 1 }}</p>
           </div>
           <div class="bg-gray-100 p-4 rounded-lg">
-            <h3 class="text-lg font-bold mb-2">Learning Streak</h3>
-            <p class="text-gray-600">{{ statistics.learningStreak || 0 }} days</p>
+            <h3 class="text-lg font-bold mb-2">Correct Flashcards</h3>
+            <p class="text-gray-600">{{ statistics.correct_flashcards || 0 }} / {{ statistics.total_flashcards || 0 }}</p>
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@ const form = ref({
   profilePicture: null,
 });
 
-const statistics = ref({});
+const statistics = ref(null);
 
 onMounted(async () => {
   await fetchProfileData();
@@ -104,7 +104,11 @@ onMounted(async () => {
 const fetchProfileData = async () => {
   try {
     const profileData = await store.dispatch('profile/fetchProfile');
-    form.value = { ...profileData };
+    form.value = { 
+      username: profileData.username,
+      email: profileData.email,
+      bio: profileData.bio || '',
+    };
   } catch (error) {
     show('Failed to load profile data', 'error');
   }
@@ -115,7 +119,7 @@ const fetchStatistics = async () => {
     statistics.value = await store.dispatch('profile/fetchStatistics');
   } catch (error) {
     show('Failed to load statistics', 'error');
-    statistics.value = {}; // Set to an empty object to prevent undefined errors
+    statistics.value = null;
   }
 };
 
