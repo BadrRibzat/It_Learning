@@ -21,9 +21,18 @@ const level = ref({});
 const lessons = ref([]);
 
 onMounted(async () => {
-  const { data } = await lessonService.getLevel(levelId);
-  level.value = data;
-  const { data: lessonData } = await lessonService.getLessons(levelId);
-  lessons.value = lessonData;
+  try {
+    const { data } = await lessonService.getLessons(levelId);
+    lessons.value = data;
+    // Assuming the first lesson contains level information
+    if (data.length > 0) {
+      level.value = {
+        name: `Level ${data[0].level}`,
+        description: `Lessons for level ${data[0].level}`
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching level details:', error);
+  }
 });
 </script>
