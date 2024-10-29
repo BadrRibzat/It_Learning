@@ -5,7 +5,7 @@ export default {
   namespaced: true,
   state: {
     token: localStorage.getItem('token') || null,
-    user: null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
     loading: false,
     error: null,
   },
@@ -20,6 +20,11 @@ export default {
     },
     SET_USER(state, user) {
       state.user = user;
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('user');
+      }
     },
     SET_LOADING(state, loading) {
       state.loading = loading;
@@ -38,7 +43,7 @@ export default {
         router.push('/dashboard');
         return true;
       } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Login failed');
+        commit('SET_ERROR', error.response?.data?.detail || 'Login failed');
         return false;
       } finally {
         commit('SET_LOADING', false);
@@ -53,7 +58,7 @@ export default {
         router.push('/dashboard');
         return true;
       } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Registration failed');
+        commit('SET_ERROR', error.response?.data?.detail || 'Registration failed');
         return false;
       } finally {
         commit('SET_LOADING', false);
@@ -64,7 +69,7 @@ export default {
         await authService.logout();
         commit('SET_TOKEN', null);
         commit('SET_USER', null);
-        router.push('/login');
+        router.push('/auth/login');
       } catch (error) {
         console.error('Logout failed:', error);
       }
@@ -75,22 +80,6 @@ export default {
         commit('SET_USER', data);
       } catch (error) {
         console.error('Failed to get profile:', error);
-      }
-    },
-    async updateProfile({ commit }, profileData) {
-      try {
-        const { data } = await authService.updateProfile(profileData);
-        commit('SET_USER', data);
-      } catch (error) {
-        console.error('Failed to update profile:', error);
-      }
-    },
-    async uploadProfilePicture({ commit }, formData) {
-      try {
-        const { data } = await authService.uploadProfilePicture(formData);
-        commit('SET_USER', { ...this.state.auth.user, profile_picture: data.profile_picture });
-      } catch (error) {
-        console.error('Failed to upload profile picture:', error);
       }
     },
   },

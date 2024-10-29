@@ -9,14 +9,14 @@
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="rounded-md shadow-sm -space-y-px">
           <div>
-            <label for="name" class="sr-only">{{ $t('auth.name') }}</label>
+            <label for="username" class="sr-only">{{ $t('auth.username') }}</label>
             <input
-              id="name"
-              v-model="form.name"
+              id="username"
+              v-model="form.username"
               type="text"
               required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-              :placeholder="$t('auth.name')"
+              :placeholder="$t('auth.username')"
             />
           </div>
           <div>
@@ -89,34 +89,45 @@
 import { ref } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import { useAuth } from '@/composables/useAuth';
 import { useNotification } from '@/composables/useNotification';
 
 const store = useStore();
 const router = useRouter();
+const { show } = useNotification();
 
 const form = ref({
-  name: '',
+  username: '',
   email: '',
   password: '',
-  password_confirmation: '',
+  passwordConfirmation: '',
 });
 
+const loading = ref(false);
+
 const handleSubmit = async () => {
-  if (form.value.password !== form.value.password_confirmation) {
-    // Handle password mismatch error
+  if (form.value.password !== form.value.passwordConfirmation) {
+    show('Passwords do not match', 'error');
     return;
   }
 
-  const success = await store.dispatch('auth/register', {
-    name: form.value.name,
-    email: form.value.email,
-    password: form.value.password,
-    password_confirmation: form.value.password_confirmation,
-  });
+  try {
+    loading.value = true;
+    const success = await store.dispatch('auth/register', {
+      username: form.value.username,
+      email: form.value.email,
+      password: form.value.password,
+    });
 
-  if (success) {
-    router.push('/dashboard');
+    if (success) {
+      show('Registration successful', 'success');
+      router.push('/dashboard');
+    } else {
+      show(store.state.auth.error || 'Registration failed', 'error');
+    }
+  } catch (error) {
+    show(error.message || 'Registration failed', 'error');
+  } finally {
+    loading.value = false;
   }
 };
 </script>
