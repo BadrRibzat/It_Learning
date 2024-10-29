@@ -13,7 +13,7 @@
             <h3 class="text-xl font-bold text-gray-900">{{ flashcard.question }}</h3>
             <p class="mt-2 text-gray-600">{{ flashcard.meaning }}</p>
           </div>
-          <p class="text-sm text-gray-500">{{ $t('click_to_flip') }}</p>
+          <p class="text-sm text-gray-500">Click to flip</p>
         </div>
       </div>
 
@@ -24,13 +24,13 @@
         <div class="h-full flex flex-col justify-between">
           <div>
             <p class="text-lg font-medium text-gray-900">
-              {{ flashcard.question }}
+              {{ flashcard.answer }}
             </p>
             <input
-              v-model="answer"
+              v-model="userAnswer"
               type="text"
               class="mt-4 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
-              :placeholder="$t('type_your_answer')"
+              placeholder="Type your answer"
               @keyup.enter="checkAnswer"
               @click.stop
             />
@@ -42,6 +42,12 @@
               {{ feedbackMessage }}
             </div>
           </div>
+          <button
+            @click.stop="nextFlashcard"
+            class="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>
@@ -58,8 +64,10 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(['next']);
+
 const isFlipped = ref(false);
-const answer = ref('');
+const userAnswer = ref('');
 const showFeedback = ref(false);
 const isCorrect = ref(false);
 
@@ -69,20 +77,20 @@ const feedbackClass = computed(() => {
 
 const feedbackMessage = computed(() => {
   return isCorrect.value
-    ? 'Correct! Well done! 🎉'
-    : `Not quite. The correct word is "${props.flashcard.answer}". Try again!`;
+    ? 'Correct! Well done!'
+    : `Not quite. The correct answer is "${props.flashcard.answer}".`;
 });
 
 const checkAnswer = () => {
-  isCorrect.value = answer.value.toLowerCase() === props.flashcard.answer.toLowerCase();
+  isCorrect.value = userAnswer.value.toLowerCase() === props.flashcard.answer.toLowerCase();
   showFeedback.value = true;
-  setTimeout(() => {
-    if (isCorrect.value) {
-      answer.value = '';
-      isFlipped.value = false;
-      showFeedback.value = false;
-    }
-  }, 2000);
+};
+
+const nextFlashcard = () => {
+  emit('next');
+  isFlipped.value = false;
+  userAnswer.value = '';
+  showFeedback.value = false;
 };
 </script>
 
