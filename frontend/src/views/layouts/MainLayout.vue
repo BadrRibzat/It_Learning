@@ -23,7 +23,7 @@
                 <router-link to="/auth/login" class="text-sm font-medium text-gray-500 hover:text-gray-900">Login</router-link>
                 <router-link to="/auth/register" class="ml-4 text-sm font-medium text-primary hover:text-primary-dark">Register</router-link>
               </template>
-              <button v-else @click="handleLogout" class="text-sm font-medium text-gray-500 hover:text-gray-900">Logout</button>
+              <button v-if="isAuthenticated" @click="handleLogout" class="text-sm font-medium text-gray-500 hover:text-gray-900">Logout</button>
             </div>
           </div>
         </div>
@@ -49,7 +49,6 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import Chatbot from '@/components/chat/Chatbot.vue';
 import { useNotification } from '@/composables/useNotification';
 
 const store = useStore();
@@ -59,12 +58,16 @@ const { show } = useNotification();
 const isAuthenticated = computed(() => store.getters['auth/isAuthenticated']);
 
 const handleLogout = async () => {
-  try {
-    await store.dispatch('auth/logout');
-    show('Logout successful', 'success');
+  if (isAuthenticated.value) {
+    try {
+      await store.dispatch('auth/logout');
+      show('Logout successful', 'success');
+      router.push('/auth/login');
+    } catch (error) {
+      show('Logout failed', 'error');
+    }
+  } else {
     router.push('/auth/login');
-  } catch (error) {
-    show('Logout failed', 'error');
   }
 };
 </script>

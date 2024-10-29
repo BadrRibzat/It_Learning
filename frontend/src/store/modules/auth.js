@@ -1,5 +1,4 @@
 import { authService } from '@/api/services/auth';
-import router from '@/router';
 
 export default {
   namespaced: true,
@@ -40,13 +39,22 @@ export default {
         const { data } = await authService.login(credentials);
         commit('SET_TOKEN', data.access);
         commit('SET_USER', data.user);
-        router.push('/dashboard');
         return true;
       } catch (error) {
         commit('SET_ERROR', error.response?.data?.detail || 'Login failed');
         return false;
       } finally {
         commit('SET_LOADING', false);
+      }
+    },
+    async logout({ commit }) {
+      try {
+        await authService.logout();
+      } catch (error) {
+        console.error('Logout failed:', error);
+      } finally {
+        commit('SET_TOKEN', null);
+        commit('SET_USER', null);
       }
     },
     async register({ commit }, userData) {
@@ -62,16 +70,6 @@ export default {
         return false;
       } finally {
         commit('SET_LOADING', false);
-      }
-    },
-    async logout({ commit }) {
-      try {
-        await authService.logout();
-        commit('SET_TOKEN', null);
-        commit('SET_USER', null);
-        router.push('/auth/login');
-      } catch (error) {
-        console.error('Logout failed:', error);
       }
     },
     async getProfile({ commit }) {
