@@ -13,5 +13,4 @@ export const profileService = {
     axios.post('/api/update-current-lesson/', { lesson_id: lessonId }),
   resetProgress: () => axios.post('/api/reset-progress/'),
   getUserProgress: () => axios.get('/api/user-progress/'),
-  getRecentActivity: () => axios.get('/api/recent-activity/'),
 };
