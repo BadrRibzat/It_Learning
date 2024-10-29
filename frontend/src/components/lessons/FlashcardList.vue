@@ -19,7 +19,7 @@
       <h3 class="text-2xl font-bold mb-4">Congratulations!</h3>
       <p>You've completed all flashcards for this lesson.</p>
       <button
-        @click="$emit('complete')"
+        @click="completeFlashcards"
         class="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
       >
         Back to Lesson
@@ -32,7 +32,8 @@
 import { ref } from 'vue';
 import Flashcard from './Flashcard.vue';
 
-const props = defineProps({
+// Define props directly without assigning to a variable
+const { flashcards } = defineProps({
   flashcards: {
     type: Array,
     required: true,
@@ -45,5 +46,9 @@ const currentFlashcardIndex = ref(0);
 
 const nextFlashcard = () => {
   currentFlashcardIndex.value++;
+};
+
+const completeFlashcards = () => {
+  emit('complete');
 };
 </script>
