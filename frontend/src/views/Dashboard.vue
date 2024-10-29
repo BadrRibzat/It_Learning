@@ -5,9 +5,9 @@
       <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-bold mb-4">Progress Overview</h2>
         <div class="mb-4">
-          <p class="text-gray-600">Current Level: {{ userProgress.currentLevel }}</p>
-          <p class="text-gray-600">Total Points: {{ userProgress.totalPoints }}</p>
-          <p class="text-gray-600">Lessons Completed: {{ userProgress.lessonsCompleted }}</p>
+          <p class="text-gray-600">Current Level: {{ userProgress.current_level || 1 }}</p>
+          <p class="text-gray-600">Total Points: {{ userProgress.total_points || 0 }}</p>
+          <p class="text-gray-600">Lessons Completed: {{ userProgress.completed_lessons || 0 }}</p>
         </div>
         <router-link
           to="/lessons"
@@ -29,7 +29,7 @@
         <ul class="space-y-2">
           <li v-for="lesson in recommendedLessons" :key="lesson.id">
             <router-link
-              :to="{ name: 'LessonDetail', params: { levelId: lesson.levelId, lessonId: lesson.id } }"
+              :to="{ name: 'LessonDetail', params: { levelId: lesson.level, lessonId: lesson.id } }"
               class="text-primary hover:underline"
             >
               {{ lesson.title }}
@@ -58,8 +58,9 @@ onMounted(async () => {
 const fetchDashboardData = async () => {
   try {
     userProgress.value = await store.dispatch('profile/fetchUserProgress');
-    recentActivity.value = await store.dispatch('profile/fetchRecentActivity');
     recommendedLessons.value = await store.dispatch('lessons/fetchRecommendedLessons');
+    // For recent activity, we'll need to implement this endpoint in the backend
+    // recentActivity.value = await store.dispatch('profile/fetchRecentActivity');
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
   }
