@@ -33,8 +33,10 @@ export default {
         commit('SET_LOADING', true);
         const { data } = await profileService.getProfile();
         commit('SET_PROFILE', data);
+        return data;
       } catch (error) {
         commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch profile');
+        throw error;
       } finally {
         commit('SET_LOADING', false);
       }
@@ -44,6 +46,7 @@ export default {
         commit('SET_LOADING', true);
         const { data } = await profileService.updateProfile(profileData);
         commit('SET_PROFILE', data);
+        return data;
       } catch (error) {
         commit('SET_ERROR', error.response?.data?.message || 'Failed to update profile');
         throw error;
@@ -56,6 +59,7 @@ export default {
         commit('SET_LOADING', true);
         const { data } = await profileService.uploadProfilePicture(formData);
         commit('UPDATE_PROFILE_PICTURE', data.pictureUrl);
+        return data;
       } catch (error) {
         commit('SET_ERROR', error.response?.data?.message || 'Failed to upload picture');
         throw error;
@@ -68,28 +72,36 @@ export default {
         commit('SET_LOADING', true);
         const { data } = await profileService.getStatistics();
         commit('SET_STATISTICS', data);
+        return data;
       } catch (error) {
         commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch statistics');
+        throw error;
       } finally {
         commit('SET_LOADING', false);
       }
     },
-    async fetchUserProgress() {
+    async fetchUserProgress({ commit }) {
       try {
+        commit('SET_LOADING', true);
         const { data } = await profileService.getUserProgress();
         return data;
       } catch (error) {
-        console.error('Failed to fetch user progress:', error);
+        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch user progress');
         throw error;
+      } finally {
+        commit('SET_LOADING', false);
       }
     },
-    async fetchRecentActivity() {
+    async resetProgress({ commit }) {
       try {
-        const { data } = await profileService.getRecentActivity();
-        return data;
+        commit('SET_LOADING', true);
+        await profileService.resetProgress();
+        commit('SET_STATISTICS', null);
       } catch (error) {
-        console.error('Failed to fetch recent activity:', error);
+        commit('SET_ERROR', error.response?.data?.message || 'Failed to reset progress');
         throw error;
+      } finally {
+        commit('SET_LOADING', false);
       }
     },
   },
