@@ -226,31 +226,7 @@ class PasswordResetView(APIView):
                 return Response({"detail": "Password reset email sent"}, status=status.HTTP_200_OK)
         return Response({"detail": "Email not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-class UserStatisticsView(APIView):
-    """
-    Retrieve user statistics.
-    """
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        completed_lessons = UserProgress.objects.filter(user=user, completed=True).count()
-        total_lessons = Lesson.objects.count()
-        correct_flashcards = UserFlashcardProgress.objects.filter(user=user, completed=True).count()
-        total_flashcards = Flashcard.objects.count()
-
-        return Response({
-            'completed_lessons': completed_lessons,
-            'total_lessons': total_lessons,
-            'correct_flashcards': correct_flashcards,
-            'total_flashcards': total_flashcards,
-            'current_level': user.level
-        })
-
 class ProfileView(APIView):
-    """
-    Retrieve or update user profile.
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -263,6 +239,20 @@ class ProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserStatisticsSerializer(request.user)
+        return Response(serializer.data)
+
+class UserProgressView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserProgressSerializer(request.user)
+        return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

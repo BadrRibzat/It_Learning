@@ -56,8 +56,37 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'points', 'level', 'language']
-        read_only_fields = ['id', 'email', 'points', 'level']
+        fields = ['id', 'username', 'email', 'bio', 'profile_picture']
+        read_only_fields = ['id', 'email']
+
+class UserStatisticsSerializer(serializers.ModelSerializer):
+    completed_lessons = serializers.SerializerMethodField()
+    total_points = serializers.IntegerField(source='points')
+    correct_flashcards = serializers.SerializerMethodField()
+    total_flashcards = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['completed_lessons', 'total_points', 'level', 'correct_flashcards', 'total_flashcards']
+
+    def get_completed_lessons(self, obj):
+        return obj.completed_lessons_count()
+
+    def get_correct_flashcards(self, obj):
+        return obj.correct_flashcards_count()
+
+    def get_total_flashcards(self, obj):
+        return obj.total_flashcards_count()
+
+class UserProgressSerializer(serializers.ModelSerializer):
+    completed_lessons = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['level', 'points', 'completed_lessons']
+
+    def get_completed_lessons(self, obj):
+        return obj.completed_lessons_count()
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
