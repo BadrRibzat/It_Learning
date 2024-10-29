@@ -2,7 +2,12 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import ( CustomTokenObtainPairView, RegisterView, LoginView, ProfileView, UserStatisticsView, PasswordResetView, PasswordResetConfirmView, LogoutView, ResetProgressView, UploadProfilePictureView, NoteViewSet, RecommendedLessonsView, update_current_lesson )
+from .views import (
+    CustomTokenObtainPairView, RegisterView, LoginView, ProfileView,
+    UserStatisticsView, PasswordResetView, PasswordResetConfirmView,
+    LogoutView, ResetProgressView, UploadProfilePictureView, NoteViewSet,
+    RecommendedLessonsView, update_current_lesson, UserProgressView
+)
 
 router = DefaultRouter()
 router.register(r'notes', NoteViewSet, basename='note')
@@ -15,7 +20,6 @@ urlpatterns = [
 
     path('profile/', ProfileView.as_view(), name='user_profile'),
     path('statistics/', UserStatisticsView.as_view(), name='user_statistics'),
-    path('user-progress/', UserProgressView.as_view(), name='user_progress'),
     path('password-reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset-progress/', ResetProgressView.as_view(), name='reset_progress'),
@@ -25,4 +29,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('check-user/', views.check_user, name='check_user'),
     path('update-current-lesson/', update_current_lesson, name='update_current_lesson'),
+    path('user-progress/', UserProgressView.as_view(), name='user_progress'),
 ]
