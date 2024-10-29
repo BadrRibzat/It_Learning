@@ -88,12 +88,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useAuth } from '@/composables/useAuth';
-import { useNotification } from '@/composables/useNotification';
+import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { useNotification } from '@/composables/useNotification';
 
+const store = useStore();
 const router = useRouter();
-const { login, loading } = useAuth();
 const { show } = useNotification();
 
 const form = ref({
@@ -102,20 +102,26 @@ const form = ref({
   rememberMe: false,
 });
 
+const loading = ref(false);
+
 const handleSubmit = async () => {
   try {
-    const success = await login({
+    loading.value = true;
+    const success = await store.dispatch('auth/login', {
       email: form.value.email,
       password: form.value.password,
-      remember_me: form.value.rememberMe,
     });
 
     if (success) {
-      show($t('auth.login.success'), 'success');
+      show('Login successful', 'success');
       router.push('/dashboard');
+    } else {
+      show(store.state.auth.error || 'Login failed', 'error');
     }
   } catch (error) {
-    show(error.message || $t('auth.login.error'), 'error');
+    show(error.message || 'Login failed', 'error');
+  } finally {
+    loading.value = false;
   }
 };
 </script>
