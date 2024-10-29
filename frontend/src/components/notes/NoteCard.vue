@@ -20,16 +20,16 @@
 </template>
 
 <script setup>
-import { defineEmits } from 'vue';
+import { defineProps, defineEmits } from 'vue';
 
-const emit = defineEmits(['edit', 'delete']);
-
-defineProps({
+const props = defineProps({
   note: {
     type: Object,
     required: true,
   },
 });
+
+const emit = defineEmits(['edit', 'delete']);
 
 const editNote = () => {
   emit('edit', props.note);
