@@ -52,10 +52,10 @@ export default {
     async register({ commit }, userData) {
       try {
         commit('SET_LOADING', true);
-        const { data } = await authService.register(userData);
-        commit('SET_TOKEN', data.access);
-        commit('SET_USER', data.user);
-        router.push('/dashboard');
+        commit('SET_ERROR', null);
+        const response = await authService.register(userData);
+        commit('SET_USER', response.data.user);
+        commit('SET_TOKEN', response.data.access);
         return true;
       } catch (error) {
         commit('SET_ERROR', error.response?.data?.detail || 'Registration failed');
