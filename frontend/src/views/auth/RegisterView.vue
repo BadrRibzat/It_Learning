@@ -9,14 +9,14 @@
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
         <div class="rounded-md shadow-sm -space-y-px">
           <div>
-            <label for="name" class="sr-only">{{ $t('auth.name') }}</label>
+            <label for="username" class="sr-only">{{ $t('auth.username') }}</label>
             <input
-              id="name"
-              v-model="form.name"
+              id="username"
+              v-model="form.username"
               type="text"
               required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-              :placeholder="$t('auth.name')"
+              :placeholder="$t('auth.username')"
             />
           </div>
           <div>
@@ -87,41 +87,48 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useAuth } from '@/composables/useAuth';
-import { useNotification } from '@/composables/useNotification';
+import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { useNotification } from '@/composables/useNotification';
 
+const store = useStore();
 const router = useRouter();
-const { register, loading } = useAuth();
 const { show } = useNotification();
 
 const form = ref({
-  name: '',
+  username: '',
   email: '',
   password: '',
   passwordConfirmation: '',
 });
 
+const loading = ref(false);
+
 const handleSubmit = async () => {
   if (form.value.password !== form.value.passwordConfirmation) {
-    show($t('auth.register.passwordMismatch'), 'error');
+    show('Passwords do not match', 'error');
     return;
   }
 
   try {
-    const success = await register({
-      name: form.value.name,
+    loading.value = true;
+    const success = await store.dispatch('auth/register', {
+      username: form.value.username,
       email: form.value.email,
       password: form.value.password,
       password_confirmation: form.value.passwordConfirmation,
     });
 
     if (success) {
-      show($t('auth.register.success'), 'success');
+      show('Registration successful', 'success');
       router.push('/dashboard');
+    } else {
+      show(store.state.auth.error || 'Registration failed', 'error');
     }
   } catch (error) {
-    show(error.message || $t('auth.register.error'), 'error');
+    show(error.response?.data?.detail || 'Registration failed', 'error');
+  } finally {
+    loading.value = false;
   }
 };
 </script>
