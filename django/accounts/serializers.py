@@ -25,31 +25,24 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password_confirmation = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'language']
+        fields = ('username', 'email', 'password', 'password_confirmation')
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password_confirmation']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+        return attrs
 
     def create(self, validated_data):
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
-            password=validated_data['password'],
-            language=validated_data.get('language', 'en')
+            password=validated_data['password']
         )
-        return user
-
-        fields = ('id', 'username', 'email', 'password')
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("A user with that email already exists.")
-        return value
-
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
         return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
