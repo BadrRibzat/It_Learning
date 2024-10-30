@@ -48,10 +48,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'bio', 'profile_picture']
         read_only_fields = ['id', 'email']
+
+    def get_profile_picture(self, obj):
+        if hasattr(obj, 'profilepicture'):
+            return obj.profilepicture.image.url
+        return None
 
 class UserStatisticsSerializer(serializers.ModelSerializer):
     completed_lessons = serializers.SerializerMethodField()
