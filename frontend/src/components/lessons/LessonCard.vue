@@ -2,7 +2,7 @@
   <div class="bg-white rounded-lg shadow-md overflow-hidden">
     <div class="relative pb-48">
       <img
-        :src="lesson.thumbnail || 'https://via.placeholder.com/400x320'"
+        :src="lesson.thumbnail || 'https://via.placeholder.com/400x320.png?text=No+Image'"
         :alt="lesson.title"
         class="absolute h-full w-full object-cover"
       />
