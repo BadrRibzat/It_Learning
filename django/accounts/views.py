@@ -21,7 +21,7 @@ from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from accounts.models import User, Note, ProfilePicture
-from accounts.serializers import UserSerializer, UserProfileSerializer, NoteSerializer
+from accounts.serializers import UserSerializer, UserProfileSerializer, NoteSerializer, UserProgressSerializer
 from lessons.models import UserProgress, UserQuizAttempt, Lesson, Flashcard, UserFlashcardProgress, UserLevelProgress
 from lessons.serializers import LessonSerializer
 import os
