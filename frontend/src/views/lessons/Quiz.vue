@@ -47,7 +47,11 @@ onMounted(async () => {
 
 const submitQuiz = async () => {
   try {
-    const { data } = await lessonService.submitQuiz(quizId, { answers: answers.value });
+    const formattedAnswers = answers.value.map((answer, index) => ({
+      question_id: quiz.value.questions[index].id,
+      answer: answer
+    }));
+    const { data } = await lessonService.submitQuiz(quizId, formattedAnswers);
     console.log(data);
     // Handle the quiz submission result (e.g., show a modal with the score)
     // Then redirect to the lesson or dashboard
