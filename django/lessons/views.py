@@ -90,20 +90,19 @@ def quiz_submit(request, pk):
     quiz = get_object_or_404(Quiz, pk=pk)
     answers = request.data.get('answers', [])
     score = 0
-    total_questions = quiz.questions.count()
+    total_questions = QuizQuestion.objects.filter(quiz=quiz).count()
 
     for answer in answers:
-        question = get_object_or_404(QuizQuestion, pk=answer['question_id'])
+        question = get_object_or_404(QuizQuestion, pk=answer['question_id'], quiz=quiz)
         if answer['answer'] == question.correct_answer:
             score += 1
 
-    percentage = (score / total_questions) * 100
+    percentage = (score / total_questions) * 100 if total_questions > 0 else 0
 
     UserQuizAttempt.objects.create(
         user=request.user,
         quiz=quiz,
-        score=score,
-        total_questions=total_questions
+        score=score
     )
 
     return Response({
