@@ -86,6 +86,34 @@ def recommend_next_lesson(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+def quiz_submit(request, pk):
+    quiz = get_object_or_404(Quiz, pk=pk)
+    answers = request.data.get('answers', [])
+    score = 0
+    total_questions = quiz.questions.count()
+
+    for answer in answers:
+        question = get_object_or_404(QuizQuestion, pk=answer['question_id'])
+        if answer['answer'] == question.correct_answer:
+            score += 1
+
+    percentage = (score / total_questions) * 100
+
+    UserQuizAttempt.objects.create(
+        user=request.user,
+        quiz=quiz,
+        score=score,
+        total_questions=total_questions
+    )
+
+    return Response({
+        'score': score,
+        'total_questions': total_questions,
+        'percentage': percentage
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def flashcard_submit(request, pk):
     flashcard = get_object_or_404(Flashcard, pk=pk)
     user_answer = request.data.get('answer')
