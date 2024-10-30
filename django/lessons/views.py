@@ -32,8 +32,8 @@ class LessonViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        level_id = self.request.query_params.get('level', None)
-        if level_id is not None:
+        level_id = self.request.query_params.get('level')
+        if level_id and level_id.lower() != 'undefined':
             queryset = queryset.filter(level_id=level_id)
         return queryset
 
