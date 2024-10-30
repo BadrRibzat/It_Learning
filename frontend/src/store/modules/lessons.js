@@ -53,26 +53,30 @@ export default {
     },
     async fetchLevel({ commit }, levelId) {
       try {
-        commit('SET_LOADING', true);
-        const { data } = await levelService.getLevel(levelId);
-        commit('SET_CURRENT_LEVEL', data);
-      } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch level');
-      } finally {
-        commit('SET_LOADING', false);
-      }
-    },
-    async fetchLessons({ commit }, levelId) {
-      try {
-        commit('SET_LOADING', true);
-        const { data } = await lessonService.getLessons(levelId);
-        commit('SET_LESSONS', data);
-      } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch lessons');
-      } finally {
-        commit('SET_LOADING', false);
-      }
-    },
+       commit('SET_LOADING', true);
+       const { data } = await levelService.getLevel(levelId);
+       commit('SET_CURRENT_LEVEL', data);
+       return data;
+     } catch (error) {
+       commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch level');
+       throw error;
+     } finally {
+       commit('SET_LOADING', false);
+     }
+   },
+   async fetchLessons({ commit }, levelId) {
+     try {
+      commit('SET_LOADING', true);
+      const { data } = await lessonService.getLessons(levelId);
+      commit('SET_LESSONS', data);
+      return data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch lessons');
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+   },
     async fetchLesson({ commit }, lessonId) {
       try {
         commit('SET_LOADING', true);
