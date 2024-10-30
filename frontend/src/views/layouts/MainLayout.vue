@@ -50,6 +50,7 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import Chatbot from '@/components/chat/Chatbot.vue';
 import { useNotification } from '@/composables/useNotification';
 
 const store = useStore();
