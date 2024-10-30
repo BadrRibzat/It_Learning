@@ -16,16 +16,16 @@
 <script setup>
 import { useRouter } from 'vue-router';
 
-const router = useRouter();
-
-defineProps({
+const props = defineProps({
   quiz: {
     type: Object,
     required: true,
   },
 });
 
+const router = useRouter();
+
 const startQuiz = () => {
-  router.push(`/quiz/${quiz.id}`);
+  router.push(`/quiz/${props.quiz.id}`);
 };
 </script>
