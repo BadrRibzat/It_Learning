@@ -2,7 +2,7 @@
   <div class="bg-white rounded-lg shadow-md overflow-hidden">
     <div class="relative pb-48">
       <img
-        :src="lesson.thumbnail || '/api/placeholder/400/320'"
+        :src="lesson.thumbnail || 'https://via.placeholder.com/400x320'"
         :alt="lesson.title"
         class="absolute h-full w-full object-cover"
       />
@@ -13,7 +13,6 @@
         <p class="text-sm text-gray-200">{{ lesson.duration }} minutes</p>
       </div>
     </div>
-
     <div class="p-4">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center">
