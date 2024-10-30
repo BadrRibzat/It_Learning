@@ -9,6 +9,7 @@
             </div>
             <div class="hidden md:ml-6 md:flex md:items-center">
               <router-link v-if="isAuthenticated" to="/dashboard" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900">Dashboard</router-link>
+              <router-link v-if="isAuthenticated" to="/levels" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900">Levels</router-link>
               <router-link v-if="isAuthenticated" to="/lessons" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900">Lessons</router-link>
               <router-link v-if="isAuthenticated" to="/notes" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900">Notes</router-link>
               <router-link v-if="isAuthenticated" to="/profile" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900">Profile</router-link>

@@ -4,10 +4,13 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-bold mb-4">Progress Overview</h2>
-        <div class="mb-4">
-          <p class="text-gray-600">Current Level: {{ userProgress.current_level || 1 }}</p>
-          <p class="text-gray-600">Total Points: {{ userProgress.total_points || 0 }}</p>
-          <p class="text-gray-600">Lessons Completed: {{ userProgress.completed_lessons || 0 }}</p>
+        <div v-if="userProgress" class="mb-4">
+          <p class="text-gray-600">Current Level: {{ userProgress.current_level }}</p>
+          <p class="text-gray-600">Total Points: {{ userProgress.total_points }}</p>
+          <p class="text-gray-600">Lessons Completed: {{ userProgress.completed_lessons }}</p>
+        </div>
+        <div v-else>
+          <p class="text-gray-600">Loading progress...</p>
         </div>
         <router-link
           to="/lessons"
@@ -42,12 +45,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 
 const store = useStore();
 
-const userProgress = ref({});
+const userProgress = computed(() => store.getters['progress/userProgress']);
 const recentActivity = ref([]);
 const recommendedLessons = ref([]);
 
@@ -57,7 +60,7 @@ onMounted(async () => {
 
 const fetchDashboardData = async () => {
   try {
-    userProgress.value = await store.dispatch('profile/fetchUserProgress');
+    await store.dispatch('progress/fetchUserProgress');
     recommendedLessons.value = await store.dispatch('lessons/fetchRecommendedLessons');
     // For recent activity, we'll need to implement this endpoint in the backend
     // recentActivity.value = await store.dispatch('profile/fetchRecentActivity');
