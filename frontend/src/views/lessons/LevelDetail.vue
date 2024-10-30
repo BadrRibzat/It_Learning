@@ -1,16 +1,14 @@
 <template>
   <div class="container mx-auto p-4">
-    <div v-if="loading">Loading...</div>
+    <h1 class="text-3xl font-bold mb-6">{{ level.name }}</h1>
+    <p class="text-gray-600 mb-6">{{ level.description }}</p>
+    <div v-if="loading">Loading lessons...</div>
     <div v-else-if="error">{{ error }}</div>
-    <div v-else-if="level">
-      <h1 class="text-3xl font-bold mb-6">{{ level.name }}</h1>
-      <p class="text-gray-600 mb-6">{{ level.description }}</p>
-
+    <div v-else>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <LessonCard v-for="lesson in lessons" :key="lesson.id" :lesson="lesson" />
       </div>
     </div>
-    <div v-else>No level data available</div>
   </div>
 </template>
 
