@@ -1,10 +1,7 @@
 from rest_framework import serializers
-from .models import User
-
 from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from accounts.models import User, Note
-from rest_framework import serializers
+from .models import User, Note
+from lessons.models import UserProgress, Flashcard
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -38,11 +35,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
-        )
+        validated_data.pop('password_confirmation')
+        user = User.objects.create_user(**validated_data)
         return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -73,6 +67,7 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
         return UserProgress.objects.filter(user=obj, completed=True).count()
 
     def get_correct_flashcards(self, obj):
+        from lessons.models import UserFlashcardProgress
         return UserFlashcardProgress.objects.filter(user=obj, completed=True).count()
 
     def get_total_flashcards(self, obj):
