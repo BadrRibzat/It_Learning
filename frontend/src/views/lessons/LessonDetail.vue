@@ -28,7 +28,7 @@ onMounted(async () => {
     const { data } = await lessonService.getLesson(lessonId);
     lesson.value = data;
     const { data: flashcardData } = await lessonService.getFlashcards(lessonId);
-    flashcards.value = flashcardData;
+    flashcards.value = flashcardData || [];
   } catch (error) {
     console.error('Error fetching lesson data:', error);
   }
