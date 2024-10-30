@@ -1,4 +1,6 @@
 import { lessonService } from '@/api/services/lessons';
+import { progressService } from '@/api/services/progress';
+import { levelService } from '@/api/services/levels';
 
 export default {
   namespaced: true,
@@ -39,13 +41,13 @@ export default {
     },
   },
   actions: {
-    async fetchLevels({ commit }) {
+    async fetchLevel({ commit }, levelId) {
       try {
         commit('SET_LOADING', true);
-        const { data } = await lessonService.getLevels();
-        commit('SET_LEVELS', data);
+        const { data } = await levelService.getLevel(levelId);
+        commit('SET_CURRENT_LEVEL', data);
       } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch levels');
+        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch level');
       } finally {
         commit('SET_LOADING', false);
       }

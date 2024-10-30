@@ -1,6 +1,6 @@
 <template>
   <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-4">{{ level.name }}</h1>
+    <h1 class="text-3xl font-bold mb-6">{{ level.name }}</h1>
     <p class="text-gray-600 mb-6">{{ level.description }}</p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -12,25 +12,21 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { lessonService } from '@/api/services/lessons';
+import { useStore } from 'vuex';
 import LessonCard from '@/components/lessons/LessonCard.vue';
 
 const route = useRoute();
+const store = useStore();
 const levelId = route.params.levelId;
 const level = ref({});
 const lessons = ref([]);
 
 onMounted(async () => {
   try {
-    const { data } = await lessonService.getLessons(levelId);
-    lessons.value = data;
-    // Assuming the first lesson contains level information
-    if (data.length > 0) {
-      level.value = {
-        name: `Level ${data[0].level}`,
-        description: `Lessons for level ${data[0].level}`
-      };
-    }
+    await store.dispatch('lessons/fetchLevel', levelId);
+    level.value = store.getters['lessons/currentLevel'];
+    await store.dispatch('lessons/fetchLessons', levelId);
+    lessons.value = store.getters['lessons/allLessons'];
   } catch (error) {
     console.error('Error fetching level details:', error);
   }

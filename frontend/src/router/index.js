@@ -13,6 +13,12 @@ const routes = [
         component: () => import('@/views/Dashboard.vue'), 
         meta: { requiresAuth: true } 
       },
+      {
+        path: '/levels',
+        name: 'Levels',
+        component: () => import('@/views/lessons/LevelsView.vue'),
+        meta: { requiresAuth: true },
+      },
       { 
         path: 'profile', 
         name: 'Profile', 
