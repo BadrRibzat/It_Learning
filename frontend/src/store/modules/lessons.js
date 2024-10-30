@@ -40,6 +40,17 @@ export default {
     },
   },
   actions: {
+    async fetchLevels({ commit }) {
+      try {
+        commit('SET_LOADING', true);
+        const { data } = await levelService.getLevels();
+        commit('SET_LEVELS', data);
+      } catch (error) {
+        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch levels');
+      } finally {
+        commit('SET_LOADING', false);
+      }
+    },
     async fetchLevel({ commit }, levelId) {
       try {
         commit('SET_LOADING', true);

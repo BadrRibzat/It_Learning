@@ -70,23 +70,23 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
         fields = ['completed_lessons', 'total_points', 'level', 'correct_flashcards', 'total_flashcards']
 
     def get_completed_lessons(self, obj):
-        return obj.completed_lessons_count()
+        return UserProgress.objects.filter(user=obj, completed=True).count()
 
     def get_correct_flashcards(self, obj):
-        return obj.correct_flashcards_count()
+        return UserFlashcardProgress.objects.filter(user=obj, completed=True).count()
 
     def get_total_flashcards(self, obj):
-        return obj.total_flashcards_count()
+        return Flashcard.objects.count()
 
 class UserProgressSerializer(serializers.ModelSerializer):
+    completed_lessons = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'level', 'points', 'completed_lessons']
 
-    completed_lessons = serializers.SerializerMethodField()
-
     def get_completed_lessons(self, obj):
-        return obj.progress.filter(completed=True).count()
+        return UserProgress.objects.filter(user=obj, completed=True).count()
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
