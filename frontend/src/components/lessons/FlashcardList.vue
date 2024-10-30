@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, toRefs } from 'vue';
 import Flashcard from './Flashcard.vue';
 
 const props = defineProps({
@@ -38,6 +38,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+const { flashcards } = toRefs(props);
 
 const emit = defineEmits(['complete']);
 
