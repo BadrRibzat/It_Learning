@@ -1,16 +1,16 @@
 <template>
   <div>
-    <div v-if="currentFlashcardIndex < props.flashcards.length">
+    <div v-if="currentFlashcardIndex < flashcards.length">
       <Flashcard
-        :flashcard="props.flashcards[currentFlashcardIndex]"
+        :flashcard="flashcards[currentFlashcardIndex]"
         @next="nextFlashcard"
       />
       <div class="mt-4 text-center">
-        <p>Progress: {{ currentFlashcardIndex + 1 }} / {{ props.flashcards.length }}</p>
+        <p>Progress: {{ currentFlashcardIndex + 1 }} / {{ flashcards.length }}</p>
         <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-2">
           <div
             class="bg-primary h-2.5 rounded-full"
-            :style="{ width: `${(currentFlashcardIndex + 1) / props.flashcards.length * 100}%` }"
+            :style="{ width: `${(currentFlashcardIndex + 1) / flashcards.length * 100}%` }"
           ></div>
         </div>
       </div>
@@ -32,7 +32,6 @@
 import { ref } from 'vue';
 import Flashcard from './Flashcard.vue';
 
-// Define props directly without assigning to a variable
 const props = defineProps({
   flashcards: {
     type: Array,
