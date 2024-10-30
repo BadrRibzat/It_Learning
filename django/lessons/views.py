@@ -9,9 +9,23 @@ class LevelViewSet(viewsets.ModelViewSet):
     queryset = Level.objects.all()
     serializer_class = LevelSerializer
 
+    @action(detail=True, methods=['get'])
+    def lessons(self, request, pk=None):
+        level = self.get_object()
+        lessons = Lesson.objects.filter(level=level)
+        serializer = LessonSerializer(lessons, many=True)
+        return Response(serializer.data)
+
 class LessonViewSet(viewsets.ModelViewSet):
-    queryset = Lesson.objects.all().select_related('level').order_by('level__level_order', 'level_order')
+    queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        level_id = self.request.query_params.get('level', None)
+        if level_id is not None:
+            queryset = queryset.filter(level_id=level_id)
+        return queryset
 
 class FlashcardViewSet(viewsets.ModelViewSet):
     queryset = Flashcard.objects.all().order_by('id')
