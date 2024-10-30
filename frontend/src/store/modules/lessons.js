@@ -1,5 +1,4 @@
 import { lessonService } from '@/api/services/lessons';
-import { progressService } from '@/api/services/progress';
 import { levelService } from '@/api/services/levels';
 
 export default {
