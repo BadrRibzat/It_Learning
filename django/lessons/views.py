@@ -1,9 +1,19 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .serializers import LevelSerializer, LessonSerializer, FlashcardSerializer, QuizSerializer, QuizQuestionSerializer, UserProgressSerializer, UserFlashcardProgressSerializer, UserQuizAttemptSerializer, UserLevelProgressSerializer, LevelTestSerializer, LevelTestQuestionSerializer
-from .models import Level, Lesson, Flashcard, Quiz, QuizQuestion, UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress, LevelTest, LevelTestQuestion
+from .serializers import (
+    LevelSerializer, LessonSerializer, FlashcardSerializer, QuizSerializer,
+    QuizQuestionSerializer, UserProgressSerializer, UserFlashcardProgressSerializer,
+    UserQuizAttemptSerializer, UserLevelProgressSerializer, LevelTestSerializer,
+    LevelTestQuestionSerializer
+)
+from .models import (
+    Level, Lesson, Flashcard, Quiz, QuizQuestion, UserProgress,
+    UserFlashcardProgress, UserQuizAttempt, UserLevelProgress, LevelTest,
+    LevelTestQuestion
+)
 
 class LevelViewSet(viewsets.ModelViewSet):
     queryset = Level.objects.all()
@@ -77,59 +87,53 @@ def recommend_next_lesson(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def flashcard_submit(request, pk):
-    try:
-        flashcard = Flashcard.objects.get(pk=pk)
-        user_answer = request.data.get('answer')
-        is_correct = user_answer.lower() == flashcard.word.lower()
+    flashcard = get_object_or_404(Flashcard, pk=pk)
+    user_answer = request.data.get('answer')
+    is_correct = user_answer.lower() == flashcard.word.lower()
 
-        progress, created = UserFlashcardProgress.objects.get_or_create(
-            user=request.user, flashcard=flashcard)
+    progress, created = UserFlashcardProgress.objects.get_or_create(
+        user=request.user, flashcard=flashcard)
 
-        if is_correct:
-            progress.completed = True
-            progress.save()
-            request.user.points += 5
-            request.user.save()
+    if is_correct:
+        progress.completed = True
+        progress.save()
+        request.user.points += 5
+        request.user.save()
 
-        lesson_progress, created = UserProgress.objects.get_or_create(
-            user=request.user, lesson=flashcard.lesson)
-        lesson_progress.correct_answers += 1 if is_correct else 0
-        lesson_progress.total_questions += 1
-        lesson_progress.save()
+    lesson_progress, created = UserProgress.objects.get_or_create(
+        user=request.user, lesson=flashcard.lesson)
+    lesson_progress.correct_answers += 1 if is_correct else 0
+    lesson_progress.total_questions += 1
+    lesson_progress.save()
 
-        return Response({
-            'is_correct': is_correct,
-            'points_earned': 5 if is_correct else 0,
-            'lesson_completed': lesson_progress.completed
-        })
-    except Flashcard.DoesNotExist:
-        return Response({'error': 'Flashcard not found'}, status=status.HTTP_404_NOT_FOUND)
+    return Response({
+        'is_correct': is_correct,
+        'points_earned': 5 if is_correct else 0,
+        'lesson_completed': lesson_progress.completed
+    })
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def level_test_submit(request, pk):
+    level_test = get_object_or_404(LevelTest, pk=pk)
+    score = request.data.get('score')
+
+    if score is None:
+        return Response({'error': 'Score is required'}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
-        level_test = LevelTest.objects.get(pk=pk)
-        score = request.data.get('score')
+        score = int(score)
+    except ValueError:
+        return Response({'error': 'Invalid score format'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if score is None:
-            return Response({'error': 'Score is required'}, status=status.HTTP_400_BAD_REQUEST)
+    user = request.user
+    level_progress, created = UserLevelProgress.objects.get_or_create(user=user, level=level_test.level)
 
-        try:
-            score = int(score)
-        except ValueError:
-            return Response({'error': 'Invalid score format'}, status=status.HTTP_400_BAD_REQUEST)
+    if score >= 80:
+        user.level += 1
+        user.points += 100
+        user.save()
+        level_progress.completed = True
+        level_progress.save()
 
-        user = request.user
-        level_progress, created = UserLevelProgress.objects.get_or_create(user=user, level=level_test.level)
-
-        if score >= 80:
-            user.level += 1
-            user.points += 100
-            user.save()
-            level_progress.completed = True
-            level_progress.save()
-
-        return Response({'status': 'level up', 'points_earned': 100, 'score': score})
-    except LevelTest.DoesNotExist:
-        return Response({'error': 'Level test not found'}, status=status.HTTP_404_NOT_FOUND)
+    return Response({'status': 'level up', 'points_earned': 100, 'score': score})

@@ -10,7 +10,7 @@ class Level(models.Model):
 
 class Lesson(models.Model):
     title = models.CharField(max_length=255)
-    level = models.ForeignKey(Level, on_delete=models.CASCADE)
+    level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='lessons')
     level_order = models.PositiveIntegerField()
     content = models.TextField()
     difficulty = models.CharField(max_length=50)
