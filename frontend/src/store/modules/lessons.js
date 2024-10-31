@@ -69,16 +69,16 @@ export default {
     },
     async fetchLessons({ commit }, levelId) {
       try {
-       commit('SET_LOADING', true);
-       const { data } = await lessonService.getLessons(levelId);
-       commit('SET_LESSONS', data);
-       return data;
-     } catch (error) {
-       commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch lessons');
-       throw error;
-     } finally {
-       commit('SET_LOADING', false);
-     }
+        commit('SET_LOADING', true);
+        const { data } = await lessonService.getLessons(levelId);
+        commit('SET_LESSONS', data);
+        return data;
+      } catch (error) {
+        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch lessons');
+        throw error;
+      } finally {
+        commit('SET_LOADING', false);
+      }
     },
     async fetchLesson({ commit }, lessonId) {
       try {
