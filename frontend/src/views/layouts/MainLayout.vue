@@ -12,14 +12,31 @@
               <router-link v-if="isAuthenticated" to="/levels" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900">Levels</router-link>
               <router-link v-if="isAuthenticated" to="/lessons" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900">Lessons</router-link>
               <router-link v-if="isAuthenticated" to="/notes" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900">Notes</router-link>
-              <router-link v-if="isAuthenticated" to="/profile" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-900">Profile</router-link>
             </div>
           </div>
           <div class="flex items-center">
-            <router-link v-if="isAuthenticated" to="/chat" class="text-gray-500 hover:text-gray-900">
+            <router-link v-if="isAuthenticated" to="/chat" class="text-gray-500 hover:text-gray-900 mr-4">
               <font-awesome-icon :icon="['fas', 'comments']" />
             </router-link>
-            <div class="flex-shrink-0 ml-4">
+            <router-link 
+              v-if="isAuthenticated && userProfile.profilePicture" 
+              :to="{ name: 'Profile' }" 
+              class="mr-4"
+            >
+              <img 
+                :src="userProfile.profilePicture" 
+                alt="Profile" 
+                class="h-8 w-8 rounded-full object-cover"
+              />
+            </router-link>
+            <router-link 
+              v-else-if="isAuthenticated" 
+              :to="{ name: 'Profile' }" 
+              class="mr-4 text-sm font-medium text-gray-500 hover:text-gray-900"
+            >
+              Profile
+            </router-link>
+            <div class="flex-shrink-0">
               <template v-if="!isAuthenticated">
                 <router-link to="/auth/login" class="text-sm font-medium text-gray-500 hover:text-gray-900">Login</router-link>
                 <router-link to="/auth/register" class="ml-4 text-sm font-medium text-primary hover:text-primary-dark">Register</router-link>
@@ -58,6 +75,7 @@ const router = useRouter();
 const { show } = useNotification();
 
 const isAuthenticated = computed(() => store.getters['auth/isAuthenticated']);
+const userProfile = computed(() => store.getters['profile/userProfile']);
 
 const handleLogout = async () => {
   if (isAuthenticated.value) {

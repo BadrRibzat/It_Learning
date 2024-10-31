@@ -14,23 +14,32 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { lessonService } from '@/api/services/lessons';
+import { useStore } from 'vuex';
+
 import FlashcardList from '@/components/lessons/FlashcardList.vue';
+import QuizList from '@/components/lessons/QuizList.vue';
 
 const route = useRoute();
+const store = useStore();
 const lessonId = route.params.lessonId;
 const lesson = ref({});
 const flashcards = ref([]);
-const showingFlashcards = ref(false);
+const quizzes = ref([]);
+const loading = ref(true);
+const error = ref(null);
 
 onMounted(async () => {
   try {
-    const { data } = await lessonService.getLesson(lessonId);
-    lesson.value = data;
-    const { data: flashcardData } = await lessonService.getFlashcards(lessonId);
-    flashcards.value = flashcardData || [];
-  } catch (error) {
-    console.error('Error fetching lesson data:', error);
+    await store.dispatch('lessons/fetchLesson', lessonId);
+    lesson.value = store.getters['lessons/currentLesson'];
+    await store.dispatch('lessons/fetchFlashcards', lessonId);
+    flashcards.value = store.getters['lessons/allFlashcards'];
+    await store.dispatch('lessons/fetchQuizzes', lessonId);
+    quizzes.value = store.getters['lessons/allQuizzes'];
+  } catch (err) {
+    error.value = 'Failed to load lesson data. Please try again.';
+  } finally {
+    loading.value = false;
   }
 });
 </script>
