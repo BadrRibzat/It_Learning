@@ -41,6 +41,13 @@ class FlashcardViewSet(viewsets.ModelViewSet):
     queryset = Flashcard.objects.all().order_by('id')
     serializer_class = FlashcardSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        lesson_id = self.request.query_params.get('lesson')
+        if lesson_id and lesson_id.lower() != 'undefined':
+            queryset = queryset.filter(lesson_id=lesson_id)
+        return queryset
+
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all().order_by('id')
     serializer_class = QuizSerializer
