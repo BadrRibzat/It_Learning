@@ -33,6 +33,20 @@ export default {
         commit('SET_LOADING', false);
       }
     },
+    async fetchStatistics({ commit }) {
+      commit('SET_LOADING', true);
+      try {
+        const { data } = await profileService.getStatistics();
+        commit('SET_STATISTICS', data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching statistics:', error);
+        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch statistics');
+        throw error;
+      } finally {
+        commit('SET_LOADING', false);
+      }
+    },
     async updateProfile({ commit }, profileData) {
       commit('SET_LOADING', true);
       try {
