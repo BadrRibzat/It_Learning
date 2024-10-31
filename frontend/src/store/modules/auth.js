@@ -34,66 +34,36 @@ export default {
     },
   },
   actions: {
-    async login({ commit }, credentials) {
+    async login({ commit, dispatch }, credentials) {
+      commit('SET_LOADING', true);
+      commit('SET_ERROR', null);
       try {
-        commit('SET_LOADING', true);
+        console.log('Attempting login with:', credentials);
         const { data } = await authService.login(credentials);
+        console.log('Login response:', data);
         commit('SET_TOKEN', data.access);
         commit('SET_USER', data.user);
+        await dispatch('profile/fetchProfile', null, { root: true });
         router.push('/dashboard');
-        return true;
+        return { success: true };
       } catch (error) {
+        console.error('Login error:', error.response?.data || error.message);
         commit('SET_ERROR', error.response?.data?.detail || 'Login failed');
-        return false;
+        return { success: false, error: error.response?.data?.detail || 'Login failed' };
       } finally {
         commit('SET_LOADING', false);
       }
     },
-    async register({ commit }, userData) {
+    async logout({ commit }) {
       try {
-        commit('SET_LOADING', true);
-        commit('SET_ERROR', null);
-        const response = await authService.register(userData);
-        commit('SET_USER', response.data.user);
-        commit('SET_TOKEN', response.data.access);
-        return true;
+        await authService.logout();
       } catch (error) {
-        commit('SET_ERROR', error.response?.data?.detail || 'Registration failed');
-        return false;
+        console.error('Logout error:', error);
       } finally {
-        commit('SET_LOADING', false);
-      }
-    },
-    async logout({ commit, state }) {
-      try {
-        if (state.token) {
-        await authService.logout(state.token);
-     }
-     } catch (error) {
-       console.error('Logout failed:', error);
-     } finally {
-       commit('SET_TOKEN', null);
-       commit('SET_USER', null);
-       router.push('/auth/login');
-     }
-    },
-    async refreshToken({ commit }) {
-      try {
-        const { data } = await authService.refreshToken();
-        commit('SET_TOKEN', data.access);
-        return data.access;
-      } catch (error) {
         commit('SET_TOKEN', null);
         commit('SET_USER', null);
-        throw error;
-      }
-    },
-    async fetchUserProfile({ commit }) {
-      try {
-        const { data } = await authService.getProfile();
-        commit('SET_USER', data);
-      } catch (error) {
-        console.error('Failed to fetch user profile:', error);
+        commit('profile/SET_PROFILE', null, { root: true });
+        router.push('/auth/login');
       }
     },
   },
