@@ -1,4 +1,4 @@
-import axios from '@/axios';
+import axios from '../axios';
 
 export const lessonService = {
     getLevel: (levelId) => axios.get(`/api/levels/${levelId}/`),
