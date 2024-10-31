@@ -44,23 +44,23 @@
       </div>
 
       <div v-if="statistics">
-        <h2 class="text-2xl font-bold mb-4">Statistics</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="bg-gray-100 p-4 rounded-lg">
-            <h3 class="text-lg font-bold mb-2">Total Lessons Completed</h3>
-            <p class="text-gray-600">{{ statistics.completed_lessons || 0 }}</p>
-          </div>
-          <div class="bg-gray-100 p-4 rounded-lg">
-            <h3 class="text-lg font-bold mb-2">Total Points</h3>
-            <p class="text-gray-600">{{ statistics.total_points || 0 }}</p>
-          </div>
-          <div class="bg-gray-100 p-4 rounded-lg">
-            <h3 class="text-lg font-bold mb-2">Current Level</h3>
-            <p class="text-gray-600">{{ statistics.current_level || 1 }}</p>
-          </div>
-          <div class="bg-gray-100 p-4 rounded-lg">
-            <h3 class="text-lg font-bold mb-2">Correct Flashcards</h3>
-            <p class="text-gray-600">{{ statistics.correct_flashcards || 0 }} / {{ statistics.total_flashcards || 0 }}</p>
+    <h2 class="text-2xl font-bold mb-4">Statistics</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-gray-100 p-4 rounded-lg">
+        <h3 class="text-lg font-bold mb-2">Total Lessons Completed</h3>
+        <p class="text-gray-600">{{ statistics.completed_lessons || 0 }}</p>
+      </div>
+      <div class="bg-gray-100 p-4 rounded-lg">
+        <h3 class="text-lg font-bold mb-2">Total Points</h3>
+        <p class="text-gray-600">{{ statistics.total_points || 0 }}</p>
+      </div>
+      <div class="bg-gray-100 p-4 rounded-lg">
+        <h3 class="text-lg font-bold mb-2">Current Level</h3>
+        <p class="text-gray-600">{{ statistics.current_level || 1 }}</p>
+      </div>
+      <div class="bg-gray-100 p-4 rounded-lg">
+        <h3 class="text-lg font-bold mb-2">Correct Flashcards</h3>
+        <p class="text-gray-600">{{ statistics.correct_flashcards || 0 }} / {{ statistics.total_flashcards || 0 }}</p>
           </div>
         </div>
       </div>

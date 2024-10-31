@@ -1,9 +1,8 @@
 import axios from '../axios';
 
 export const lessonService = {
-  getLevel: (levelId) => axios.get(`/api/levels/${levelId}/`),
   getLessons: (levelId) => axios.get(`/api/levels/${levelId}/lessons/`),
-  getLesson: (lessonId) => axios.get(`/api/lessons/${lessonId}/lessonId`),
+  getLesson: (lessonId) => axios.get(`/api/lessons/${lessonId}/`),
   getFlashcards: (lessonId) => axios.get(`/api/lessons/${lessonId}/flashcards/`),
   getQuiz: (lessonId) => axios.get(`/api/lessons/${lessonId}/quiz/`),
   getQuizzes: (lessonId) => axios.get(`/api/quizzes/?lesson=${lessonId}`),
