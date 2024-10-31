@@ -62,8 +62,6 @@ const fetchDashboardData = async () => {
   try {
     await store.dispatch('progress/fetchUserProgress');
     recommendedLessons.value = await store.dispatch('lessons/fetchRecommendedLessons');
-    // For recent activity, we'll need to implement this endpoint in the backend
-    // recentActivity.value = await store.dispatch('profile/fetchRecentActivity');
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
   }
