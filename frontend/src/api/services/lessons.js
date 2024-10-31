@@ -2,11 +2,11 @@ import axios from '../axios';
 
 export const lessonService = {
   getLevel: (levelId) => axios.get(`/api/levels/${levelId}/`),
-  getLessons: (levelId) => axios.get(`/api/lessons/?level=${levelId}`),
-  getLesson: (lessonId) => axios.get(`/api/lessons/${lessonId}/`),
-  getFlashcards: (lessonId) => axios.get(`/api/flashcards/?lesson=${lessonId}`),
+  getLessons: (levelId) => axios.get(`/api/levels/${levelId}/lessons/`),
+  getLesson: (lessonId) => axios.get(`/api/lessons/${lessonId}/lessonId`),
+  getFlashcards: (lessonId) => axios.get(`/api/lessons/${lessonId}/flashcards/`),
+  getQuiz: (lessonId) => axios.get(`/api/lessons/${lessonId}/quiz/`),
   getQuizzes: (lessonId) => axios.get(`/api/quizzes/?lesson=${lessonId}`),
-  getQuiz: (quizId) => axios.get(`/api/quizzes/${quizId}/`),
   submitFlashcard: (flashcardId, answer) => axios.post(`/api/flashcard-submit/${flashcardId}/`, { answer }),
   submitQuiz: (quizId, answers) => axios.post(`/api/quiz-submit/${quizId}/`, { answers }),
   getLevelTests: () => axios.get('/api/level-tests/'),

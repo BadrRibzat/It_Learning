@@ -32,6 +32,9 @@ export default {
     SET_QUIZZES(state, quizzes) {
       state.quizzes = quizzes;
     },
+    SET_CURRENT_QUIZ(state, quiz) {
+      state.currentQuiz = quiz;
+    },
     SET_USER_PROGRESS(state, progress) {
       state.userProgress = progress;
     },
@@ -67,19 +70,19 @@ export default {
         commit('SET_LOADING', false);
       }
     },
-    async fetchLessons({ commit }, levelId) {
-      try {
-        commit('SET_LOADING', true);
-        const { data } = await lessonService.getLessons(levelId);
-        commit('SET_LESSONS', data);
-        return data;
-      } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch lessons');
-        throw error;
-      } finally {
-        commit('SET_LOADING', false);
-      }
-    },
+  async fetchLessons({ commit }, levelId) {
+    try {
+      commit('SET_LOADING', true);
+      const { data } = await lessonService.getLessons(levelId);
+      commit('SET_LESSONS', data);
+      return data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch lessons');
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
     async fetchLesson({ commit }, lessonId) {
       try {
         commit('SET_LOADING', true);
@@ -91,28 +94,29 @@ export default {
         commit('SET_LOADING', false);
       }
     },
-    async fetchFlashcards({ commit }, lessonId) {
-      try {
-        commit('SET_LOADING', true);
-        const { data } = await lessonService.getFlashcards(lessonId);
-        commit('SET_FLASHCARDS', data);
-      } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch flashcards');
-      } finally {
-        commit('SET_LOADING', false);
-      }
-    },
-    async fetchQuizzes({ commit }, lessonId) {
-      try {
-        commit('SET_LOADING', true);
-        const { data } = await lessonService.getQuizzes(lessonId);
-        commit('SET_QUIZZES', data);
-      } catch (error) {
-        commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch quizzes');
-      } finally {
-        commit('SET_LOADING', false);
-      }
-    },
+  async fetchFlashcards({ commit }, lessonId) {
+    try {
+      commit('SET_LOADING', true);
+      const { data } = await lessonService.getFlashcards(lessonId);
+      commit('SET_FLASHCARDS', data);
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch flashcards');
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
+  async fetchQuiz({ commit }, lessonId) {
+    try {
+      commit('SET_LOADING', true);
+      const { data } = await lessonService.getQuiz(lessonId);
+      commit('SET_CURRENT_QUIZ', data);
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch quiz');
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
     async submitFlashcard({ commit }, { flashcardId, answer }) {
       try {
         commit('SET_LOADING', true);

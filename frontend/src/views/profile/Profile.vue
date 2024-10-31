@@ -32,16 +32,6 @@
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             ></textarea>
           </div>
-          <div class="mb-4">
-            <label for="profilePicture" class="block text-sm font-medium text-gray-700">Profile Picture</label>
-            <input
-              type="file"
-              id="profilePicture"
-              @change="handleFileChange"
-              accept="image/*"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-            />
-          </div>
           <div class="flex justify-end">
             <button
               type="submit"
@@ -90,7 +80,6 @@ const form = ref({
   username: '',
   email: '',
   bio: '',
-  profilePicture: null,
 });
 
 const statistics = ref(null);
@@ -122,21 +111,9 @@ const fetchStatistics = async () => {
   }
 };
 
-const handleFileChange = (event) => {
-  form.value.profilePicture = event.target.files[0];
-};
-
 const updateProfile = async () => {
   try {
-    const formData = new FormData();
-    Object.keys(form.value).forEach((key) => {
-      if (key === 'profilePicture' && form.value[key]) {
-        formData.append(key, form.value[key]);
-      } else {
-        formData.append(key, form.value[key]);
-      }
-    });
-    await store.dispatch('profile/updateProfile', formData);
+    await store.dispatch('profile/updateProfile', form.value);
     show('Profile updated successfully', 'success');
   } catch (error) {
     show('Failed to update profile', 'error');
