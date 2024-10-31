@@ -87,10 +87,7 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class UploadProfilePictureView(APIView):
-    """
-    Upload user profile picture.
-    """
-    permission_classes = [permissions.IsAuthenticated]  # Remove IsOwnerOrReadOnly if not defined
+    permission_classes = [permissions.IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request):
@@ -109,7 +106,9 @@ class UploadProfilePictureView(APIView):
             for chunk in image.chunks():
                 destination.write(chunk)
 
-        ProfilePicture.objects.create(user=user, image=image)
+        profile_picture, created = ProfilePicture.objects.get_or_create(user=user)
+        profile_picture.image = image
+        profile_picture.save()
 
         return Response({"detail": "Profile picture uploaded successfully"}, status=status.HTTP_200_OK)
 
