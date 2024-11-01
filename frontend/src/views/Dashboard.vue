@@ -64,6 +64,7 @@ const recentActivity = ref([]);
 const recommendedLessons = ref([]);
 
 onMounted(async () => {
+  await store.dispatch('auth/fetchUserProfile');
   await fetchDashboardData();
 });
 
