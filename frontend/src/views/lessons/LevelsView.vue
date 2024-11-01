@@ -1,8 +1,8 @@
 <template>
   <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-6">Learning Levels</h1>
+    <h1 class="text-3xl font-bold mb-6">{{ $t('lessons.availableLevels') }}</h1>
     <div v-if="loading" class="text-center">
-      <p>Loading levels...</p>
+      <p>{{ $t('common.loading') }}</p>
     </div>
     <div v-else-if="error" class="text-center text-red-500">
       <p>{{ error }}</p>
@@ -28,7 +28,7 @@ onMounted(async () => {
     await store.dispatch('lessons/fetchLevels');
     levels.value = store.getters['lessons/allLevels'];
   } catch (err) {
-    error.value = 'Failed to load levels. Please try again.';
+    error.value = $t('lessons.failedToLoadLevels');
   } finally {
     loading.value = false;
   }
