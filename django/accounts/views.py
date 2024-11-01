@@ -116,7 +116,7 @@ class ResetProgressView(APIView):
     """
     Reset user progress.
     """
-    permission_classes = [permissions.IsAuthenticated]  # Remove IsOwnerOrReadOnly if not defined
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         user = request.user
@@ -136,7 +136,7 @@ class NoteViewSet(viewsets.ModelViewSet):
     CRUD operations for user notes.
     """
     serializer_class = NoteSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Remove IsOwnerOrReadOnly if not defined
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
