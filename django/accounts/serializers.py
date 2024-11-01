@@ -93,5 +93,5 @@ class UserProgressSerializer(serializers.ModelSerializer):
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        fields = ['id', 'user', 'content', 'created_at', 'note_type']
-        read_only_fields = ['id', 'created_at', 'user']
+        fields = ['id', 'user', 'title', 'content', 'created_at', 'updated_at', 'note_type']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
