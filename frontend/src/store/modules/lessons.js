@@ -45,13 +45,11 @@ export default {
     actions: {
         async fetchLevels({ commit }) {
             try {
-                commit('SET_LOADING', true);
-                const { data } = await levelService.getLevels();
+                const { data } = await lessonService.getLevels();
                 commit('SET_LEVELS', data);
             } catch (error) {
-                commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch levels');
-            } finally {
-                commit('SET_LOADING', false);
+                console.error('Error fetching levels:', error);
+                throw error;
             }
         },
         async fetchLevel({ commit }, levelId) {
@@ -69,15 +67,11 @@ export default {
         },
         async fetchLessons({ commit }, levelId) {
             try {
-                commit('SET_LOADING', true);
                 const { data } = await lessonService.getLessons(levelId);
                 commit('SET_LESSONS', data);
-                return data;
             } catch (error) {
-                commit('SET_ERROR', error.response?.data?.message || 'Failed to fetch lessons');
+                console.error('Error fetching lessons:', error);
                 throw error;
-            } finally {
-                commit('SET_LOADING', false);
             }
         },
         async fetchLesson({ commit }, lessonId) {
