@@ -1,9 +1,10 @@
+# lessons/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     LevelViewSet, LessonViewSet, FlashcardViewSet, QuizViewSet, QuizQuestionViewSet,
     UserProgressViewSet, UserFlashcardProgressViewSet, UserQuizAttemptViewSet, UserLevelProgressViewSet,
-    recommend_next_lesson, flashcard_submit, level_test_submit, LevelTestViewSet, LevelTestQuestionViewSet,
+    LevelTestViewSet, LevelTestQuestionViewSet, recommend_next_lesson, flashcard_submit, level_test_submit,
     quiz_submit
 )
 
