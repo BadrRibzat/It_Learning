@@ -16,9 +16,7 @@
             </div>
           </div>
           <div class="flex items-center">
-            <router-link to="/chat" class="text-gray-500 hover:text-gray-900">
-              <font-awesome-icon :icon="['fas', 'comments']" />
-            </router-link>
+            <LanguageSwitcher />
             <div class="flex-shrink-0 ml-4">
               <router-link to="/auth/login" v-if="!isAuthenticated" class="text-sm font-medium text-gray-500 hover:text-gray-900">Sign-In</router-link>
               <router-link to="/auth/register" v-if="!isAuthenticated" class="ml-4 text-sm font-medium text-primary hover:text-primary-dark">Sign-Up</router-link>
@@ -33,22 +31,26 @@
     </main>
     <footer class="bg-white">
       <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div class="mt-8 md:mt-0 md:order-1">
+        <div class="mt-8 md:mt-0 md:order-1 flex justify-between items-center">
           <p class="text-center text-base text-gray-400">
             &copy; 2023 Learn English. All rights reserved.
           </p>
+          <button @click="toggleChatbot" class="text-gray-400 hover:text-gray-600">
+            <font-awesome-icon :icon="['fas', 'comments']" size="lg" />
+          </button>
         </div>
       </div>
     </footer>
-    <Chatbot v-if="isAuthenticated" />
+    <Chatbot v-if="showChatbot" @close="toggleChatbot" />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Chatbot from '@/components/chat/Chatbot.vue';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
 import { useNotification } from '@/composables/useNotification';
 
 const store = useStore();
@@ -56,6 +58,7 @@ const router = useRouter();
 const { show } = useNotification();
 
 const isAuthenticated = computed(() => store.getters['auth/isAuthenticated']);
+const showChatbot = ref(false);
 
 const logout = async () => {
   if (isAuthenticated.value) {
@@ -69,5 +72,9 @@ const logout = async () => {
   } else {
     router.push('/auth/login');
   }
+};
+
+const toggleChatbot = () => {
+  showChatbot.value = !showChatbot.value;
 };
 </script>
