@@ -3,6 +3,13 @@
     <h1 class="text-3xl font-bold mb-4">Profile</h1>
 
     <div class="bg-white rounded-lg shadow-md p-6">
+      <div class="flex items-center mb-6">
+        <img :src="profilePicture" alt="Profile Picture" class="w-32 h-32 rounded-full mr-6">
+        <div>
+          <h2 class="text-2xl font-bold mb-2">{{ profile.username }}</h2>
+          <p class="text-gray-600">{{ profile.email }}</p>
+        </div>
+      </div>
       <div class="mb-6">
         <h2 class="text-2xl font-bold mb-4">Personal Information</h2>
         <ProfileForm :initialData="profile" @submit="updateProfile" />
@@ -17,7 +24,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useNotification } from '@/composables/useNotification';
 import ProfileForm from '@/components/profile/ProfileForm.vue';
@@ -35,6 +42,8 @@ const profile = ref({
 
 const statistics = ref(null);
 
+const profilePicture = computed(() => profile.value.profilePicture || '/default-profile.png');
+
 onMounted(async () => {
   await fetchProfileData();
   await fetchStatistics();
@@ -47,6 +56,7 @@ const fetchProfileData = async () => {
       username: profileData.username,
       email: profileData.email,
       bio: profileData.bio || '',
+      profilePicture: profileData.profile_picture,
     };
   } catch (error) {
     show('Failed to load profile data', 'error');
@@ -74,6 +84,7 @@ const updateProfile = async (profileData) => {
     });
     await store.dispatch('profile/updateProfile', formData);
     show('Profile updated successfully', 'success');
+    await fetchProfileData();
   } catch (error) {
     show('Failed to update profile', 'error');
   }
