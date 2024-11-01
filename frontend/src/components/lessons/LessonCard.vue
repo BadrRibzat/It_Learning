@@ -14,9 +14,7 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
-
-const props = defineProps({
+defineProps({
   lesson: {
     type: Object,
     required: true,
