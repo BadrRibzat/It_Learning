@@ -35,7 +35,7 @@ class Quiz(models.Model):
 
 class QuizQuestion(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
-    question_text = models.TextField(default="Default Question Text")  # Add default value
+    question_text = models.TextField(default="Default Question Text")
     correct_answer = models.CharField(max_length=255)
     options = models.JSONField(default=list)
 
