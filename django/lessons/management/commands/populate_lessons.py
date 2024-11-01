@@ -31,7 +31,6 @@ class Command(BaseCommand):
             'lessons_quizquestion',
             'lessons_leveltest',
             'lessons_leveltestquestion',
-            'lessons_leveltest_questions'
         ]
         with connection.cursor() as cursor:
             for table in tables:
@@ -39,25 +38,14 @@ class Command(BaseCommand):
                     cursor.execute(f"SELECT 1 FROM {table} LIMIT 1;")
                 except ProgrammingError:
                     self.stdout.write(self.style.WARNING(f"Table {table} does not exist. Creating..."))
-                    if table in ['lessons_leveltestquestion', 'lessons_leveltest_questions']:
-                        cursor.execute(f"""
-                            CREATE TABLE {table} (
-                                id SERIAL PRIMARY KEY,
-                                level_test_id INTEGER REFERENCES lessons_leveltest(id),
-                                question TEXT,
-                                options TEXT[],
-                                correct_answer INTEGER
-                            );
-                        """)
-                    else:
-                        cursor.execute(f"CREATE TABLE {table} (id SERIAL PRIMARY KEY);")
+                    cursor.execute(f"CREATE TABLE {table} (id SERIAL PRIMARY KEY);")
                     self.stdout.write(self.style.SUCCESS(f"Table {table} created."))
 
     def clear_existing_content(self):
         with connection.cursor() as cursor:
             cursor.execute("""
-                TRUNCATE TABLE lessons_leveltestquestion, lessons_leveltest_questions, 
-                lessons_leveltest, lessons_quizquestion, lessons_quiz, lessons_flashcard, 
+                TRUNCATE TABLE lessons_leveltestquestion, lessons_leveltest, 
+                lessons_quizquestion, lessons_quiz, lessons_flashcard, 
                 lessons_lesson, lessons_level RESTART IDENTITY CASCADE;
             """)
 
@@ -87,7 +75,8 @@ class Command(BaseCommand):
                 level=level,
                 title=lesson_data['title'],
                 content=lesson_data['content'],
-                difficulty=lesson_data.get('difficulty', 'beginner')
+                difficulty=lesson_data.get('difficulty', 'beginner'),
+                level_order=lesson_data.get('level_order', 1)
             )
             self.stdout.write(f'Created lesson: {lesson.title}')
 
@@ -95,7 +84,7 @@ class Command(BaseCommand):
                 flashcard = Flashcard.objects.create(
                     lesson=lesson,
                     word=flashcard_data['word'],
-                    meaning=flashcard_data['meaning'],
+                    definition=flashcard_data['meaning'],
                     question=flashcard_data['question']
                 )
                 self.stdout.write(f'Created flashcard: {flashcard.word}')
@@ -453,27 +442,6 @@ class Command(BaseCommand):
         ]
         self.create_lessons_and_flashcards(level, lessons)
 
-    def create_lessons_and_flashcards(self, level, lessons_data):
-        for lesson_data in lessons_data:
-            lesson = Lesson.objects.create(
-                level=level,
-                title=lesson_data['title'],
-                content=lesson_data['content'],
-                difficulty=lesson_data.get('difficulty', 'beginner')
-            )
-            self.stdout.write(f'Created lesson: {lesson.title}')
-
-            for flashcard_data in lesson_data['flashcards']:
-                flashcard = Flashcard.objects.create(
-                    lesson=lesson,
-                    word=flashcard_data['word'],
-                    meaning=flashcard_data['meaning'],
-                    question=flashcard_data['question']
-                )
-                self.stdout.write(f'Created flashcard: {flashcard.word}')
-
-            self.create_lesson_quiz(lesson)
-
     def create_lesson_quiz(self, lesson):
         quiz = Quiz.objects.create(lesson=lesson, title=f"Quiz for {lesson.title}")
         flashcards = Flashcard.objects.filter(lesson=lesson)
@@ -481,27 +449,29 @@ class Command(BaseCommand):
         for flashcard in flashcards:
             QuizQuestion.objects.create(
                 quiz=quiz,
-                question=flashcard.question,
-                correct_answer=flashcard.word
+                question_text=flashcard.question,
+                correct_answer=flashcard.word,
+                options=self.generate_quiz_options(flashcard.word)
             )
         self.stdout.write(f'Created quiz for lesson: {lesson.title}')
 
     def create_level_tests(self):
         levels = Level.objects.all()
         for level in levels:
-            level_test = LevelTest.objects.create(level=level)
-            self.stdout.write(f'Created level test for level: {level.name}')
+            level_test = LevelTest.objects.create(level=level, title=f"Level Test for {level.name}")
+        self.stdout.write(f'Created level test for level: {level.name}')
 
-            flashcards = Flashcard.objects.filter(lesson__level=level)
-            for i in range(10):
-                if flashcards:
-                    flashcard = random.choice(flashcards)
-                    question = LevelTestQuestion.objects.create(
-                        level_test=level_test,
-                        question=flashcard.question,
-                        correct_answer=flashcard.word
-                    )
-                    self.stdout.write(f'Created question: {question.question}')
+        flashcards = Flashcard.objects.filter(lesson__level=level)
+        for i in range(10):
+            if flashcards:
+                flashcard = random.choice(flashcards)
+                question = LevelTestQuestion.objects.create(
+                    level_test=level_test,
+                    question_text=flashcard.question,
+                    correct_answer=flashcard.word,
+                    options=self.generate_quiz_options(flashcard.word)
+                )
+                self.stdout.write(f'Created question: {question.question_text}')
 
     def generate_alphabet_flashcards(self):
         alphabet = string.ascii_uppercase
@@ -526,42 +496,15 @@ class Command(BaseCommand):
         }
         return words.get(letter.upper(), f"{letter}...")
 
-    def generate_wrong_answer(self, correct_answer):
-        # This is a simple implementation. You might want to improve this to generate more realistic wrong answers.
+    def generate_quiz_options(self, correct_answer):
+        options = [correct_answer]
+        while len(options) < 4:
+            fake_option = self.generate_fake_option(correct_answer)
+            if fake_option not in options:
+                options.append(fake_option)
+        random.shuffle(options)
+        return options
+
+    def generate_fake_option(self, correct_answer):
+        # This is a simple implementation. We should improve this to generate more realistic wrong answers.
         return ''.join(random.choices(string.ascii_lowercase, k=len(correct_answer)))
-
-    def generate_sophisticated_wrong_answer(self, correct_answer, level):
-        # More advanced method for generating wrong answers
-        if level.name == 'Beginner':
-            # For beginners, generate wrong answers that are close in spelling
-            return ''.join(random.choices(string.ascii_lowercase, k=len(correct_answer)))
-        elif level.name == 'Intermediate':
-            # For intermediates, generate wrong answers that are similar in meaning
-            similar_words = self.get_similar_words(correct_answer)
-            return random.choice(similar_words) if similar_words else ''.join(random.choices(string.ascii_lowercase, k=len(correct_answer)))
-        elif level.name == 'Advanced':
-            # For advanced, generate wrong answers that are plausible but incorrect
-            plausible_words = self.get_plausible_words(correct_answer)
-            return random.choice(plausible_words) if plausible_words else ''.join(random.choices(string.ascii_lowercase, k=len(correct_answer)))
-
-    def get_similar_words(self, word):
-        # Placeholder for a function that returns words with similar meanings
-        similar_words = {
-            'happy': ['joyful', 'content', 'elated'],
-            'sad': ['unhappy', 'gloomy', 'depressed'],
-            'big': ['large', 'huge', 'enormous'],
-            'small': ['tiny', 'little', 'miniature'],
-            'fast': ['quick', 'rapid', 'speedy'],
-        }
-        return similar_words.get(word.lower(), [])
-
-    def get_plausible_words(self, word):
-        # Placeholder for a function that returns plausible but incorrect words
-        plausible_words = {
-            'break a leg': ['good luck', 'best wishes', 'all the best'],
-            'hit the books': ['study hard', 'work diligently', 'focus on learning'],
-            'piece of cake': ['easy task', 'simple job', 'no problem'],
-            'cost an arm and a leg': ['very expensive', 'high priced', 'pricey'],
-            'under the weather': ['feeling ill', 'not well', 'sick'],
-        }
-        return plausible_words.get(word.lower(), [])
