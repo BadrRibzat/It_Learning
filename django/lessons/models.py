@@ -22,6 +22,7 @@ class Flashcard(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     word = models.CharField(max_length=255)
     definition = models.TextField(default="No definition available")
+    question = models.TextField(default="What is the meaning of this word?")
 
     def __str__(self):
         return self.word
