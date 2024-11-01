@@ -3,6 +3,13 @@
     <h1 class="text-3xl font-bold mb-4">Dashboard</h1>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center mb-4">
+          <img :src="userProfilePicture" alt="Profile Picture" class="w-24 h-24 rounded-full mr-4">
+          <div>
+            <h2 class="text-xl font-bold">{{ userProfile.username }}</h2>
+            <p class="text-gray-600">{{ userProfile.email }}</p>
+          </div>
+        </div>
         <h2 class="text-xl font-bold mb-4">Progress Overview</h2>
         <div v-if="userProgress" class="mb-4">
           <p class="text-gray-600">Current Level: {{ userProgress.current_level }}</p>
@@ -50,6 +57,8 @@ import { useStore } from 'vuex';
 
 const store = useStore();
 
+const userProfile = computed(() => store.getters['auth/currentUser']);
+const userProfilePicture = computed(() => userProfile.value?.profile_picture || '/default-profile.png');
 const userProgress = computed(() => store.getters['progress/userProgress']);
 const recentActivity = ref([]);
 const recommendedLessons = ref([]);
