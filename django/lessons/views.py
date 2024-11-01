@@ -82,14 +82,15 @@ class UserLevelProgressViewSet(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def recommend_next_lesson(request):
-    user = request.user
-    completed_lessons = UserProgress.objects.filter(user=user, completed=True).values_list('lesson_id', flat=True)
-    next_lesson = Lesson.objects.exclude(id__in=completed_lessons).order_by('level__level_order', 'id').first()
-    if next_lesson:
-        serializer = LessonSerializer(next_lesson)
-        return Response(serializer.data)
-    return Response({'message': 'No more lessons available'}, status=status.HTTP_404_NOT_FOUND)
+def get_recommended_lessons(self):
+    from lessons.models import Lesson, Level, UserProgress
+    completed_lessons = UserProgress.objects.filter(user=self, completed=True).values_list('lesson_id', flat=True)
+    next_level = Level.objects.filter(level_order=self.level + 1).first()
+    if next_level:
+        recommended_lessons = Lesson.objects.filter(level=next_level).exclude(id__in=completed_lessons)
+    else:
+        recommended_lessons = Lesson.objects.exclude(id__in=completed_lessons)
+    return recommended_lessons
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
