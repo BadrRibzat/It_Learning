@@ -1,61 +1,29 @@
 <template>
-  <div class="relative w-full h-64 perspective-1000" @click="isFlipped = !isFlipped">
-    <div
-      class="absolute w-full h-full transition-transform duration-500 transform-style-3d"
-      :class="{ 'rotate-y-180': isFlipped }"
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <h3 class="text-xl font-bold mb-4">{{ flashcard.word }}</h3>
+    <p class="text-gray-600 mb-4">{{ flashcard.definition }}</p>
+    <input
+      v-model="userAnswer"
+      type="text"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md"
+      placeholder="Type your answer"
+      @keyup.enter="checkAnswer"
+    />
+    <button
+      @click="checkAnswer"
+      class="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
     >
-      <!-- Front side -->
-      <div
-        class="absolute w-full h-full bg-white rounded-lg shadow-lg p-6 backface-hidden"
-      >
-        <div class="h-full flex flex-col justify-between">
-          <div>
-            <h3 class="text-xl font-bold text-gray-900">{{ flashcard.question }}</h3>
-            <p class="mt-2 text-gray-600">{{ flashcard.meaning }}</p>
-          </div>
-          <p class="text-sm text-gray-500">Click to flip</p>
-        </div>
-      </div>
-
-      <!-- Back side -->
-      <div
-        class="absolute w-full h-full bg-white rounded-lg shadow-lg p-6 backface-hidden rotate-y-180"
-      >
-        <div class="h-full flex flex-col justify-between">
-          <div>
-            <p class="text-lg font-medium text-gray-900">
-              {{ flashcard.answer }}
-            </p>
-            <input
-              v-model="userAnswer"
-              type="text"
-              class="mt-4 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"
-              placeholder="Type your answer"
-              @keyup.enter="checkAnswer"
-              @click.stop
-            />
-            <div
-              v-if="showFeedback"
-              class="mt-4 p-2 rounded"
-              :class="feedbackClass"
-            >
-              {{ feedbackMessage }}
-            </div>
-          </div>
-          <button
-            @click.stop="nextFlashcard"
-            class="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    </div>
+      Submit
+    </button>
+    <p v-if="showFeedback" :class="{ 'text-green-600': isCorrect, 'text-red-600': !isCorrect }" class="mt-4">
+      {{ feedbackMessage }}
+    </p>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
+import { useStore } from 'vuex';
 
 const props = defineProps({
   flashcard: {
@@ -66,31 +34,29 @@ const props = defineProps({
 
 const emit = defineEmits(['next']);
 
-const isFlipped = ref(false);
+const store = useStore();
 const userAnswer = ref('');
 const showFeedback = ref(false);
 const isCorrect = ref(false);
+const feedbackMessage = ref('');
 
-const feedbackClass = computed(() => {
-  return isCorrect.value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-});
-
-const feedbackMessage = computed(() => {
-  return isCorrect.value
-    ? 'Correct! Well done!'
-    : `Not quite. The correct answer is "${props.flashcard.answer}".`;
-});
-
-const checkAnswer = () => {
-  isCorrect.value = userAnswer.value.toLowerCase() === props.flashcard.answer.toLowerCase();
-  showFeedback.value = true;
-};
-
-const nextFlashcard = () => {
-  emit('next');
-  isFlipped.value = false;
-  userAnswer.value = '';
-  showFeedback.value = false;
+const checkAnswer = async () => {
+  try {
+    const result = await store.dispatch('lessons/submitFlashcard', {
+      flashcardId: props.flashcard.id,
+      answer: userAnswer.value,
+    });
+    isCorrect.value = result.is_correct;
+    feedbackMessage.value = isCorrect.value ? 'Correct!' : `Incorrect. The correct answer is "${props.flashcard.word}".`;
+    showFeedback.value = true;
+    if (isCorrect.value) {
+      setTimeout(() => {
+        emit('next');
+      }, 1500);
+    }
+  } catch (error) {
+    console.error('Error submitting flashcard answer:', error);
+  }
 };
 </script>
 
