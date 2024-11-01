@@ -1,4 +1,25 @@
 {
+  "app": {
+    "title": "Learn English",
+    "allRightsReserved": "All rights reserved"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "levels": "Levels",
+    "lessons": "Lessons",
+    "notes": "Notes",
+    "profile": "Profile"
+  },
+  "auth": {
+    "login": {
+      "link": "Login"
+    },
+    "register": {
+      "link": "Register"
+    },
+    "logout": "Logout"
+  },
+  {
   "hello": "Hello",
   "welcome": "Welcome to our app!",
   "auth": {
@@ -120,4 +141,4 @@
     "title": "Chat",
     "typeMessage": "Type a message..."
   }
-}
+ }
