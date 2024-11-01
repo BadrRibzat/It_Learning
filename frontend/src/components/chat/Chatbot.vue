@@ -1,27 +1,24 @@
 <template>
-  <div class="fixed bottom-4 right-4">
-    <button
-      @click="toggleChat"
-      class="bg-primary text-white rounded-full p-3 shadow-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-    >
-      <font-awesome-icon :icon="['fas', 'comments']" size="lg" />
-    </button>
+  <div class="fixed bottom-4 right-4 z-50">
     <div
-      v-if="isChatOpen"
-      class="absolute bottom-16 right-0 w-80 bg-white rounded-lg shadow-xl"
+      v-if="isOpen"
+      class="bg-white rounded-lg shadow-xl w-80 h-96 flex flex-col"
     >
+      <div class="p-4 bg-primary text-white flex justify-between items-center">
+        <h3 class="text-lg font-semibold">Chatbot</h3>
+        <button @click="$emit('close')" class="text-white hover:text-gray-200">
+          <font-awesome-icon :icon="['fas', 'times']" />
+        </button>
+      </div>
       <ChatWindow />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import ChatWindow from './ChatWindow.vue';
 
-const isChatOpen = ref(false);
+defineEmits(['close']);
 
-const toggleChat = () => {
-  isChatOpen.value = !isChatOpen.value;
-};
+const isOpen = true;
 </script>
