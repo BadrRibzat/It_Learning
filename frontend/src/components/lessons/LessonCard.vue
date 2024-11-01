@@ -4,7 +4,7 @@
     <p class="text-gray-600">{{ lesson.description }}</p>
     <div class="mt-4 flex justify-end">
       <router-link
-        :to="{ name: 'LessonDetail', params: { lessonId: lesson.id } }"
+        :to="{ name: 'LessonDetail', params: { levelId: lesson.level, lessonId: lesson.id } }"
         class="inline-block bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark"
       >
         Start Lesson
