@@ -111,4 +111,11 @@ status_code=${response: -3}
 body=${response:0:${#response}-3}
 print_result "Logout" "$status_code" "$body"
 
+# Test accessing a protected endpoint after logout
+echo "Testing Protected Endpoint After Logout..."
+response=$(curl -s -w "%{http_code}" -X GET "$BASE_URL/profile/" -H "Authorization: Bearer $ACCESS_TOKEN")
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Access Protected Endpoint After Logout" "$status_code" "$body"
+
 echo "All tests completed."

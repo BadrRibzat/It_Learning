@@ -1,0 +1,38 @@
+{
+  "lang":"en",
+  "name":"pipeline",
+  "version":"0.0.0",
+  "spacy_version":">=3.8.2,<3.9.0",
+  "description":"",
+  "author":"",
+  "email":"",
+  "url":"",
+  "license":"",
+  "spacy_git_version":"63f1b53",
+  "vectors":{
+    "width":0,
+    "vectors":0,
+    "keys":0,
+    "name":null,
+    "mode":"default"
+  },
+  "labels":{
+    "textcat_multilabel":[
+      "I'm just a bot, but thanks for asking! How can I assist you?",
+      "I'm the Language Learning Chatbot. How can I assist you?",
+      "Why don't scientists trust atoms? Because they make up everything!",
+      "Hi there! How can I help you today?",
+      "Goodbye! Have a great day!",
+      "Of course! What do you need help with? Vocabulary, grammar, or something else?"
+    ]
+  },
+  "pipeline":[
+    "textcat_multilabel"
+  ],
+  "components":[
+    "textcat_multilabel"
+  ],
+  "disabled":[
+
+  ]
+}
