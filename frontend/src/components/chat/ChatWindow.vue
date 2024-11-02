@@ -2,8 +2,8 @@
   <div class="chat-window">
     <div class="chat-messages" ref="chatMessages">
       <ChatMessage
-        v-for="message in messages"
-        :key="message.id"
+        v-for="(message, index) in messages"
+        :key="index"
         :message="message"
       />
     </div>
@@ -31,6 +31,12 @@ const messages = computed(() => store.state.chat.messages);
 
 const sendMessage = () => {
   if (newMessage.value.trim()) {
+    const userMessage = {
+      content: newMessage.value,
+      timestamp: new Date().toISOString(),
+      type: 'user',
+    };
+    store.commit('chat/ADD_MESSAGE', userMessage);
     store.dispatch('chat/sendMessage', newMessage.value);
     newMessage.value = '';
   }

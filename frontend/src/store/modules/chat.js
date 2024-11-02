@@ -26,7 +26,13 @@ export default {
       try {
         commit('SET_LOADING', true);
         const { data } = await chatService.sendMessage(message);
-        commit('ADD_MESSAGE', data);
+        // Ensure the response is correctly formatted
+        const response = {
+          content: data.response_text,
+          timestamp: new Date().toISOString(),
+          type: 'bot',
+        };
+        commit('ADD_MESSAGE', response);
       } catch (error) {
         commit('SET_ERROR', error.response?.data?.message || 'Failed to send message');
       } finally {
