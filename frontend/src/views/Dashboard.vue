@@ -6,8 +6,8 @@
         <div class="flex items-center mb-4">
           <img :src="userProfilePicture" alt="Profile Picture" class="w-24 h-24 rounded-full mr-4">
           <div>
-            <h2 class="text-xl font-bold">{{ userProfile.username }}</h2>
-            <p class="text-gray-600">{{ userProfile.email }}</p>
+            <h2 class="text-xl font-bold">{{ userProfile.username || 'Loading...' }}</h2>
+            <p class="text-gray-600">{{ userProfile.email || 'Loading...' }}</p>
           </div>
         </div>
         <h2 class="text-xl font-bold mb-4">Progress Overview</h2>
@@ -57,7 +57,7 @@ import { useStore } from 'vuex';
 
 const store = useStore();
 
-const userProfile = computed(() => store.getters['auth/currentUser']);
+const userProfile = computed(() => store.getters['auth/currentUser'] || {});
 const userProfilePicture = computed(() => userProfile.value?.profile_picture || '/default-profile.png');
 const userProgress = computed(() => store.getters['progress/userProgress']);
 const recentActivity = ref([]);
