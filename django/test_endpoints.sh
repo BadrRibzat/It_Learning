@@ -3,53 +3,112 @@
 # Set the base URL for the API
 BASE_URL="http://127.0.0.1:8000/api"
 
+# Colors for output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # Function to print results
 print_result() {
-    echo "----------------------------------------"
-    echo "Endpoint: $1"
-    echo "Status Code: $2"
-    echo "Response: $3"
+    if [ "$2" -eq 200 ] || [ "$2" -eq 201 ]; then
+        echo -e "${GREEN}----------------------------------------"
+        echo -e "✅ Endpoint: $1"
+        echo -e "Status Code: $2"
+        echo -e "Response: $3${NC}"
+    else
+        echo -e "${RED}----------------------------------------"
+        echo -e "❌ Endpoint: $1"
+        echo -e "Status Code: $2"
+        echo -e "Response: $3${NC}"
+    fi
     echo "----------------------------------------"
 }
 
-# Obtain an authentication token
-TOKEN=$(curl -s -X POST "$BASE_URL/login/" -H "Content-Type: application/json" -d '{"email": "kito@gmail.com", "password": "kitopassword"}')
-ACCESS_TOKEN=$(echo $TOKEN | jq -r '.access')
+# Test registration
+echo "Testing Registration..."
+response=$(curl -s -w "%{http_code}" -X POST "$BASE_URL/register/" -H "Content-Type: application/json" -d '{"username": "testuser", "email": "testuser@example.com", "password": "testpassword", "password_confirmation": "testpassword"}')
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Register User" "$status_code" "$body"
 
-# Test Beginner Lessons
-echo "Testing Beginner Lessons..."
+# Test login
+echo "Testing Login..."
+response=$(curl -s -w "%{http_code}" -X POST "$BASE_URL/login/" -H "Content-Type: application/json" -d '{"email": "testuser@example.com", "password": "testpassword"}')
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Login" "$status_code" "$body"
 
-# Get the list of beginner lessons
-response=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$BASE_URL/lessons/?level=1" -H "Content-Type: application/json" -H "Authorization: Bearer $ACCESS_TOKEN")
-print_result "Get Beginner Lessons" "$response"
+# Extract the access token
+ACCESS_TOKEN=$(echo $body | jq -r '.access')
 
-# Get the flashcards for a beginner lesson (replace <lesson_id> with an actual lesson ID)
-response=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$BASE_URL/flashcards/?lesson=1" -H "Content-Type: application/json" -H "Authorization: Bearer $ACCESS_TOKEN")
-print_result "Get Flashcards for Beginner Lesson" "$response"
+# Test user profile
+echo "Testing User Profile..."
+response=$(curl -s -w "%{http_code}" -X GET "$BASE_URL/profile/" -H "Authorization: Bearer $ACCESS_TOKEN")
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Get User Profile" "$status_code" "$body"
 
-# Submit answers for a beginner lesson flashcard (replace <flashcard_id> with an actual flashcard ID)
-response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/flashcard-submit/1/" -H "Content-Type: application/json" -H "Authorization: Bearer $ACCESS_TOKEN" -d '{"answer": "A"}')
-print_result "Submit Answer for Beginner Lesson Flashcard" "$response"
+# Test user statistics
+echo "Testing User Statistics..."
+response=$(curl -s -w "%{http_code}" -X GET "$BASE_URL/statistics/" -H "Authorization: Bearer $ACCESS_TOKEN")
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Get User Statistics" "$status_code" "$body"
 
-# Get the quiz for a beginner lesson (replace <lesson_id> with an actual lesson ID)
-response=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$BASE_URL/quizzes/?lesson=1" -H "Content-Type: application/json" -H "Authorization: Bearer $ACCESS_TOKEN")
-print_result "Get Quiz for Beginner Lesson" "$response"
+# Test lessons
+echo "Testing Lessons..."
+response=$(curl -s -w "%{http_code}" -X GET "$BASE_URL/lessons/" -H "Authorization: Bearer $ACCESS_TOKEN")
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Get Lessons" "$status_code" "$body"
 
-# Submit answers for a beginner lesson quiz (replace <quiz_id> with an actual quiz ID)
-response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/quiz-submit/1/" -H "Content-Type: application/json" -H "Authorization: Bearer $ACCESS_TOKEN" -d '{"answers": [{"question_id": 1, "answer": "A"}]}')
-print_result "Submit Answers for Beginner Lesson Quiz" "$response"
+# Test flashcards
+echo "Testing Flashcards..."
+response=$(curl -s -w "%{http_code}" -X GET "$BASE_URL/flashcards/" -H "Authorization: Bearer $ACCESS_TOKEN")
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Get Flashcards" "$status_code" "$body"
 
-# Test Advanced Lessons
-echo "Testing Advanced Lessons..."
+# Test quizzes
+echo "Testing Quizzes..."
+response=$(curl -s -w "%{http_code}" -X GET "$BASE_URL/quizzes/" -H "Authorization: Bearer $ACCESS_TOKEN")
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Get Quizzes" "$status_code" "$body"
 
-# Get the list of advanced lessons
-response=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$BASE_URL/lessons/?level=3" -H "Content-Type: application/json" -H "Authorization: Bearer $ACCESS_TOKEN")
-print_result "Get Advanced Lessons" "$response"
+# Test level tests
+echo "Testing Level Tests..."
+response=$(curl -s -w "%{http_code}" -X GET "$BASE_URL/level-tests/" -H "Authorization: Bearer $ACCESS_TOKEN")
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Get Level Tests" "$status_code" "$body"
 
-# Get the level test for the advanced level
-response=$(curl -s -o /dev/null -w "%{http_code}" -X GET "$BASE_URL/level-tests/?level=3" -H "Content-Type: application/json" -H "Authorization: Bearer $ACCESS_TOKEN")
-print_result "Get Level Test for Advanced Level" "$response"
+# Test user progress
+echo "Testing User Progress..."
+response=$(curl -s -w "%{http_code}" -X GET "$BASE_URL/user-progress/" -H "Authorization: Bearer $ACCESS_TOKEN")
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Get User Progress" "$status_code" "$body"
 
-# Submit answers for the advanced level test (replace <level_test_id> with an actual level test ID)
-response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/level-test-submit/3/" -H "Content-Type: application/json" -H "Authorization: Bearer $ACCESS_TOKEN" -d '{"answers": [{"question_id": 72, "answer": "Break a leg"}]}')
-print_result "Submit Answers for Advanced Level Test" "$response"
+# Test recommended lessons
+echo "Testing Recommended Lessons..."
+response=$(curl -s -w "%{http_code}" -X GET "$BASE_URL/recommended-lessons/" -H "Authorization: Bearer $ACCESS_TOKEN")
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Get Recommended Lessons" "$status_code" "$body"
+
+# Test chatbot
+echo "Testing Chatbot..."
+response=$(curl -s -w "%{http_code}" -X POST "$BASE_URL/chat/" -H "Content-Type: application/json" -H "Authorization: Bearer $ACCESS_TOKEN" -d '{"input": "Hello"}')
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Chatbot Interaction" "$status_code" "$body"
+
+# Test logout
+echo "Testing Logout..."
+response=$(curl -s -w "%{http_code}" -X POST "$BASE_URL/logout/" -H "Authorization: Bearer $ACCESS_TOKEN")
+status_code=${response: -3}
+body=${response:0:${#response}-3}
+print_result "Logout" "$status_code" "$body"
+
+echo "All tests completed."
