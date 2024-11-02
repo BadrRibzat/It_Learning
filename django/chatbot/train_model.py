@@ -1,6 +1,6 @@
 import spacy
 from spacy.training import Example
-from .prepare_data import prepare_training_data
+from chatbot.prepare_data import prepare_training_data
 
 def train_model():
     nlp = spacy.blank("en")
