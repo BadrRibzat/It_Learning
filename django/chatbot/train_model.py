@@ -13,14 +13,21 @@ def train_model():
     nlp = spacy.blank("en")
     textcat = nlp.add_pipe("textcat_multilabel")
 
+    # Prepare training data
     training_data = prepare_training_data()
+    labels = set(label for _, label in training_data)
+
+    # Add labels to the textcat_multilabel component
+    for label in labels:
+        textcat.add_label(label)
+
     examples = []
     for text, label in training_data:
         doc = nlp.make_doc(text)
         example = Example.from_dict(doc, {"cats": {label: True}})
         examples.append(example)
 
-    optimizer = nlp.initialize()
+    optimizer = nlp.initialize(lambda: examples)
     for i in range(10):
         losses = {}
         for example in examples:
