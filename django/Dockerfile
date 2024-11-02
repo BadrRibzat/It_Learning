@@ -16,5 +16,5 @@ RUN pip install -r requirements.txt
 # Copy project
 COPY . /code/
 
-# Run migrations and collect static files
+# Run migrations, collect static files, and start the application
 CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn backend.wsgi:application --bind 0.0.0.0:8000"]
