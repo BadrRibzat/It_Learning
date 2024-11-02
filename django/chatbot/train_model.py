@@ -1,3 +1,10 @@
+import os
+import django
+
+# Set up Django environment
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Learn_English.settings')
+django.setup()
+
 import spacy
 from spacy.training import Example
 from chatbot.prepare_data import prepare_training_data
