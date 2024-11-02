@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { createStore } from 'vuex';
 import auth from './modules/auth';
 import profile from './modules/profile';
@@ -6,13 +7,15 @@ import chat from './modules/chat';
 import notes from './modules/notes';
 import progress from './modules/progress';
 
-export default createStore({
+Vue.use(Vuex);
+
+export default new Vuex.Store({
   modules: {
     auth,
-    profile,
-    lessons,
-    progress,
     chat,
+    lessons,
     notes,
+    profile,
+    progress,
   },
 });
