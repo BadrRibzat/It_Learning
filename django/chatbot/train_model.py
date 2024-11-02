@@ -11,13 +11,13 @@ from chatbot.prepare_data import prepare_training_data
 
 def train_model():
     nlp = spacy.blank("en")
-    textcat = nlp.add_pipe("textcat")
+    textcat = nlp.add_pipe("textcat_multilabel")
 
     training_data = prepare_training_data()
     examples = []
     for text, label in training_data:
         doc = nlp.make_doc(text)
-        example = Example.from_dict(doc, {"cats": {"response": label}})
+        example = Example.from_dict(doc, {"cats": {label: True}})
         examples.append(example)
 
     optimizer = nlp.initialize()
