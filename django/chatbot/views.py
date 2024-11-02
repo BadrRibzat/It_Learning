@@ -11,6 +11,7 @@ class ChatbotView(APIView):
 
     def get_response(self, user_input):
         doc = self.nlp(user_input)
+        # Get the label with the highest score
         response = max(doc.cats, key=doc.cats.get)
         return response
 
