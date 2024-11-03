@@ -1,12 +1,12 @@
 <template>
-  <div class="register">
-    <h1>Sign-Up</h1>
+  <div class="sign-up">
+    <h1>Sign Up</h1>
     <form @submit.prevent="register">
       <input type="text" v-model="username" placeholder="Username" required />
       <input type="email" v-model="email" placeholder="Email" required />
       <input type="password" v-model="password" placeholder="Password" required />
       <input type="password" v-model="passwordConfirmation" placeholder="Confirm Password" required />
-      <button type="submit">Sign-Up</button>
+      <button type="submit">Sign Up</button>
     </form>
   </div>
 </template>
@@ -15,7 +15,7 @@
 import { mapActions } from 'vuex';
 
 export default {
-  name: 'RegisterView',
+  name: 'SignUpView',
   data() {
     return {
       username: '',
