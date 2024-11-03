@@ -1,12 +1,33 @@
 <template>
-  <div class="level-test">
-    <h1>Level Test</h1>
-    <p>Take a level test to assess your skills.</p>
+  <div class="level-tests-view">
+    <HeaderComponent />
+    <SidebarComponent />
+    <LevelTestsComponent />
+    <FooterComponent />
   </div>
 </template>
 
 <script>
+import HeaderComponent from '../components/HeaderComponent.vue';
+import SidebarComponent from '../components/SidebarComponent.vue';
+import LevelTestsComponent from '../components/LevelTestsComponent.vue';
+import FooterComponent from '../components/FooterComponent.vue';
+
 export default {
-  name: 'LevelTestView',
+  name: 'LevelTestsView',
+  components: {
+    HeaderComponent,
+    SidebarComponent,
+    LevelTestsComponent,
+    FooterComponent,
+  },
 };
 </script>
+
+<style scoped>
+.level-tests-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+</style>
