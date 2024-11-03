@@ -1,48 +1,62 @@
 <template>
-  <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-4">{{ lesson.title }}</h1>
-    <p class="text-gray-600 mb-6">{{ lesson.content }}</p>
-    <button @click="startFlashcards" class="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark">
-      Start Flashcards
-    </button>
-    <div v-if="showingFlashcards">
-      <FlashcardList :flashcards="flashcards" @complete="completeFlashcards" />
-    </div>
+  <div class="lesson-detail-view">
+    <h1>{{ lesson.title }}</h1>
+    <p>{{ lesson.content }}</p>
+    <FlashcardList :flashcards="flashcards" @submit="handleFlashcardSubmit" />
+    <QuizList :quizzes="quizzes" @submit="handleQuizSubmit" />
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useStore } from 'vuex';
-import FlashcardList from '@/components/lessons/FlashcardList.vue';
+<script>
+import FlashcardList from '../../components/lessons/FlashcardList.vue';
+import QuizList from '../../components/lessons/QuizList.vue';
+import { mapActions, mapGetters } from 'vuex';
 
-const route = useRoute();
-const router = useRouter();
-const store = useStore();
-
-const lesson = ref({});
-const flashcards = ref([]);
-const showingFlashcards = ref(false);
-
-onMounted(async () => {
-  try {
-    await store.dispatch('lessons/fetchLesson', route.params.lessonId);
-    lesson.value = store.getters['lessons/currentLesson'];
-    await store.dispatch('lessons/fetchFlashcards', route.params.lessonId);
-    flashcards.value = store.getters['lessons/allFlashcards'];
-  } catch (error) {
-    console.error('Error fetching lesson data:', error);
-  }
-});
-
-const startFlashcards = () => {
-  showingFlashcards.value = true;
-};
-
-const completeFlashcards = async () => {
-  showingFlashcards.value = false;
-  await store.dispatch('lessons/updateCurrentLesson', lesson.value.id);
-  router.push({ name: 'LessonsList' });
+export default {
+  components: {
+    FlashcardList,
+    QuizList,
+  },
+  data() {
+    return {
+      lesson: {},
+      flashcards: [],
+      quizzes: [],
+    };
+  },
+  computed: {
+    ...mapGetters('lessons', ['lessons']),
+  },
+  methods: {
+    ...mapActions('lessons', ['fetchLesson', 'fetchFlashcards', 'fetchQuizzes', 'submitFlashcard', 'submitQuiz']),
+    async handleFlashcardSubmit(flashcardId, answer) {
+      try {
+        await this.submitFlashcard({ flashcardId, answer });
+        this.fetchFlashcards(this.$route.params.id);
+      } catch (error) {
+        console.error('Flashcard submission failed:', error);
+      }
+    },
+    async handleQuizSubmit(quizId, answers) {
+      try {
+        await this.submitQuiz({ quizId, answers });
+        this.fetchQuizzes(this.$route.params.id);
+      } catch (error) {
+        console.error('Quiz submission failed:', error);
+      }
+    },
+  },
+  async created() {
+    const lessonId = this.$route.params.id;
+    this.lesson = await this.fetchLesson(lessonId);
+    this.flashcards = await this.fetchFlashcards(lessonId);
+    this.quizzes = await this.fetchQuizzes(lessonId);
+  },
 };
 </script>
+
+<style scoped>
+.lesson-detail-view {
+  padding: 20px;
+}
+</style>

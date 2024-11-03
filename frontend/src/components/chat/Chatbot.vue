@@ -1,24 +1,42 @@
 <template>
-  <div class="fixed bottom-4 right-4 z-50">
-    <div
-      v-if="isOpen"
-      class="bg-white rounded-lg shadow-xl w-80 h-96 flex flex-col"
-    >
-      <div class="p-4 bg-primary text-white flex justify-between items-center">
-        <h3 class="text-lg font-semibold">Chatbot</h3>
-        <button @click="$emit('close')" class="text-white hover:text-gray-200">
-          <font-awesome-icon :icon="['fas', 'times']" />
-        </button>
-      </div>
-      <ChatWindow />
-    </div>
+  <div class="chatbot">
+    <input v-model="input" type="text" placeholder="Ask me anything" />
+    <button @click="handleSubmit">Send</button>
+    <p>{{ response }}</p>
   </div>
 </template>
 
-<script setup>
-import ChatWindow from './ChatWindow.vue';
+<script>
+import chatService from '../../api/services/chat';
 
-defineEmits(['close']);
-
-const isOpen = true;
+export default {
+  data() {
+    return {
+      input: '',
+      response: '',
+    };
+  },
+  methods: {
+    async handleSubmit() {
+      try {
+        const response = await chatService.getResponse(this.input);
+        this.response = response.data.response_text;
+      } catch (error) {
+        console.error('Chatbot response failed:', error);
+      }
+    },
+  },
+};
 </script>
+
+<style scoped>
+.chatbot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+</style>
