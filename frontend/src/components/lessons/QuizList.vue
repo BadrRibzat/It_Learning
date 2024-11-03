@@ -1,23 +1,46 @@
 <template>
-  <div>
-    <h2 class="text-2xl font-bold mb-4">Quizzes</h2>
-    <div v-if="quizzes.length === 0" class="text-gray-600">
-      No quizzes available for this lesson.
-    </div>
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <QuizCard v-for="quiz in quizzes" :key="quiz.id" :quiz="quiz" />
-    </div>
+  <div class="quiz-list">
+    <h2>Quizzes</h2>
+    <ul>
+      <li v-for="quiz in quizzes" :key="quiz.id">
+        <Quiz :quiz="quiz" @submit="handleQuizSubmit" />
+      </li>
+    </ul>
   </div>
 </template>
 
-<script setup>
-import { defineProps } from 'vue';
-import QuizCard from './QuizCard.vue';
+<script>
+import Quiz from './Quiz.vue';
 
-defineProps({
-  quizzes: {
-    type: Array,
-    required: true,
+export default {
+  components: {
+    Quiz,
   },
-});
+  props: {
+    quizzes: {
+      type: Array,
+      required: true,
+    },
+  },
+  methods: {
+    handleQuizSubmit(quizId, answers) {
+      this.$emit('submit', quizId, answers);
+    },
+  },
+};
 </script>
+
+<style scoped>
+.quiz-list {
+  padding: 20px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 20px;
+}
+</style>

@@ -1,90 +1,25 @@
-# Ignore Python bytecode and cache
-**/__pycache__/
-**/migrations/
-
-# Ignore environment files
+# Environment variables
 .env
-**/env/
-local_settings.py
+.env.dev
+.env.prod
+.env.local
+.env.staging
 
-# Ignore coverage, test, and log files
-.coverage
-*.xml
-*.log
-pytest_results.xml
-pytest.ini
-
-# Ignore virtual environment folder
-.venv/
-venv/
-
-# Ignore media/uploads
-media/
-profile_pictures/
-
-# Node and other dependencies (for frontend)
-node_modules/
-dist/
-
-# Ignore frontend backup
-frontend/frontend_backup/
-
-# Ignore sensitive files
-*.pem
-*.key
-*.crt
-*.p12
-*.pfx
-*.der
-*.p7b
-*.p7c
-*.cer
-*.csr
-*.p7r
-*.p7s
-*.p10
-
-# Ignore cache directories
-**/cache/
-**/tmp/
-
-# Ignore IDE-specific files
-.idea/
-.vscode/
-
-# Ignore OS-specific files
-.DS_Store
-Thumbs.db
-
-# Ignore database files
+# Local database
 *.sqlite3
-*.db
 
-# Ignore build artifacts
-build/
-dist/
-*.egg-info/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Ignore local configuration files
+# Django
+*.log
 local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
 
-# Ignore Jupyter notebook checkpoints
-.ipynb_checkpoints/
-
-# Ignore npm and yarn lock files
-package-lock.json
-yarn.lock
-
-# Ignore other common files
-*.swp
-*.swo
-*.swn
-*.orig
-*.bak
-*.old
-*.pyc
-*.pyo
-*.pyd
-*.pyw
-*.pyz
-*.pyzw
+# Docker
+docker-compose.override.yml

@@ -1,16 +1,24 @@
 <template>
   <div class="chat-view">
-    <h1 class="text-3xl font-bold mb-4">Chat</h1>
-    <ChatWindow />
+    <Chatbot />
   </div>
 </template>
 
-<script setup>
-import ChatWindow from '@/components/chat/ChatWindow.vue';
+<script>
+import Chatbot from '../../components/chat/Chatbot.vue';
+
+export default {
+  components: {
+    Chatbot,
+  },
+};
 </script>
 
 <style scoped>
 .chat-view {
-  height: calc(100vh - 64px); /* Adjust based on your header height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 </style>

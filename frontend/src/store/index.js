@@ -1,18 +1,32 @@
-import { createStore } from 'vuex';
-import auth from './modules/auth';
-import profile from './modules/profile';
-import lessons from './modules/lessons';
-import chat from './modules/chat';
-import notes from './modules/notes';
-import progress from './modules/progress';
+import { createStore } from 'vuex'
 
 export default createStore({
-  modules: {
-    auth,
-    chat,
-    lessons,
-    notes,
-    profile,
-    progress,
+  state: {
+    user: null,
+    progress: {},
   },
-});
+  mutations: {
+    setUser(state, user) {
+      state.user = user
+    },
+    setProgress(state, progress) {
+      state.progress = progress
+    },
+  },
+  actions: {
+    login({ commit }, user) {
+      commit('setUser', user)
+    },
+    logout({ commit }) {
+      commit('setUser', null)
+    },
+    updateProgress({ commit }, progress) {
+      commit('setProgress', progress)
+    },
+  },
+  getters: {
+    isAuthenticated: state => !!state.user,
+    user: state => state.user,
+    progress: state => state.progress,
+  },
+})

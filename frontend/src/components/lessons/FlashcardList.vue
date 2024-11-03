@@ -1,49 +1,46 @@
 <template>
-  <div>
-    <div v-if="currentIndex < flashcards.length">
-      <Flashcard
-        :flashcard="flashcards[currentIndex]"
-        @next="nextFlashcard"
-      />
-      <div class="mt-4 text-center">
-        <p>Progress: {{ currentIndex + 1 }} / {{ flashcards.length }}</p>
-      </div>
-    </div>
-    <div v-else class="text-center">
-      <h3 class="text-2xl font-bold mb-4">Congratulations!</h3>
-      <p>You've completed all flashcards for this lesson.</p>
-      <button
-        @click="completeFlashcards"
-        class="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
-      >
-        Back to Lesson
-      </button>
-    </div>
+  <div class="flashcard-list">
+    <h2>Flashcards</h2>
+    <ul>
+      <li v-for="flashcard in flashcards" :key="flashcard.id">
+        <Flashcard :flashcard="flashcard" @submit="handleFlashcardSubmit" />
+      </li>
+    </ul>
   </div>
 </template>
 
-<script setup>
-import { ref, toRef } from 'vue';
+<script>
 import Flashcard from './Flashcard.vue';
 
-const props = defineProps({
-  flashcards: {
-    type: Array,
-    required: true,
+export default {
+  components: {
+    Flashcard,
   },
-});
-
-const flashcards = toRef(props, 'flashcards');
-
-const emit = defineEmits(['complete']);
-
-const currentIndex = ref(0);
-
-const nextFlashcard = () => {
-  currentIndex.value++;
-};
-
-const completeFlashcards = () => {
-  emit('complete');
+  props: {
+    flashcards: {
+      type: Array,
+      required: true,
+    },
+  },
+  methods: {
+    handleFlashcardSubmit(flashcardId, answer) {
+      this.$emit('submit', flashcardId, answer);
+    },
+  },
 };
 </script>
+
+<style scoped>
+.flashcard-list {
+  padding: 20px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 20px;
+}
+</style>
