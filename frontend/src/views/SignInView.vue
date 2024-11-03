@@ -1,10 +1,10 @@
 <template>
-  <div class="login">
-    <h1>Sign-In</h1>
+  <div class="sign-in">
+    <h1>Sign In</h1>
     <form @submit.prevent="login">
       <input type="email" v-model="email" placeholder="Email" required />
       <input type="password" v-model="password" placeholder="Password" required />
-      <button type="submit">Sign-In</button>
+      <button type="submit">Sign In</button>
     </form>
   </div>
 </template>
@@ -13,7 +13,7 @@
 import { mapActions } from 'vuex';
 
 export default {
-  name: 'LoginView',
+  name: 'SignInView',
   data() {
     return {
       email: '',
