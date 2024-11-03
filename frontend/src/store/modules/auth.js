@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
 const state = {
   user: null,
@@ -12,12 +12,12 @@ const getters = {
 
 const actions = {
   async register({ commit }, userData) {
-    const response = await axios.post('/api/register/', userData);
+    const response = await axiosInstance.post('register/', userData);
     commit('setToken', response.data.token);
     commit('setUser', response.data.user);
   },
   async login({ commit }, credentials) {
-    const response = await axios.post('/api/login/', credentials);
+    const response = await axiosInstance.post('login/', credentials);
     commit('setToken', response.data.token);
     commit('setUser', response.data.user);
   },
@@ -27,9 +27,7 @@ const actions = {
     localStorage.removeItem('token');
   },
   async fetchUser({ commit }) {
-    const response = await axios.get('/api/profile/', {
-      headers: { Authorization: `Bearer ${state.token}` },
-    });
+    const response = await axiosInstance.get('profile/');
     commit('setUser', response.data);
   },
 };

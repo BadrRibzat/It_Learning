@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
 const state = {
   flashcards: [],
@@ -10,7 +10,7 @@ const getters = {
 
 const actions = {
   async fetchFlashcards({ commit }) {
-    const response = await axios.get('/api/flashcards/');
+    const response = await axiosInstance.get('flashcards/');
     commit('setFlashcards', response.data);
   },
 };
