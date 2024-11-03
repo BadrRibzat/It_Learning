@@ -4,9 +4,9 @@ import DashboardView from '../views/DashboardView.vue';
 import ProfileView from '../views/ProfileView.vue';
 import LevelsOverviewView from '../views/LevelsOverviewView.vue';
 import LessonDetailView from '../views/LessonDetailView.vue';
-import FlashcardPracticeView from '../views/FlashcardPracticeView.vue';
-import QuizView from '../views/QuizView.vue';
-import LevelTestView from '../views/LevelTestView.vue';
+import FlashcardsView from '../views/FlashcardsView.vue';
+import QuizzesView from '../views/QuizzesView.vue';
+import LevelTestsView from '../views/LevelTestsView.vue';
 import NotesManagementView from '../views/NotesManagementView.vue';
 import AboutView from '../views/AboutView.vue';
 import ContactView from '../views/ContactView.vue';
@@ -45,20 +45,20 @@ const routes = [
   },
   {
     path: '/flashcards',
-    name: 'FlashcardPractice',
-    component: FlashcardPracticeView,
+    name: 'Flashcards',
+    component: FlashcardsView,
     meta: { requiresAuth: true },
   },
   {
-    path: '/quiz/:id',
-    name: 'Quiz',
-    component: QuizView,
+    path: '/quizzes',
+    name: 'Quizzes',
+    component: QuizzesView,
     meta: { requiresAuth: true },
   },
   {
-    path: '/level-test/:id',
-    name: 'LevelTest',
-    component: LevelTestView,
+    path: '/level-tests',
+    name: 'LevelTests',
+    component: LevelTestsView,
     meta: { requiresAuth: true },
   },
   {
