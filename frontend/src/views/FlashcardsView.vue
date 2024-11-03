@@ -1,8 +1,8 @@
 <template>
-  <div class="notes-management-view">
+  <div class="flashcards-view">
     <HeaderComponent />
     <SidebarComponent />
-    <NotesManagementComponent />
+    <FlashcardsComponent />
     <FooterComponent />
   </div>
 </template>
@@ -10,22 +10,22 @@
 <script>
 import HeaderComponent from '../components/HeaderComponent.vue';
 import SidebarComponent from '../components/SidebarComponent.vue';
-import NotesManagementComponent from '../components/NotesManagementComponent.vue';
+import FlashcardsComponent from '../components/FlashcardsComponent.vue';
 import FooterComponent from '../components/FooterComponent.vue';
 
 export default {
-  name: 'NotesManagementView',
+  name: 'FlashcardsView',
   components: {
     HeaderComponent,
     SidebarComponent,
-    NotesManagementComponent,
+    FlashcardsComponent,
     FooterComponent,
   },
 };
 </script>
 
 <style scoped>
-.notes-management-view {
+.flashcards-view {
   display: flex;
   flex-direction: column;
   min-height: 100vh;

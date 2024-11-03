@@ -1,8 +1,8 @@
 <template>
-  <div class="notes-management-view">
+  <div class="chatbot-view">
     <HeaderComponent />
     <SidebarComponent />
-    <NotesManagementComponent />
+    <ChatbotInterfaceComponent />
     <FooterComponent />
   </div>
 </template>
@@ -10,22 +10,22 @@
 <script>
 import HeaderComponent from '../components/HeaderComponent.vue';
 import SidebarComponent from '../components/SidebarComponent.vue';
-import NotesManagementComponent from '../components/NotesManagementComponent.vue';
+import ChatbotInterfaceComponent from '../components/ChatbotInterfaceComponent.vue';
 import FooterComponent from '../components/FooterComponent.vue';
 
 export default {
-  name: 'NotesManagementView',
+  name: 'ChatbotView',
   components: {
     HeaderComponent,
     SidebarComponent,
-    NotesManagementComponent,
+    ChatbotInterfaceComponent,
     FooterComponent,
   },
 };
 </script>
 
 <style scoped>
-.notes-management-view {
+.chatbot-view {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
