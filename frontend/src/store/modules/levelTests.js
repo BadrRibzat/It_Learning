@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
 const state = {
   levelTests: [],
@@ -10,7 +10,7 @@ const getters = {
 
 const actions = {
   async fetchLevelTests({ commit }) {
-    const response = await axios.get('/api/level-tests/');
+    const response = await axiosInstance.get('level-tests/');
     commit('setLevelTests', response.data);
   },
 };

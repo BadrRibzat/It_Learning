@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
 const state = {
   profile: null,
@@ -14,15 +14,15 @@ const getters = {
 
 const actions = {
   async fetchProfile({ commit }) {
-    const response = await axios.get('/api/profile/');
+    const response = await axiosInstance.get('profile/');
     commit('setProfile', response.data);
   },
   async fetchProgress({ commit }) {
-    const response = await axios.get('/api/user-progress/');
+    const response = await axiosInstance.get('user-progress/');
     commit('setProgress', response.data);
   },
   async fetchStatistics({ commit }) {
-    const response = await axios.get('/api/statistics/');
+    const response = await axiosInstance.get('statistics/');
     commit('setStatistics', response.data);
   },
 };

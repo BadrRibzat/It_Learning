@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
 const state = {
   quizzes: [],
@@ -10,7 +10,7 @@ const getters = {
 
 const actions = {
   async fetchQuizzes({ commit }) {
-    const response = await axios.get('/api/quizzes/');
+    const response = await axiosInstance.get('quizzes/');
     commit('setQuizzes', response.data);
   },
 };

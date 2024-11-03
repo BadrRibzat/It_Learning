@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
 const state = {
   lessons: [],
@@ -12,11 +12,11 @@ const getters = {
 
 const actions = {
   async fetchLessons({ commit }) {
-    const response = await axios.get('/api/lessons/');
+    const response = await axiosInstance.get('lessons/');
     commit('setLessons', response.data);
   },
   async fetchCurrentLesson({ commit }) {
-    const response = await axios.get('/api/current-lesson/');
+    const response = await axiosInstance.get('current-lesson/');
     commit('setCurrentLesson', response.data);
   },
 };

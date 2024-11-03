@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
 const state = {
   chatbotResponse: null,
@@ -10,7 +10,7 @@ const getters = {
 
 const actions = {
   async sendMessage({ commit }, message) {
-    const response = await axios.post('/api/chatbot/', { input: message });
+    const response = await axiosInstance.post('chatbot/', { input: message });
     commit('setChatbotResponse', response.data);
   },
 };

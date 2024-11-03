@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
 const state = {
   notes: [],
@@ -10,19 +10,19 @@ const getters = {
 
 const actions = {
   async fetchNotes({ commit }) {
-    const response = await axios.get('/api/notes/');
+    const response = await axiosInstance.get('notes/');
     commit('setNotes', response.data);
   },
   async addNote({ commit }, note) {
-    const response = await axios.post('/api/notes/', note);
+    const response = await axiosInstance.post('notes/', note);
     commit('addNote', response.data);
   },
   async updateNote({ commit }, note) {
-    const response = await axios.put(`/api/notes/${note.id}/`, note);
+    const response = await axiosInstance.put(`notes/${note.id}/`, note);
     commit('updateNote', response.data);
   },
   async deleteNote({ commit }, noteId) {
-    await axios.delete(`/api/notes/${noteId}/`);
+    await axiosInstance.delete(`notes/${noteId}/`);
     commit('deleteNote', noteId);
   },
 };
