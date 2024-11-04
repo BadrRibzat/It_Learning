@@ -37,21 +37,17 @@ export default {
     };
   },
   methods: {
-    ...mapActions(['register']),
-    async register() {
-      if (this.password !== this.passwordConfirmation) {
-        alert('Passwords do not match');
-        return;
-      }
-      try {
-        await this.register({
-          username: this.username,
-          email: this.email,
-          password: this.password,
-        });
-        this.$router.push('/dashboard');
-      } catch (error) {
-        console.error('Registration failed:', error);
+  ...mapActions(['register']),
+  async handleRegister() {
+    try {
+      await this.register({
+        username: this.username,
+        email: this.email,
+        password: this.password,
+      });
+      this.$router.push('/dashboard');
+    } catch (error) {
+      console.error('Registration failed:', error);
         alert('Registration failed. Please try again.');
       }
     },
