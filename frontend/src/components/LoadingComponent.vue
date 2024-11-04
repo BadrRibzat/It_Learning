@@ -1,12 +1,31 @@
 <template>
-  <div class="loading">
-    <p>Loading...</p>
+  <div>
+    <LoadingComponent v-if="loading" />
+    <div v-else>
+      <p>Loading...</p>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'LoadingComponent',
+  data() {
+    return {
+      loading: false,
+    };
+  },
+  methods: {
+    async fetchData() {
+      this.loading = true;
+      try {
+        await this.someAction();
+      } catch (error) {
+        console.error(error);
+      } finally {
+        this.loading = false;
+      }
+    },
+  },
 };
 </script>
 

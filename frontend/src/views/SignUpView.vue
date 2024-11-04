@@ -39,6 +39,10 @@ export default {
   methods: {
   ...mapActions(['register']),
   async handleRegister() {
+    if (this.password !== this.passwordConfirmation) {
+      alert('Passwords do not match');
+      return;
+    }
     try {
       await this.register({
         username: this.username,
@@ -48,10 +52,10 @@ export default {
       this.$router.push('/dashboard');
     } catch (error) {
       console.error('Registration failed:', error);
-        alert('Registration failed. Please try again.');
-      }
-    },
+      alert('Registration failed. Please try again.');
+    }
   },
+ },
 };
 </script>
 
