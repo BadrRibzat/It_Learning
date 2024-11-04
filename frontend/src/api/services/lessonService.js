@@ -9,8 +9,12 @@ export const lessonService = {
     const response = await axiosInstance.get(`lessons/${id}/`);
     return response.data;
   },
-  fetchCurrentLesson: async () => {
-    const response = await axiosInstance.get('recommend-next-lesson/');
+  fetchUserProgress: async () => {
+    const response = await axiosInstance.get('user-progress/');
+    return response.data;
+  },
+  updateLessonProgress: async (lessonId, completed) => {
+    const response = await axiosInstance.post(`update-lesson-progress/${lessonId}/`, { completed });
     return response.data;
   },
 };
