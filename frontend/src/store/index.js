@@ -7,6 +7,7 @@ import quizzes from './modules/quizzes';
 import levelTests from './modules/levelTests';
 import notes from './modules/notes';
 import chatbot from './modules/chatbot';
+import levels from './modules/levels';
 
 export default createStore({
   modules: {
