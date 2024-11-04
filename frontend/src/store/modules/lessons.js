@@ -3,11 +3,13 @@ import { lessonService } from '../../api/services/lessonService';
 const state = {
   lessons: [],
   currentLesson: null,
+  userProgress: [],
 };
 
 const getters = {
   lessons: (state) => state.lessons,
   currentLesson: (state) => state.currentLesson,
+  userProgress: (state) => state.userProgress,
 };
 
 const actions = {
@@ -29,12 +31,21 @@ const actions = {
       throw error;
     }
   },
-  async fetchCurrentLesson({ commit }) {
+  async fetchUserProgress({ commit }) {
     try {
-      const lesson = await lessonService.fetchCurrentLesson();
-      commit('setCurrentLesson', lesson);
+      const progress = await lessonService.fetchUserProgress();
+      commit('setUserProgress', progress);
     } catch (error) {
-      console.error('Fetch current lesson failed:', error);
+      console.error('Fetch user progress failed:', error);
+      throw error;
+    }
+  },
+  async updateLessonProgress({ commit }, { lessonId, completed }) {
+    try {
+      const updatedProgress = await lessonService.updateLessonProgress(lessonId, completed);
+      commit('updateUserProgress', updatedProgress);
+    } catch (error) {
+      console.error('Update lesson progress failed:', error);
       throw error;
     }
   },
@@ -46,6 +57,17 @@ const mutations = {
   },
   setCurrentLesson(state, lesson) {
     state.currentLesson = lesson;
+  },
+  setUserProgress(state, progress) {
+    state.userProgress = progress;
+  },
+  updateUserProgress(state, updatedProgress) {
+    const index = state.userProgress.findIndex(p => p.lesson === updatedProgress.lesson);
+    if (index !== -1) {
+      state.userProgress.splice(index, 1, updatedProgress);
+    } else {
+      state.userProgress.push(updatedProgress);
+    }
   },
 };
 
