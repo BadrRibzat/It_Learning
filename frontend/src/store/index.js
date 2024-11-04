@@ -12,6 +12,7 @@ export default createStore({
   modules: {
     auth,
     profile,
+    levels,
     lessons,
     flashcards,
     quizzes,

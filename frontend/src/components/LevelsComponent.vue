@@ -1,14 +1,14 @@
 <template>
-  <div class="quizzes">
-    <h1>Quizzes</h1>
-    <div v-if="quizzes.length">
-      <div v-for="quiz in quizzes" :key="quiz.id" class="quiz">
-        <h2>{{ quiz.title }}</h2>
-        <button @click="startQuiz(quiz.id)">Start Quiz</button>
+  <div class="levels">
+    <h1>Levels</h1>
+    <div v-if="levels.length">
+      <div v-for="level in levels" :key="level.id" class="level">
+        <h2>{{ level.name }}</h2>
+        <button @click="viewLevel(level.id)">View Level</button>
       </div>
     </div>
     <div v-else>
-      <p>Loading quizzes...</p>
+      <p>Loading levels...</p>
     </div>
   </div>
 </template>
@@ -17,28 +17,28 @@
 import { mapGetters, mapActions } from 'vuex';
 
 export default {
-  name: 'QuizzesComponent',
+  name: 'LevelsComponent',
   computed: {
-    ...mapGetters(['quizzes']),
+    ...mapGetters(['levels']),
   },
   methods: {
-    ...mapActions(['fetchQuizzes']),
-    startQuiz(quizId) {
-      this.$router.push(`/quizzes/${quizId}`);
+    ...mapActions(['fetchLevels']),
+    viewLevel(levelId) {
+      this.$router.push(`/levels/${levelId}`);
     },
   },
   async created() {
-    await this.fetchQuizzes();
+    await this.fetchLevels();
   },
 };
 </script>
 
 <style scoped>
-.quizzes {
+.levels {
   padding: 2rem;
 }
 
-.quiz {
+.level {
   margin-bottom: 2rem;
 }
 
