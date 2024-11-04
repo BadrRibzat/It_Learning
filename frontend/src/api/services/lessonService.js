@@ -2,19 +2,15 @@ import axiosInstance from '../axios';
 
 export const lessonService = {
   fetchLessons: async () => {
-    try {
-      const response = await axiosInstance.get('lessons/');
-      return response.data;
-    } catch (error) {
-      throw error.response.data;
-    }
+    const response = await axiosInstance.get('lessons/');
+    return response.data;
+  },
+  fetchLesson: async (id) => {
+    const response = await axiosInstance.get(`lessons/${id}/`);
+    return response.data;
   },
   fetchCurrentLesson: async () => {
-    try {
-      const response = await axiosInstance.get('current-lesson/');
-      return response.data;
-    } catch (error) {
-      throw error.response.data;
-    }
+    const response = await axiosInstance.get('recommend-next-lesson/');
+    return response.data;
   },
 };

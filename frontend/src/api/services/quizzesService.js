@@ -2,19 +2,15 @@ import axiosInstance from '../axios';
 
 export const quizzesService = {
   fetchQuizzes: async () => {
-    try {
-      const response = await axiosInstance.get('quizzes/');
-      return response.data;
-    } catch (error) {
-      throw error.response.data;
-    }
+    const response = await axiosInstance.get('quizzes/');
+    return response.data;
   },
   fetchQuiz: async (id) => {
-    try {
-      const response = await axiosInstance.get(`quizzes/${id}/`);
-      return response.data;
-    } catch (error) {
-      throw error.response.data;
-    }
+    const response = await axiosInstance.get(`quizzes/${id}/`);
+    return response.data;
+  },
+  submitQuiz: async (id, answers) => {
+    const response = await axiosInstance.post(`quiz-submit/${id}/`, { answers });
+    return response.data;
   },
 };
