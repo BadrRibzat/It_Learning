@@ -25,7 +25,11 @@ export default {
   methods: {
     ...mapActions(['fetchLevels', 'fetchUserLevelProgress']),
     viewLevel(levelId) {
-      this.$router.push(`/levels/${levelId}`);
+      if (levelId === 1) {
+        this.$router.push(`/lessons`);
+      } else {
+        this.$router.push(`/level-tests/${levelId}`);
+      }
     },
     getUserLevelProgress(levelId) {
       const progress = this.userLevelProgress.find(p => p.level === levelId);

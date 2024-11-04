@@ -4,19 +4,19 @@
     <form @submit.prevent="handleRegister">
       <div>
         <label for="username">Username:</label>
-        <input type="text" id="username" v-model="username" required />
+        <input type="text" id="username" v-model="username" required autocomplete="username" />
       </div>
       <div>
         <label for="email">Email:</label>
-        <input type="email" id="email" v-model="email" required />
+        <input type="email" id="email" v-model="email" required autocomplete="email" />
       </div>
       <div>
         <label for="password">Password:</label>
-        <input type="password" id="password" v-model="password" required />
+        <input type="password" id="password" v-model="password" required autocomplete="new-password" />
       </div>
       <div>
         <label for="passwordConfirmation">Confirm Password:</label>
-        <input type="password" id="passwordConfirmation" v-model="passwordConfirmation" required />
+        <input type="password" id="passwordConfirmation" v-model="passwordConfirmation" required autocomplete="new-password" />
       </div>
       <button type="submit">Sign Up</button>
     </form>
@@ -67,7 +67,7 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f1f2f3f4;
 }
 
 form {
@@ -77,7 +77,7 @@ form {
   padding: 2rem;
   background-color: white;
   border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px rgba(1, 1, 1, 1.1);
 }
 
 label {
@@ -87,12 +87,12 @@ label {
 input {
   padding: 0.5rem;
   margin-bottom: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid #cece;
   border-radius: 3px;
 }
 
 button {
-  background-color: #42b983;
+  background-color: #blue;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -100,6 +100,6 @@ button {
 }
 
 button:hover {
-  background-color: #35495e;
+  background-color: #yellow;
 }
 </style>

@@ -4,14 +4,14 @@
     <div v-if="lessons.length">
       <div v-for="lesson in lessons" :key="lesson.id" class="lesson">
         <h2>{{ lesson.title }}</h2>
-        <p>{{ lesson.description }}</p>
+        <p>{{ lesson.content }}</p>
         <button @click="startLesson(lesson.id)" :disabled="!canStartLesson(lesson)">
           {{ lessonButtonText(lesson) }}
         </button>
       </div>
     </div>
     <div v-else>
-      <p>Loading lessons...</p>
+      <p>No lessons available.</p>
     </div>
   </div>
 </template>
@@ -30,7 +30,8 @@ export default {
       this.$router.push(`/lesson/${lessonId}`);
     },
     canStartLesson(lesson) {
-      const previousLesson = this.lessons[lesson.order - 2];
+      if (lesson.level_order === 1) return true;
+      const previousLesson = this.lessons.find(l => l.level_order === lesson.level_order - 1);
       if (!previousLesson) return true;
       return this.userProgress.some(progress => progress.lesson === previousLesson.id && progress.completed);
     },
@@ -42,8 +43,12 @@ export default {
     },
   },
   async created() {
-    await this.fetchLessons();
-    await this.fetchUserProgress();
+    try {
+      await this.fetchLessons();
+      await this.fetchUserProgress();
+    } catch (error) {
+      console.error('Failed to fetch lessons:', error);
+    }
   },
 };
 </script>

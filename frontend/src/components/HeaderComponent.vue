@@ -2,15 +2,14 @@
   <header class="header">
     <nav>
       <router-link to="/">Home</router-link> |
-      <router-link to="/dashboard">Dashboard</router-link> |
-      <router-link to="/profile">Profile</router-link> |
-      <router-link to="/levels">Levels</router-link> |
-      <router-link to="/notes">Notes</router-link> |
       <router-link to="/about">About</router-link> |
       <router-link to="/contact">Contact</router-link> |
       <router-link v-if="!isAuthenticated" to="/sign-in">Sign In</router-link> |
       <router-link v-if="!isAuthenticated" to="/sign-up">Sign Up</router-link> |
       <button v-if="isAuthenticated" @click="logout">Logout</button>
+      <select v-model="$i18n.locale">
+        <option v-for="locale in $i18n.availableLocales" :key="locale" :value="locale">{{ locale }}</option>
+      </select>
     </nav>
   </header>
 </template>
@@ -56,5 +55,12 @@ button {
 
 button:hover {
   background-color: #ff4500;
+}
+
+select {
+  margin-left: 1rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 </style>

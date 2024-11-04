@@ -11,7 +11,36 @@ const messages = {
       hello: 'مرحبا بالعالم',
     },
   },
-  // Add other languages here
+  fr: {
+    message: {
+      hello: 'Bonjour le monde',
+    },
+  },
+  es: {
+    message: {
+      hello: 'Hola mundo',
+    },
+  },
+  de: {
+    message: {
+      hello: 'Hallo Welt',
+    },
+  },
+  ja: {
+    message: {
+      hello: 'こんにちは世界',
+    },
+  },
+  ko: {
+    message: {
+      hello: '안녕하세요 세계',
+    },
+  },
+  zh: {
+    message: {
+      hello: '你好，世界',
+    },
+  },
 };
 
 const i18n = createI18n({

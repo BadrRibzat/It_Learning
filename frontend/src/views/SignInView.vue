@@ -12,6 +12,7 @@
       </div>
       <button type="submit">Sign In</button>
     </form>
+    <p v-if="error" class="error-message">{{ error }}</p>
   </div>
 </template>
 
@@ -24,12 +25,14 @@ export default {
     return {
       email: '',
       password: '',
+      error: null,
     };
   },
   methods: {
     ...mapActions(['login']),
     async handleLogin() {
       try {
+        this.error = null;
         await this.login({
           email: this.email,
           password: this.password,
@@ -37,7 +40,7 @@ export default {
         this.$router.push('/dashboard');
       } catch (error) {
         console.error('Login failed:', error);
-        alert('Login failed. Please check your credentials.');
+        this.error = 'Login failed. Please check your credentials.';
       }
     },
   },
@@ -51,7 +54,7 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #f0f1f2;
 }
 
 form {
@@ -76,7 +79,7 @@ input {
 }
 
 button {
-  background-color: #42b983;
+  background-color: #blue;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -84,6 +87,12 @@ button {
 }
 
 button:hover {
-  background-color: #35495e;
+  background-color: #blue;
 }
+
+.error-message {
+  color: red;
+  margin-top: 1rem;
+}
+
 </style>
