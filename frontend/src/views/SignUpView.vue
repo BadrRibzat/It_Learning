@@ -1,7 +1,7 @@
 <template>
   <div class="sign-up">
     <h1>Sign Up</h1>
-    <form @submit.prevent="register">
+    <form @submit.prevent="handleRegister">
       <div>
         <label for="username">Username:</label>
         <input type="text" id="username" v-model="username" required />
@@ -37,25 +37,26 @@ export default {
     };
   },
   methods: {
-  ...mapActions(['register']),
-  async handleRegister() {
-    if (this.password !== this.passwordConfirmation) {
-      alert('Passwords do not match');
-      return;
-    }
-    try {
-      await this.register({
-        username: this.username,
-        email: this.email,
-        password: this.password,
-      });
-      this.$router.push('/dashboard');
-    } catch (error) {
-      console.error('Registration failed:', error);
-      alert('Registration failed. Please try again.');
-    }
+    ...mapActions(['register']),
+    async handleRegister() {
+      if (this.password !== this.passwordConfirmation) {
+        alert('Passwords do not match');
+        return;
+      }
+      try {
+        await this.register({
+          username: this.username,
+          email: this.email,
+          password: this.password,
+          password_confirmation: this.passwordConfirmation,
+        });
+        this.$router.push('/dashboard');
+      } catch (error) {
+        console.error('Registration failed:', error);
+        alert('Registration failed. Please try again.');
+      }
+    },
   },
- },
 };
 </script>
 

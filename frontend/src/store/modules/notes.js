@@ -11,8 +11,8 @@ const getters = {
 const actions = {
   async fetchNotes({ commit }) {
     try {
-      const response = await notesService.fetchNotes();
-      commit('setNotes', response);
+      const notes = await notesService.fetchNotes();
+      commit('setNotes', notes);
     } catch (error) {
       console.error('Fetch notes failed:', error);
       throw error;
@@ -20,8 +20,8 @@ const actions = {
   },
   async createNote({ commit }, note) {
     try {
-      const response = await notesService.createNote(note);
-      commit('addNote', response);
+      const newNote = await notesService.createNote(note);
+      commit('addNote', newNote);
     } catch (error) {
       console.error('Create note failed:', error);
       throw error;
@@ -29,8 +29,8 @@ const actions = {
   },
   async updateNote({ commit }, { id, note }) {
     try {
-      const response = await notesService.updateNote(id, note);
-      commit('updateNote', response);
+      const updatedNote = await notesService.updateNote(id, note);
+      commit('updateNote', updatedNote);
     } catch (error) {
       console.error('Update note failed:', error);
       throw error;
@@ -39,7 +39,7 @@ const actions = {
   async deleteNote({ commit }, id) {
     try {
       await notesService.deleteNote(id);
-      commit('deleteNote', id);
+      commit('removeNote', id);
     } catch (error) {
       console.error('Delete note failed:', error);
       throw error;
@@ -55,13 +55,13 @@ const mutations = {
     state.notes.push(note);
   },
   updateNote(state, updatedNote) {
-    const index = state.notes.findIndex((note) => note.id === updatedNote.id);
+    const index = state.notes.findIndex(note => note.id === updatedNote.id);
     if (index !== -1) {
       state.notes.splice(index, 1, updatedNote);
     }
   },
-  deleteNote(state, noteId) {
-    state.notes = state.notes.filter((note) => note.id !== noteId);
+  removeNote(state, id) {
+    state.notes = state.notes.filter(note => note.id !== id);
   },
 };
 

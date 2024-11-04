@@ -13,17 +13,26 @@ const getters = {
 const actions = {
   async fetchLessons({ commit }) {
     try {
-      const response = await lessonService.fetchLessons();
-      commit('setLessons', response);
+      const lessons = await lessonService.fetchLessons();
+      commit('setLessons', lessons);
     } catch (error) {
       console.error('Fetch lessons failed:', error);
       throw error;
     }
   },
+  async fetchLesson({ commit }, id) {
+    try {
+      const lesson = await lessonService.fetchLesson(id);
+      commit('setCurrentLesson', lesson);
+    } catch (error) {
+      console.error('Fetch lesson failed:', error);
+      throw error;
+    }
+  },
   async fetchCurrentLesson({ commit }) {
     try {
-      const response = await lessonService.fetchCurrentLesson();
-      commit('setCurrentLesson', response);
+      const lesson = await lessonService.fetchCurrentLesson();
+      commit('setCurrentLesson', lesson);
     } catch (error) {
       console.error('Fetch current lesson failed:', error);
       throw error;

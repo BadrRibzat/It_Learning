@@ -13,8 +13,8 @@ const getters = {
 const actions = {
   async fetchLevelTests({ commit }) {
     try {
-      const response = await levelTestsService.fetchLevelTests();
-      commit('setLevelTests', response);
+      const tests = await levelTestsService.fetchLevelTests();
+      commit('setLevelTests', tests);
     } catch (error) {
       console.error('Fetch level tests failed:', error);
       throw error;
@@ -22,21 +22,31 @@ const actions = {
   },
   async fetchLevelTest({ commit }, id) {
     try {
-      const response = await levelTestsService.fetchLevelTest(id);
-      commit('setCurrentLevelTest', response);
+      const test = await levelTestsService.fetchLevelTest(id);
+      commit('setCurrentLevelTest', test);
     } catch (error) {
       console.error('Fetch level test failed:', error);
+      throw error;
+    }
+  },
+  async submitLevelTest({ commit }, { id, answers }) {
+    try {
+      const result = await levelTestsService.submitLevelTest(id, answers);
+      // You might want to handle the result here, e.g., update user level
+      return result;
+    } catch (error) {
+      console.error('Submit level test failed:', error);
       throw error;
     }
   },
 };
 
 const mutations = {
-  setLevelTests(state, levelTests) {
-    state.levelTests = levelTests;
+  setLevelTests(state, tests) {
+    state.levelTests = tests;
   },
-  setCurrentLevelTest(state, levelTest) {
-    state.currentLevelTest = levelTest;
+  setCurrentLevelTest(state, test) {
+    state.currentLevelTest = test;
   },
 };
 
