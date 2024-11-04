@@ -4,8 +4,10 @@
     <div v-if="lessons.length">
       <div v-for="lesson in lessons" :key="lesson.id" class="lesson">
         <h2>{{ lesson.title }}</h2>
-        <p>{{ lesson.content }}</p>
-        <button @click="startLesson(lesson.id)">Start Lesson</button>
+        <p>{{ lesson.description }}</p>
+        <button @click="startLesson(lesson.id)" :disabled="!canStartLesson(lesson)">
+          {{ lessonButtonText(lesson) }}
+        </button>
       </div>
     </div>
     <div v-else>
@@ -20,17 +22,28 @@ import { mapGetters, mapActions } from 'vuex';
 export default {
   name: 'LessonsComponent',
   computed: {
-    ...mapGetters(['lessons']),
+    ...mapGetters(['lessons', 'userProgress']),
   },
   methods: {
-    ...mapActions(['fetchLessons']),
+    ...mapActions(['fetchLessons', 'fetchUserProgress']),
     startLesson(lessonId) {
-      // Logic to start lesson
-      console.log(`Start lesson ${lessonId}`);
+      this.$router.push(`/lesson/${lessonId}`);
+    },
+    canStartLesson(lesson) {
+      const previousLesson = this.lessons[lesson.order - 2];
+      if (!previousLesson) return true;
+      return this.userProgress.some(progress => progress.lesson === previousLesson.id && progress.completed);
+    },
+    lessonButtonText(lesson) {
+      if (this.userProgress.some(progress => progress.lesson === lesson.id && progress.completed)) {
+        return 'Review Lesson';
+      }
+      return this.canStartLesson(lesson) ? 'Start Lesson' : 'Locked';
     },
   },
   async created() {
     await this.fetchLessons();
+    await this.fetchUserProgress();
   },
 };
 </script>
@@ -42,6 +55,9 @@ export default {
 
 .lesson {
   margin-bottom: 2rem;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 4px;
 }
 
 button {
@@ -53,7 +69,12 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
   background-color: #35495e;
 }
 </style>
