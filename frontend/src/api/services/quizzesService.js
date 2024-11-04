@@ -13,4 +13,8 @@ export const quizzesService = {
     const response = await axiosInstance.post(`quiz-submit/${id}/`, { answers });
     return response.data;
   },
+  fetchUserQuizProgress: async () => {
+    const response = await axiosInstance.get('user-quiz-attempts/');
+    return response.data;
+  },
 };

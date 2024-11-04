@@ -1,18 +1,20 @@
 import { chatbotService } from '../../api/services/chatbotService';
 
 const state = {
-  chatbotResponse: null,
+  chatHistory: [],
 };
 
 const getters = {
-  chatbotResponse: (state) => state.chatbotResponse,
+  chatHistory: (state) => state.chatHistory,
 };
 
 const actions = {
   async sendMessage({ commit }, message) {
     try {
       const response = await chatbotService.sendMessage(message);
-      commit('setChatbotResponse', response);
+      commit('addMessage', { sender: 'user', content: message });
+      commit('addMessage', { sender: 'bot', content: response.response_text });
+      return response;
     } catch (error) {
       console.error('Chatbot message failed:', error);
       throw error;
@@ -21,8 +23,11 @@ const actions = {
 };
 
 const mutations = {
-  setChatbotResponse(state, response) {
-    state.chatbotResponse = response;
+  addMessage(state, message) {
+    state.chatHistory.push(message);
+  },
+  clearChatHistory(state) {
+    state.chatHistory = [];
   },
 };
 

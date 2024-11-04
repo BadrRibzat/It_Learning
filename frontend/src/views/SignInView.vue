@@ -1,7 +1,7 @@
 <template>
   <div class="sign-in">
     <h1>Sign In</h1>
-    <form @submit.prevent="login">
+    <form @submit.prevent="handleLogin">
       <div>
         <label for="email">Email:</label>
         <input type="email" id="email" v-model="email" required />
@@ -27,20 +27,20 @@ export default {
     };
   },
   methods: {
-  ...mapActions(['login']),
-  async handleLogin() {
-    try {
-      await this.login({
-        email: this.email,
-        password: this.password,
-      });
-      this.$router.push('/dashboard');
-    } catch (error) {
-      console.error('Login failed:', error);
-      alert('Login failed. Please check your credentials.');
-    }
+    ...mapActions(['login']),
+    async handleLogin() {
+      try {
+        await this.login({
+          email: this.email,
+          password: this.password,
+        });
+        this.$router.push('/dashboard');
+      } catch (error) {
+        console.error('Login failed:', error);
+        alert('Login failed. Please check your credentials.');
+      }
+    },
   },
- },
 };
 </script>
 
