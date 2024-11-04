@@ -2,9 +2,12 @@
   <div class="lesson-detail-view">
     <HeaderComponent />
     <SidebarComponent />
-    <div v-if="currentLesson">
+    <div class="lesson-content" v-if="currentLesson">
       <h1>{{ currentLesson.title }}</h1>
-      <p>{{ currentLesson.content }}</p>
+      <div v-html="currentLesson.content"></div>
+      <button @click="completeLesson" :disabled="lessonCompleted">
+        {{ lessonCompleted ? 'Lesson Completed' : 'Mark as Completed' }}
+      </button>
     </div>
     <div v-else>
       <p>Loading lesson details...</p>
@@ -27,14 +30,32 @@ export default {
     FooterComponent,
   },
   computed: {
-    ...mapGetters(['currentLesson']),
+    ...mapGetters(['currentLesson', 'userProgress']),
+    lessonCompleted() {
+      return this.userProgress.some(progress => 
+        progress.lesson === this.currentLesson.id && progress.completed
+      );
+    },
   },
   methods: {
-    ...mapActions(['fetchLesson']),
+    ...mapActions(['fetchLesson', 'fetchUserProgress', 'updateLessonProgress']),
+    async completeLesson() {
+      try {
+        await this.updateLessonProgress({
+          lessonId: this.currentLesson.id,
+          completed: true,
+        });
+        alert('Lesson marked as completed!');
+      } catch (error) {
+        console.error('Failed to mark lesson as completed:', error);
+        alert('Failed to mark lesson as completed. Please try again.');
+      }
+    },
   },
   async created() {
     const lessonId = this.$route.params.id;
     await this.fetchLesson(lessonId);
+    await this.fetchUserProgress();
   },
 };
 </script>
@@ -44,5 +65,29 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+.lesson-content {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+button {
+  background-color: #42b983;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background-color: #35495e;
 }
 </style>
