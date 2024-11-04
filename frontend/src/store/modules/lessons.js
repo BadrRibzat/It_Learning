@@ -1,4 +1,4 @@
-import axiosInstance from '../../api/axios';
+import { lessonService } from '../../api/services/lessonService';
 
 const state = {
   lessons: [],
@@ -12,12 +12,22 @@ const getters = {
 
 const actions = {
   async fetchLessons({ commit }) {
-    const response = await axiosInstance.get('lessons/');
-    commit('setLessons', response.data);
+    try {
+      const response = await lessonService.fetchLessons();
+      commit('setLessons', response);
+    } catch (error) {
+      console.error('Fetch lessons failed:', error);
+      throw error;
+    }
   },
   async fetchCurrentLesson({ commit }) {
-    const response = await axiosInstance.get('current-lesson/');
-    commit('setCurrentLesson', response.data);
+    try {
+      const response = await lessonService.fetchCurrentLesson();
+      commit('setCurrentLesson', response);
+    } catch (error) {
+      console.error('Fetch current lesson failed:', error);
+      throw error;
+    }
   },
 };
 
