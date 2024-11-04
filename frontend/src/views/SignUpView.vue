@@ -43,12 +43,17 @@ export default {
         alert('Passwords do not match');
         return;
       }
-      await this.register({
-        username: this.username,
-        email: this.email,
-        password: this.password,
-      });
-      this.$router.push('/dashboard');
+      try {
+        await this.register({
+          username: this.username,
+          email: this.email,
+          password: this.password,
+        });
+        this.$router.push('/dashboard');
+      } catch (error) {
+        console.error('Registration failed:', error);
+        alert('Registration failed. Please try again.');
+      }
     },
   },
 };
