@@ -16,6 +16,7 @@ const actions = {
       const response = await authService.register(userData);
       commit('setToken', response.token);
       commit('setUser', response.user);
+      return response;
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;
@@ -26,6 +27,7 @@ const actions = {
       const response = await authService.login(credentials);
       commit('setToken', response.token);
       commit('setUser', response.user);
+      return response;
     } catch (error) {
       console.error('Login failed:', error);
       throw error;

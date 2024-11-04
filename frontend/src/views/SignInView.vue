@@ -27,14 +27,17 @@ export default {
     };
   },
   methods: {
-    ...mapActions(['login']),
-    async login() {
-      try {
-        await this.login({ email: this.email, password: this.password });
-        this.$router.push('/dashboard');
-      } catch (error) {
-        console.error('Login failed:', error);
-        alert('Login failed. Please check your credentials.');
+  ...mapActions(['login']),
+  async handleLogin() {
+    try {
+      await this.login({
+        email: this.email,
+        password: this.password,
+      });
+      this.$router.push('/dashboard');
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert('Login failed. Please check your credentials.');
       }
     },
   },
