@@ -1,7 +1,10 @@
 <template>
   <div class="notes-management">
     <h1>Notes Management</h1>
-    <div v-if="notes.length">
+    <div v-if="loading">
+      <p>Loading notes...</p>
+    </div>
+    <div v-else-if="notes.length">
       <div v-for="note in notes" :key="note.id" class="note">
         <h2>{{ note.title }}</h2>
         <p>{{ note.content }}</p>
@@ -39,6 +42,7 @@ export default {
         content: '',
       },
       editingNote: null,
+      loading: true,
     };
   },
   computed: {
@@ -87,7 +91,8 @@ export default {
       await this.fetchNotes();
     } catch (error) {
       console.error('Failed to fetch notes:', error);
-      alert('Failed to load notes. Please try again later.');
+    } finally {
+      this.loading = false;
     }
   },
 };
