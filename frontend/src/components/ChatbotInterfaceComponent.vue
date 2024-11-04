@@ -4,9 +4,9 @@
       <h3>Chatbot</h3>
       <button @click="closeChatbot">Close</button>
     </div>
-    <div class="chat-messages">
-      <div v-for="(message, index) in messages" :key="index" :class="message.sender">
-        <p>{{ message.text }}</p>
+    <div class="chat-messages" ref="chatMessages">
+      <div v-for="(message, index) in chatHistory" :key="index" :class="message.sender">
+        <p>{{ message.content }}</p>
       </div>
     </div>
     <div class="chat-input">
@@ -17,28 +17,41 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'ChatbotInterfaceComponent',
   data() {
     return {
       inputText: '',
-      messages: [],
     };
+  },
+  computed: {
+    ...mapGetters(['chatHistory']),
   },
   methods: {
     ...mapActions(['sendMessage']),
-    async sendMessage() {
+    async handleSendMessage() {
       if (this.inputText.trim() === '') return;
-      this.messages.push({ sender: 'user', text: this.inputText });
-      const response = await this.sendMessage(this.inputText);
-      this.messages.push({ sender: 'bot', text: response });
+      await this.sendMessage(this.inputText);
       this.inputText = '';
+      this.$nextTick(() => {
+        this.scrollToBottom();
+      });
     },
     closeChatbot() {
-      // Logic to close chatbot interface
-      console.log('Close chatbot');
+      this.$emit('close');
+    },
+    scrollToBottom() {
+      const chatMessages = this.$refs.chatMessages;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    },
+  },
+  watch: {
+    chatHistory() {
+      this.$nextTick(() => {
+        this.scrollToBottom();
+      });
     },
   },
 };
@@ -50,10 +63,13 @@ export default {
   bottom: 5rem;
   right: 1rem;
   width: 300px;
+  height: 400px;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-header {
@@ -65,30 +81,10 @@ export default {
   align-items: center;
 }
 
-.chat-header button {
-  background-color: #ff6347;
-  color: white;
-  border: none;
-  padding: 0.25rem 0.5rem;
-  cursor: pointer;
-}
-
-.chat-header button:hover {
-  background-color: #ff4500;
-}
-
 .chat-messages {
-  padding: 1rem;
-  max-height: 300px;
+  flex-grow: 1;
   overflow-y: auto;
-}
-
-.chat-messages div {
-  margin: 0.5rem 0;
-}
-
-.chat-messages .user {
-  text-align: right;
+  padding: 1rem;
 }
 
 .chat-input {
@@ -98,22 +94,46 @@ export default {
 }
 
 .chat-input input {
-  flex: 1;
+  flex-grow: 1;
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 3px;
 }
 
-.chat-input button {
+button {
   background-color: #42b983;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  margin-left: 0.5rem;
   cursor: pointer;
+  margin-left: 0.5rem;
 }
 
-.chat-input button:hover {
+button:hover {
   background-color: #35495e;
+}
+
+.user {
+  text-align: right;
+}
+
+.bot {
+  text-align: left;
+}
+
+.user p, .bot p {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  max-width: 80%;
+}
+
+.user p {
+  background-color: #42b983;
+  color: white;
+}
+
+.bot p {
+  background-color: #f1f1f1;
 }
 </style>
