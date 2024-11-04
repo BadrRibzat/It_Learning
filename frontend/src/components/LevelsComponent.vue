@@ -1,7 +1,10 @@
 <template>
   <div class="levels">
     <h1>Levels</h1>
-    <div v-if="levels.length">
+    <div v-if="loading">
+      <p>Loading levels...</p>
+    </div>
+    <div v-else-if="levels.length">
       <div v-for="level in levels" :key="level.id" class="level">
         <h2>{{ level.name }}</h2>
         <p>Progress: {{ getUserLevelProgress(level.id) }}%</p>
@@ -9,7 +12,7 @@
       </div>
     </div>
     <div v-else>
-      <p>Loading levels...</p>
+      <p>No levels available.</p>
     </div>
   </div>
 </template>
@@ -19,6 +22,11 @@ import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'LevelsComponent',
+  data() {
+    return {
+      loading: true,
+    };
+  },
   computed: {
     ...mapGetters(['levels', 'userLevelProgress']),
   },
@@ -37,8 +45,14 @@ export default {
     },
   },
   async created() {
-    await this.fetchLevels();
-    await this.fetchUserLevelProgress();
+    try {
+      await this.fetchLevels();
+      await this.fetchUserLevelProgress();
+    } catch (error) {
+      console.error('Failed to fetch levels:', error);
+    } finally {
+      this.loading = false;
+    }
   },
 };
 </script>
