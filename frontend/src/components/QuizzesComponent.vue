@@ -4,11 +4,13 @@
     <div v-if="quizzes.length">
       <div v-for="quiz in quizzes" :key="quiz.id" class="quiz">
         <h2>{{ quiz.title }}</h2>
-        <button @click="startQuiz(quiz.id)">Start Quiz</button>
+        <button @click="startQuiz(quiz.id)" :disabled="!canTakeQuiz(quiz)">
+          {{ quizButtonText(quiz) }}
+        </button>
       </div>
     </div>
     <div v-else>
-      <p>Loading quizzes...</p>
+      <p>No quizzes available.</p>
     </div>
   </div>
 </template>
@@ -19,16 +21,34 @@ import { mapGetters, mapActions } from 'vuex';
 export default {
   name: 'QuizzesComponent',
   computed: {
-    ...mapGetters(['quizzes']),
+    ...mapGetters(['quizzes', 'userQuizProgress', 'userProgress']),
   },
   methods: {
-    ...mapActions(['fetchQuizzes']),
+    ...mapActions(['fetchQuizzes', 'fetchUserQuizProgress', 'fetchUserProgress']),
     startQuiz(quizId) {
       this.$router.push(`/quizzes/${quizId}`);
     },
+    canTakeQuiz(quiz) {
+      const relatedLesson = this.userProgress.find(progress => progress.lesson === quiz.lesson);
+      return relatedLesson && relatedLesson.completed;
+    },
+    quizButtonText(quiz) {
+      const progress = this.userQuizProgress.find(progress => progress.quiz === quiz.id);
+      if (progress) {
+        return 'Retake Quiz';
+      }
+      return this.canTakeQuiz(quiz) ? 'Start Quiz' : 'Locked';
+    },
   },
   async created() {
-    await this.fetchQuizzes();
+    try {
+      await this.fetchQuizzes();
+      await this.fetchUserQuizProgress();
+      await this.fetchUserProgress();
+    } catch (error) {
+      console.error('Failed to fetch quizzes:', error);
+      alert('Failed to load quizzes. Please try again later.');
+    }
   },
 };
 </script>
@@ -40,6 +60,9 @@ export default {
 
 .quiz {
   margin-bottom: 2rem;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 4px;
 }
 
 button {
@@ -47,11 +70,15 @@ button {
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  margin-top: 1rem;
   cursor: pointer;
 }
 
-button:hover {
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
   background-color: #35495e;
 }
 </style>

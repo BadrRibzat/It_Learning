@@ -1,7 +1,7 @@
 <template>
   <footer class="footer">
     <p>&copy; 2024 Learn English. All rights reserved.</p>
-    <div class="chatbot-icon" @click="openChatbot">
+    <div class="chatbot-icon" @click="toggleChatbot">
       <span>Chat</span>
     </div>
   </footer>
@@ -11,9 +11,8 @@
 export default {
   name: 'FooterComponent',
   methods: {
-    openChatbot() {
-      // Logic to open chatbot interface
-      console.log('Open chatbot');
+    toggleChatbot() {
+      this.$emit('toggle-chatbot');
     },
   },
 };

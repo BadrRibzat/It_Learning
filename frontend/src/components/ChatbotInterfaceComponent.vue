@@ -1,17 +1,19 @@
 <template>
-  <div class="chatbot-interface">
-    <div class="chat-header">
-      <h3>Chatbot</h3>
-      <button @click="closeChatbot">Close</button>
-    </div>
-    <div class="chat-messages" ref="chatMessages">
-      <div v-for="(message, index) in chatHistory" :key="index" :class="message.sender">
-        <p>{{ message.content }}</p>
+  <div>
+    <div v-if="showChat" class="chatbot-interface">
+      <div class="chat-header">
+        <h3>Chatbot</h3>
+        <button @click="closeChatbot">Close</button>
       </div>
-    </div>
-    <div class="chat-input">
-      <input v-model="inputText" @keyup.enter="sendMessage" placeholder="Type a message..." />
-      <button @click="sendMessage">Send</button>
+      <div class="chat-messages" ref="chatMessages">
+        <div v-for="(message, index) in chatHistory" :key="index" :class="message.sender">
+          <p>{{ message.content }}</p>
+        </div>
+      </div>
+      <div class="chat-input">
+        <input v-model="inputText" @keyup.enter="sendMessage" placeholder="Type a message..." />
+        <button @click="sendMessage">Send</button>
+      </div>
     </div>
   </div>
 </template>
@@ -24,6 +26,7 @@ export default {
   data() {
     return {
       inputText: '',
+      showChat: false,
     };
   },
   computed: {
@@ -39,8 +42,11 @@ export default {
         this.scrollToBottom();
       });
     },
+    openChatbot() {
+      this.showChat = true;
+    },
     closeChatbot() {
-      this.$emit('close');
+      this.showChat = false;
     },
     scrollToBottom() {
       const chatMessages = this.$refs.chatMessages;
@@ -60,8 +66,8 @@ export default {
 <style scoped>
 .chatbot-interface {
   position: fixed;
-  bottom: 5rem;
-  right: 1rem;
+  bottom: 20px;
+  right: 20px;
   width: 300px;
   height: 400px;
   background-color: white;

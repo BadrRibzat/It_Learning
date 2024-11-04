@@ -24,14 +24,12 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log('Response:', response);
     return response;
   },
   (error) => {
-    console.error('Response error:', error);
-    if (error.response.status === 401) {
+    if (error.response && error.response.status === 401 && !error.config.url.includes('login')) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      window.location.href = '/sign-in';
     }
     return Promise.reject(error);
   }
