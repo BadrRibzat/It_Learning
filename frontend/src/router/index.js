@@ -12,6 +12,7 @@ import AboutView from '../views/AboutView.vue';
 import ContactView from '../views/ContactView.vue';
 import SignInView from '../views/SignInView.vue';
 import SignUpView from '../views/SignUpView.vue';
+import store from '../store';
 
 const routes = [
   {
@@ -96,7 +97,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-  const isAuthenticated = localStorage.getItem('token');
+  const isAuthenticated = store.getters.isAuthenticated;
 
   if (requiresAuth && !isAuthenticated) {
     next('/sign-in');
