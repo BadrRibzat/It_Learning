@@ -1,4 +1,4 @@
-import axiosInstance from '../../api/axios';
+import { notesService } from '../../api/services/notesService';
 
 const state = {
   notes: [],
@@ -10,20 +10,40 @@ const getters = {
 
 const actions = {
   async fetchNotes({ commit }) {
-    const response = await axiosInstance.get('notes/');
-    commit('setNotes', response.data);
+    try {
+      const response = await notesService.fetchNotes();
+      commit('setNotes', response);
+    } catch (error) {
+      console.error('Fetch notes failed:', error);
+      throw error;
+    }
   },
-  async addNote({ commit }, note) {
-    const response = await axiosInstance.post('notes/', note);
-    commit('addNote', response.data);
+  async createNote({ commit }, note) {
+    try {
+      const response = await notesService.createNote(note);
+      commit('addNote', response);
+    } catch (error) {
+      console.error('Create note failed:', error);
+      throw error;
+    }
   },
-  async updateNote({ commit }, note) {
-    const response = await axiosInstance.put(`notes/${note.id}/`, note);
-    commit('updateNote', response.data);
+  async updateNote({ commit }, { id, note }) {
+    try {
+      const response = await notesService.updateNote(id, note);
+      commit('updateNote', response);
+    } catch (error) {
+      console.error('Update note failed:', error);
+      throw error;
+    }
   },
-  async deleteNote({ commit }, noteId) {
-    await axiosInstance.delete(`notes/${noteId}/`);
-    commit('deleteNote', noteId);
+  async deleteNote({ commit }, id) {
+    try {
+      await notesService.deleteNote(id);
+      commit('deleteNote', id);
+    } catch (error) {
+      console.error('Delete note failed:', error);
+      throw error;
+    }
   },
 };
 

@@ -24,8 +24,7 @@ export default {
   methods: {
     ...mapActions(['fetchLevelTests']),
     startLevelTest(levelTestId) {
-      // Logic to start level test
-      console.log(`Start level test ${levelTestId}`);
+      this.$router.push(`/level-tests/${levelTestId}`);
     },
   },
   async created() {
