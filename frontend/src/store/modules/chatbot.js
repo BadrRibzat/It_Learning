@@ -1,4 +1,4 @@
-import axiosInstance from '../../api/axios';
+import { chatbotService } from '../../api/services/chatbotService';
 
 const state = {
   chatbotResponse: null,
@@ -10,8 +10,13 @@ const getters = {
 
 const actions = {
   async sendMessage({ commit }, message) {
-    const response = await axiosInstance.post('chatbot/', { input: message });
-    commit('setChatbotResponse', response.data);
+    try {
+      const response = await chatbotService.sendMessage(message);
+      commit('setChatbotResponse', response);
+    } catch (error) {
+      console.error('Chatbot message failed:', error);
+      throw error;
+    }
   },
 };
 
