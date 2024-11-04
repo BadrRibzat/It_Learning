@@ -4,6 +4,7 @@
     <div v-if="levels.length">
       <div v-for="level in levels" :key="level.id" class="level">
         <h2>{{ level.name }}</h2>
+        <p>Progress: {{ getUserLevelProgress(level.id) }}%</p>
         <button @click="viewLevel(level.id)">View Level</button>
       </div>
     </div>
@@ -19,16 +20,21 @@ import { mapGetters, mapActions } from 'vuex';
 export default {
   name: 'LevelsComponent',
   computed: {
-    ...mapGetters(['levels']),
+    ...mapGetters(['levels', 'userLevelProgress']),
   },
   methods: {
-    ...mapActions(['fetchLevels']),
+    ...mapActions(['fetchLevels', 'fetchUserLevelProgress']),
     viewLevel(levelId) {
       this.$router.push(`/levels/${levelId}`);
+    },
+    getUserLevelProgress(levelId) {
+      const progress = this.userLevelProgress.find(p => p.level === levelId);
+      return progress ? progress.progress : 0;
     },
   },
   async created() {
     await this.fetchLevels();
+    await this.fetchUserLevelProgress();
   },
 };
 </script>
@@ -40,6 +46,9 @@ export default {
 
 .level {
   margin-bottom: 2rem;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 4px;
 }
 
 button {
