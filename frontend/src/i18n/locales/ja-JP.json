@@ -6,12 +6,22 @@
     "lessons": "レッスン",
     "flashcards": "フラッシュカード",
     "quiz": "クイズ",
-    "profile": "プロフィール"
+    "profile": "プロフィール",
+    "logout": "ログアウト",
+    "levels": "レベル"
   },
   "home": {
-    "title": "英語学習へようこそ",
-    "description": "インタラクティブなレッスンとクイズで英語学習を始めましょう。",
-    "startLearning": "学習を始める"
+    "title": "Learn Englishへようこそ",
+    "description": "私たちのインタラクティブなレッスンとクイズで英語をマスターする旅を始めましょう。",
+    "startLearning": "学習を始める",
+    "howItWorks": "使い方",
+    "step1Title": "レベルを選択",
+    "step1Description": "現在の英語スキルに合ったレベルから始めましょう。",
+    "step2Title": "フラッシュカードで学ぶ",
+    "step2Description": "インタラクティブなフラッシュカードを使って新しい単語やフレーズを覚えましょう。",
+    "step3Title": "知識をテスト",
+    "step3Description": "学んだことを強化し、進捗を追跡するためにクイズを受けましょう。",
+    "flashcardDemo": "フラッシュカードを試す"
   },
   "login": {
     "title": "ログイン",
@@ -23,19 +33,55 @@
     "title": "登録",
     "email": "メールアドレス",
     "password": "パスワード",
-    "submit": "登録"
+    "passwordConfirmation": "パスワードの確認",
+    "submit": "登録",
+    "username": "ユーザー名"
   },
   "flashcards": {
     "title": "フラッシュカード",
-    "noFlashcards": "利用可能なフラッシュカードはありません。"
+    "noFlashcards": "フラッシュカードはありません。",
+    "next": "次へ",
+    "correctAnswer": "正解！",
+    "incorrectAnswer": "不正解。もう一度試してください！",
+    "errorSubmitting": "回答の送信中にエラーが発生しました。もう一度お試しください。"
+  },
+  "flashcard": {
+    "answerPlaceholder": "ここに答えを入力してください",
+    "submit": "送信"
   },
   "profile": {
     "title": "プロフィール",
-    "welcomeMessage": "プロフィールへようこそ！"
+    "welcomeMessage": "プロフィールへようこそ！",
+    "level": "現在のレベル: {level}",
+    "points": "総ポイント: {points}",
+    "loading": "ユーザープロフィールを読み込んでいます..."
   },
   "quiz": {
     "title": "クイズ",
-    "noQuestions": "利用可能なクイズの質問はありません。",
+    "noQuestions": "クイズの質問はありません。",
     "submit": "クイズを送信"
+  },
+  "levels": {
+    "title": "レベルを選択",
+    "start": "開始",
+    "takeTest": "レベルテストを受ける"
+  },
+  "levelTest": {
+    "title": "レベルテスト"
+  },
+  "notes": {
+    "title": "マイノート",
+    "titlePlaceholder": "ノートのタイトル",
+    "contentPlaceholder": "ノートの内容",
+    "add": "ノートを追加",
+    "edit": "編集",
+    "delete": "削除"
+  },
+  "chatbot": {
+    "title": "チャットアシスタント",
+    "inputPlaceholder": "ここにメッセージを入力してください..."
+  },
+  "errors": {
+    "general": "エラーが発生しました。もう一度お試しください。"
   }
 }

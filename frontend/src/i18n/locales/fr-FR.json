@@ -2,16 +2,26 @@
   "nav": {
     "home": "Accueil",
     "login": "Connexion",
-    "register": "S'inscrire",
+    "register": "Inscription",
     "lessons": "Leçons",
     "flashcards": "Cartes mémoire",
     "quiz": "Quiz",
-    "profile": "Profil"
+    "profile": "Profil",
+    "logout": "Déconnexion",
+    "levels": "Niveaux"
   },
   "home": {
-    "title": "Bienvenue dans l'apprentissage de l'anglais",
-    "description": "Commencez votre voyage d'apprentissage de l'anglais avec nos leçons interactives et quiz.",
-    "startLearning": "Commencer à apprendre"
+    "title": "Bienvenue à Learn English",
+    "description": "Commencez votre voyage pour maîtriser l'anglais avec nos leçons interactives et quiz.",
+    "startLearning": "Commencer à apprendre",
+    "howItWorks": "Comment ça marche",
+    "step1Title": "Choisissez votre niveau",
+    "step1Description": "Commencez par un niveau qui correspond à vos compétences actuelles en anglais.",
+    "step2Title": "Apprenez avec des cartes mémoire",
+    "step2Description": "Mémorisez de nouveaux mots et phrases en utilisant nos cartes interactives.",
+    "step3Title": "Testez vos connaissances",
+    "step3Description": "Faites des quiz pour renforcer ce que vous avez appris et suivre votre progression.",
+    "flashcardDemo": "Essayez une carte mémoire"
   },
   "login": {
     "title": "Connexion",
@@ -20,22 +30,58 @@
     "submit": "Connexion"
   },
   "register": {
-    "title": "S'inscrire",
+    "title": "Inscription",
     "email": "Email",
     "password": "Mot de passe",
-    "submit": "S'inscrire"
+    "passwordConfirmation": "Confirmer le mot de passe",
+    "submit": "S'inscrire",
+    "username": "Nom d'utilisateur"
   },
   "flashcards": {
     "title": "Cartes mémoire",
-    "noFlashcards": "Aucune carte mémoire disponible."
+    "noFlashcards": "Aucune carte mémoire disponible.",
+    "next": "Suivant",
+    "correctAnswer": "Bonne réponse !",
+    "incorrectAnswer": "Mauvaise réponse. Essayez à nouveau !",
+    "errorSubmitting": "Erreur lors de la soumission de la réponse. Veuillez réessayer."
+  },
+  "flashcard": {
+    "answerPlaceholder": "Tapez votre réponse ici",
+    "submit": "Soumettre"
   },
   "profile": {
     "title": "Profil",
-    "welcomeMessage": "Bienvenue dans votre profil!"
+    "welcomeMessage": "Bienvenue dans votre profil !",
+    "level": "Votre niveau actuel : {level}",
+    "points": "Points totaux : {points}",
+    "loading": "Chargement du profil utilisateur..."
   },
   "quiz": {
     "title": "Quiz",
     "noQuestions": "Aucune question de quiz disponible.",
     "submit": "Soumettre le quiz"
+  },
+  "levels": {
+    "title": "Choisissez votre niveau",
+    "start": "Commencer",
+    "takeTest": "Passer le test de niveau"
+  },
+  "levelTest": {
+    "title": "Test de niveau"
+  },
+  "notes": {
+    "title": "Mes notes",
+    "titlePlaceholder": "Titre de la note",
+    "contentPlaceholder": "Contenu de la note",
+    "add": "Ajouter une note",
+    "edit": "Modifier",
+    "delete": "Supprimer"
+  },
+  "chatbot": {
+    "title": "Assistant de chat",
+    "inputPlaceholder": "Tapez votre message ici..."
+  },
+  "errors": {
+    "general": "Une erreur s'est produite. Veuillez réessayer."
   }
-}
+} 
