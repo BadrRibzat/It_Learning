@@ -1,7 +1,8 @@
-import { createStore, Store } from "vuex";
+import { createStore } from "vuex";
 import auth from "./modules/auth";
 import lessons from "./modules/lessons";
 import progress from "./modules/progress";
+import levels from "./modules/levels";
 
 interface RootState {
   loading: boolean;
@@ -13,6 +14,7 @@ export default createStore<RootState>({
     auth,
     lessons,
     progress,
+    levels,
   },
   state: {
     loading: false,

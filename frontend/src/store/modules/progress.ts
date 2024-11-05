@@ -1,7 +1,8 @@
 import { Module } from "vuex";
+import api from "@/api";
 
 interface ProgressState {
-  userProgress: any | null;
+  userProgress: object | null; // Specify a more appropriate type if possible
 }
 
 const progressModule: Module<ProgressState, any> = {
@@ -10,18 +11,14 @@ const progressModule: Module<ProgressState, any> = {
     userProgress: null,
   },
   mutations: {
-    SET_USER_PROGRESS(state, progress) {
+    SET_USER_PROGRESS(state, progress: object) {
       state.userProgress = progress;
     },
   },
   actions: {
     async fetchUserProgress({ commit }) {
-      try {
-        const response = await api.get("/user-progress/");
-        commit("SET_USER_PROGRESS", response.data);
-      } catch (error) {
-        console.error("Error fetching user progress:", error);
-      }
+      const response = await api.get("/user-progress/");
+      commit("SET_USER_PROGRESS", response.data);
     },
   },
 };

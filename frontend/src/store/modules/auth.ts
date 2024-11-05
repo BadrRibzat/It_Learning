@@ -1,6 +1,23 @@
+import { Module } from "vuex";
 import api from "@/api";
 
-export default {
+interface User {
+  email: string;
+  // Add other user properties as needed
+}
+
+interface Credentials {
+  email: string;
+  password: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  refreshToken: string | null;
+}
+
+const authModule: Module<AuthState, any> = {
   namespaced: true,
   state: {
     user: null,
@@ -8,10 +25,13 @@ export default {
     refreshToken: localStorage.getItem("refresh_token"),
   },
   mutations: {
-    SET_USER(state, user) {
+    SET_USER(state, user: User) {
       state.user = user;
     },
-    SET_TOKENS(state, { access, refresh }) {
+    SET_TOKENS(
+      state,
+      { access, refresh }: { access: string; refresh: string }
+    ) {
       state.token = access;
       state.refreshToken = refresh;
       localStorage.setItem("access_token", access);
@@ -26,9 +46,10 @@ export default {
     },
   },
   actions: {
-    async login({ commit }, credentials) {
+    async login({ commit }, credentials: Credentials) {
       const response = await api.post("/login/", credentials);
       commit("SET_TOKENS", response.data);
+      commit("SET_USER", response.data.user);
       return response;
     },
     async logout({ commit }) {
@@ -36,12 +57,10 @@ export default {
       commit("CLEAR_AUTH");
     },
     async fetchUserProfile({ commit }) {
-      try {
-        const response = await api.get("/profile/");
-        commit("SET_USER", response.data);
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-      }
+      const response = await api.get("/profile/");
+      commit("SET_USER", response.data);
     },
   },
 };
+
+export default authModule;

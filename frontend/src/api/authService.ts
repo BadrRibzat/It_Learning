@@ -1,6 +1,11 @@
 import api from "./index";
 
-export const login = async (credentials) => {
+interface Credentials {
+  email: string;
+  password: string;
+}
+
+export const login = async (credentials: Credentials) => {
   const response = await api.post("/login/", credentials);
   return response.data; // Return the response data
 };

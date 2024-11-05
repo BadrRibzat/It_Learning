@@ -6,7 +6,8 @@
     "lessons": "Lessons",
     "flashcards": "Flashcards",
     "quiz": "Quiz",
-    "profile": "Profile"
+    "profile": "Profile",
+    "logout": "Logout"
   },
   "home": {
     "title": "Welcome to Learn English",
