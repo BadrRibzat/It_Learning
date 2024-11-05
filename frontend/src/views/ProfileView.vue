@@ -6,6 +6,8 @@
       <p>{{ $t("profile.welcomeMessage") }}</p>
     </BaseCard>
     <p v-else>Loading user profile...</p>
+    
+    <NotesManager class="mt-8" />
   </div>
 </template>
 
@@ -13,6 +15,7 @@
 import { computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import BaseCard from "@/components/base/BaseCard.vue";
+import NotesManager from "@/components/NotesManager.vue";
 
 const store = useStore();
 

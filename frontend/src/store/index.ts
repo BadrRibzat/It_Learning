@@ -3,6 +3,7 @@ import auth from "./modules/auth";
 import lessons from "./modules/lessons";
 import progress from "./modules/progress";
 import levels from "./modules/levels";
+import notes from "./modules/notes";
 
 interface RootState {
   loading: boolean;
@@ -15,6 +16,7 @@ export default createStore<RootState>({
     lessons,
     progress,
     levels,
+    notes,
   },
   state: {
     loading: false,
