@@ -2,17 +2,19 @@
   <div id="app">
     <nav>
       <router-link to="/">{{ $t("nav.home") }}</router-link> |
-      <router-link to="/login">{{ $t("nav.login") }}</router-link> |
-      <router-link to="/register">{{ $t("nav.register") }}</router-link> |
-      <router-link to="/lessons">{{ $t("nav.lessons") }}</router-link> |
-      <router-link to="/flashcards">{{ $t("nav.flashcards") }}</router-link> |
-      <router-link to="/quiz">{{ $t("nav.quiz") }}</router-link> |
-      <router-link to="/profile">{{ $t("nav.profile") }}</router-link> |
-      <button v-if="isLoggedIn" @click="logout">{{ $t("nav.logout") }}</button>
+      <router-link v-if="!isLoggedIn" to="/login">{{ $t("nav.login") }}</router-link> |
+      <router-link v-if="!isLoggedIn" to="/register">{{ $t("nav.register") }}</router-link> |
+      <router-link v-if="isLoggedIn" to="/levels">{{ $t("nav.levels") }}</router-link> |
+      <router-link v-if="isLoggedIn" to="/flashcards">{{ $t("nav.flashcards") }}</router-link> |
+      <router-link v-if="isLoggedIn" to="/profile">{{ $t("nav.profile") }}</router-link> |
+      <a v-if="isLoggedIn" href="#" @click.prevent="logout">{{ $t("nav.logout") }}</a>
       
-      <!-- Language Switcher -->
       <select v-model="currentLocale" @change="changeLanguage">
-        <option v-for="locale in supportedLocales" :key="locale.code" :value="locale.code">
+        <option
+          v-for="locale in supportedLocales"
+          :key="locale.code"
+          :value="locale.code"
+        >
           {{ locale.name }}
         </option>
       </select>
@@ -22,17 +24,19 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from "vue";
 import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import ChatbotWidget from "@/components/ChatbotWidget.vue";
 
 const store = useStore();
 const { locale } = useI18n();
+const router = useRouter();
+
 const isLoggedIn = computed(() => !!store.state.auth.user);
 
-// Supported locales
 const supportedLocales = [
   { code: "en-US", name: "English" },
   { code: "ar-SA", name: "العربية" },
@@ -43,6 +47,7 @@ const supportedLocales = [
   { code: "ko-KR", name: "한국어" },
   { code: "zh-CN", name: "中文" },
 ];
+
 const currentLocale = ref(locale.value);
 
 const changeLanguage = () => {
@@ -51,9 +56,9 @@ const changeLanguage = () => {
 
 const logout = async () => {
   await store.dispatch("auth/logout");
+  router.push("/login");
 };
 </script>
-
 
 <style lang="scss">
 #app {

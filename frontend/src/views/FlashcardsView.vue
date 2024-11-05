@@ -20,7 +20,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useStore } from "vuex";
 import Flashcard from "@/components/Flashcard.vue";
@@ -28,7 +28,7 @@ import BaseButton from "@/components/base/BaseButton.vue";
 import api from "@/api";
 
 const store = useStore();
-const flashcards = ref([]);
+const flashcards = ref<any[]>([]);
 const currentFlashcardIndex = ref(0);
 const feedback = ref("");
 const showNextButton = ref(false);
@@ -48,12 +48,12 @@ onMounted(async () => {
   }
 });
 
-const handleAnswer = async ({ flashcardId, userAnswer }) => {
+const handleAnswer = async ({ flashcardId, userAnswer }: { flashcardId: number; userAnswer: string }) => {
   try {
     const response = await api.post(`/flashcard-submit/${flashcardId}/`, { answer: userAnswer });
     feedback.value = response.data.is_correct
-      ? $t("flashcards.correctAnswer")
-      : $t("flashcards.incorrectAnswer");
+      ? "Correct answer!"
+      : "Incorrect answer. Try again!";
     showNextButton.value = response.data.is_correct;
     
     if (response.data.is_correct) {
@@ -64,7 +64,7 @@ const handleAnswer = async ({ flashcardId, userAnswer }) => {
     }
   } catch (error) {
     console.error("Error submitting flashcard answer:", error);
-    feedback.value = $t("flashcards.errorSubmitting");
+    feedback.value = "Error submitting answer. Please try again.";
   }
 };
 

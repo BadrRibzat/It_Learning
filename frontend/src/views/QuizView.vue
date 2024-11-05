@@ -19,6 +19,7 @@
                 type="radio"
                 :name="`question-${question.id}`"
                 :value="option"
+                v-model="answers[question.id]"
               />
               {{ option }}
             </label>
@@ -31,24 +32,37 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import BaseCard from "@/components/base/BaseCard.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import api from "@/api";
 
-const quizQuestions = ref([]);
+const route = useRoute();
+const router = useRouter();
+const quizQuestions = ref<any[]>([]);
+const answers = ref<Record<number, string>>({});
 
 onMounted(async () => {
+  const lessonId = route.params.lessonId;
   try {
-    const response = await api.get("/quiz-questions/");
+    const response = await api.get(`/quiz-questions/?lesson=${lessonId}`);
     quizQuestions.value = response.data;
   } catch (error) {
     console.error("Error fetching quiz questions:", error);
   }
 });
 
-const submitQuiz = () => {
-  // Implement quiz submission logic
+const submitQuiz = async () => {
+  try {
+    const response = await api.post(`/quiz-submit/${route.params.lessonId}/`, { answers: answers.value });
+    // Handle the quiz submission response
+    console.log(response.data);
+    // Redirect to results page or show results
+    router.push({ name: "quizResults", params: { lessonId: route.params.lessonId } });
+  } catch (error) {
+    console.error("Error submitting quiz:", error);
+  }
 };
 </script>

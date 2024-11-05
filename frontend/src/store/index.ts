@@ -5,7 +5,7 @@ import progress from "./modules/progress";
 import levels from "./modules/levels";
 import notes from "./modules/notes";
 
-interface RootState {
+export interface RootState {
   loading: boolean;
   error: string | null;
 }
@@ -23,18 +23,18 @@ export default createStore<RootState>({
     error: null,
   },
   mutations: {
-    SET_LOADING(state, loading) {
+    SET_LOADING(state, loading: boolean) {
       state.loading = loading;
     },
-    SET_ERROR(state, error) {
+    SET_ERROR(state, error: string | null) {
       state.error = error;
     },
   },
   actions: {
-    setLoading({ commit }, loading) {
+    setLoading({ commit }, loading: boolean) {
       commit("SET_LOADING", loading);
     },
-    setError({ commit }, error) {
+    setError({ commit }, error: string | null) {
       commit("SET_ERROR", error);
     },
   },
