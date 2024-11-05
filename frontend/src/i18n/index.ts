@@ -1,4 +1,4 @@
-import { createI18n } from "vue-i18n";
+import { createI18n, I18n } from "vue-i18n";
 import en from "./locales/en.json";
 import ar from "./locales/ar.json";
 import fr from "./locales/fr.json";
@@ -28,4 +28,4 @@ export default createI18n({
   dateTimeFormats: {
     // Add date/time formats for each locale
   },
-});
+}) as I18n;
