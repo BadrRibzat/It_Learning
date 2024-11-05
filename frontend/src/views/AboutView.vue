@@ -1,12 +1,5 @@
 <template>
   <div class="about">
-    <h1>About</h1>
-    <p>Learn more about our English learning application.</p>
+    <h1>This is an about page</h1>
   </div>
 </template>
-
-<script>
-export default {
-  name: 'AboutView',
-};
-</script>
