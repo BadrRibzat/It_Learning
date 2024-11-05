@@ -1,14 +1,10 @@
 import { Module } from "vuex";
-import api from "@/api";
+import { login, logout, fetchUserProfile } from "@/api/authService";
 
 interface User {
+  id: number;
   email: string;
-  // Add other user properties as needed
-}
-
-interface Credentials {
-  email: string;
-  password: string;
+  username: string;
 }
 
 interface AuthState {
@@ -28,10 +24,7 @@ const authModule: Module<AuthState, any> = {
     SET_USER(state, user: User) {
       state.user = user;
     },
-    SET_TOKENS(
-      state,
-      { access, refresh }: { access: string; refresh: string }
-    ) {
+    SET_TOKENS(state, { access, refresh }: { access: string; refresh: string }) {
       state.token = access;
       state.refreshToken = refresh;
       localStorage.setItem("access_token", access);
@@ -46,19 +39,19 @@ const authModule: Module<AuthState, any> = {
     },
   },
   actions: {
-    async login({ commit }, credentials: Credentials) {
-      const response = await api.post("/login/", credentials);
-      commit("SET_TOKENS", response.data);
-      commit("SET_USER", response.data.user);
+    async login({ commit }, credentials: { email: string; password: string }) {
+      const response = await login(credentials);
+      commit("SET_TOKENS", { access: response.access, refresh: response.refresh });
+      commit("SET_USER", response.user);
       return response;
     },
     async logout({ commit }) {
-      await api.post("/logout/");
+      await logout();
       commit("CLEAR_AUTH");
     },
     async fetchUserProfile({ commit }) {
-      const response = await api.get("/profile/");
-      commit("SET_USER", response.data);
+      const userData = await fetchUserProfile();
+      commit("SET_USER", userData);
     },
   },
 };

@@ -1,13 +1,12 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
 
-const api = axios.create({
+const api: AxiosInstance = axios.create({
   baseURL: process.env.VUE_APP_API_URL || "http://127.0.0.1:8000/api",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor for API calls
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("access_token");
@@ -21,7 +20,6 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for API calls
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
