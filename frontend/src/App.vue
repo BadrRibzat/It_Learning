@@ -12,44 +12,48 @@
       
       <!-- Language Switcher -->
       <select v-model="currentLocale" @change="changeLanguage">
-        <option v-for="locale in supportedLocales" :key="locale" :value="locale">
-          {{ locale }}
+        <option v-for="locale in supportedLocales" :key="locale.code" :value="locale.code">
+          {{ locale.name }}
         </option>
       </select>
     </nav>
     <router-view />
+    <ChatbotWidget />
   </div>
 </template>
 
 <script setup>
 import { computed, ref } from "vue";
 import { useStore } from "vuex";
-import i18n from "./i18n"; // Import your i18n instance
+import { useI18n } from "vue-i18n";
+import ChatbotWidget from "@/components/ChatbotWidget.vue";
 
 const store = useStore();
+const { locale } = useI18n();
 const isLoggedIn = computed(() => !!store.state.auth.user);
 
 // Supported locales
 const supportedLocales = [
-  "en-US",
-  "ar-SA",
-  "fr-FR",
-  "de-DE",
-  "es-ES",
-  "ja-JP",
-  "ko-KR",
-  "zh-CN"
+  { code: "en-US", name: "English" },
+  { code: "ar-SA", name: "العربية" },
+  { code: "fr-FR", name: "Français" },
+  { code: "de-DE", name: "Deutsch" },
+  { code: "es-ES", name: "Español" },
+  { code: "ja-JP", name: "日本語" },
+  { code: "ko-KR", name: "한국어" },
+  { code: "zh-CN", name: "中文" },
 ];
-const currentLocale = ref(i18n.global.locale); // Get the current locale from i18n
+const currentLocale = ref(locale.value);
 
 const changeLanguage = () => {
-  i18n.global.locale = currentLocale.value; // Change the locale in i18n
+  locale.value = currentLocale.value;
 };
 
 const logout = async () => {
   await store.dispatch("auth/logout");
 };
 </script>
+
 
 <style lang="scss">
 #app {
