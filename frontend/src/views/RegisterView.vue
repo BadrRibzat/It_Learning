@@ -76,6 +76,8 @@ const register = async () => {
       email: email.value,
       password: password.value,
     });
+    
+    console.log(response);
     router.push("/login");
   } catch (err) {
     error.value = err.response?.data?.detail || "An error occurred";
