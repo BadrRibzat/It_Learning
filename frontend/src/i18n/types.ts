@@ -1,1 +1,3 @@
-export type LocaleMessage = Record<string, string | LocaleMessage>;
+export type LocaleMessage = {
+  [key: string]: string | LocaleMessage;
+};
