@@ -3,7 +3,12 @@ import auth from "./modules/auth";
 import lessons from "./modules/lessons";
 import progress from "./modules/progress";
 
-export default createStore({
+interface RootState {
+  loading: boolean;
+  error: string | null;
+}
+
+export default createStore<RootState>({
   modules: {
     auth,
     lessons,
@@ -29,4 +34,4 @@ export default createStore({
       commit("SET_ERROR", error);
     },
   },
-}) as Store<any>;
+});
