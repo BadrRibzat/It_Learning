@@ -15,7 +15,6 @@
 <script setup>
 import { defineProps, defineEmits } from "vue";
 
-// Define props
 const props = defineProps({
   modelValue: {
     type: [String, Number],
@@ -35,6 +34,6 @@ const props = defineProps({
   },
 });
 
-// Define emits
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const emit = defineEmits(["update:modelValue"]);
 </script>

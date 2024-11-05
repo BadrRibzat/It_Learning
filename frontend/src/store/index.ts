@@ -1,4 +1,4 @@
-import { createStore } from "vuex";
+import { createStore, Store } from "vuex";
 import auth from "./modules/auth";
 import lessons from "./modules/lessons";
 import progress from "./modules/progress";
@@ -29,4 +29,4 @@ export default createStore({
       commit("SET_ERROR", error);
     },
   },
-});
+}) as Store<any>;
