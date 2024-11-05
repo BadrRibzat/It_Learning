@@ -1,7 +1,7 @@
-import { createStore } from 'vuex';
-import auth from './modules/auth';
-import lessons from './modules/lessons';
-import progress from './modules/progress';
+import { createStore } from "vuex";
+import auth from "./modules/auth";
+import lessons from "./modules/lessons";
+import progress from "./modules/progress";
 
 export default createStore({
   modules: {
@@ -23,10 +23,10 @@ export default createStore({
   },
   actions: {
     setLoading({ commit }, loading) {
-      commit('SET_LOADING', loading);
+      commit("SET_LOADING", loading);
     },
     setError({ commit }, error) {
-      commit('SET_ERROR', error);
+      commit("SET_ERROR", error);
     },
   },
 });

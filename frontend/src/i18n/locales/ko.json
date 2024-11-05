@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "홈",
+    "login": "로그인",
+    "register": "회원가입",
+    "lessons": "강의",
+    "flashcards": "플래시카드",
+    "quiz": "퀴즈",
+    "profile": "프로필"
+  },
+  "home": {
+    "title": "영어 학습에 오신 것을 환영합니다",
+    "description": "상호 작용적인 강의와 퀴즈로 영어 학습을 시작하세요.",
+    "startLearning": "학습 시작"
+  },
+  "login": {
+    "title": "로그인",
+    "email": "이메일",
+    "password": "비밀번호",
+    "submit": "로그인"
+  },
+  "register": {
+    "title": "회원가입",
+    "email": "이메일",
+    "password": "비밀번호",
+    "submit": "회원가입"
+  },
+  "flashcards": {
+    "title": "플래시카드",
+    "noFlashcards": "사용 가능한 플래시카드가 없습니다."
+  },
+  "profile": {
+    "title": "프로필",
+    "welcomeMessage": "프로필에 오신 것을 환영합니다!"
+  },
+  "quiz": {
+    "title": "퀴즈",
+    "noQuestions": "사용 가능한 퀴즈 질문이 없습니다.",
+    "submit": "퀴즈 제출"
+  }
+}

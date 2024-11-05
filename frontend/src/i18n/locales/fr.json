@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "lessons": "Leçons",
+    "flashcards": "Cartes mémoire",
+    "quiz": "Quiz",
+    "profile": "Profil"
+  },
+  "home": {
+    "title": "Bienvenue dans l'apprentissage de l'anglais",
+    "description": "Commencez votre voyage d'apprentissage de l'anglais avec nos leçons interactives et quiz.",
+    "startLearning": "Commencer à apprendre"
+  },
+  "login": {
+    "title": "Connexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "Connexion"
+  },
+  "register": {
+    "title": "S'inscrire",
+    "email": "Email",
+    "password": "Mot de passe",
+    "submit": "S'inscrire"
+  },
+  "flashcards": {
+    "title": "Cartes mémoire",
+    "noFlashcards": "Aucune carte mémoire disponible."
+  },
+  "profile": {
+    "title": "Profil",
+    "welcomeMessage": "Bienvenue dans votre profil!"
+  },
+  "quiz": {
+    "title": "Quiz",
+    "noQuestions": "Aucune question de quiz disponible.",
+    "submit": "Soumettre le quiz"
+  }
+}

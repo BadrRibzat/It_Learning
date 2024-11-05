@@ -1,16 +1,16 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || 'http://127.0.0.1:8000/api',
+  baseURL: process.env.VUE_APP_API_URL || "http://127.0.0.1:8000/api",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Request interceptor for API calls
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,11 +29,11 @@ api.interceptors.response.use(
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        const response = await api.post('/token/refresh/', {
+        const refreshToken = localStorage.getItem("refresh_token");
+        const response = await api.post("/token/refresh/", {
           refresh: refreshToken,
         });
-        localStorage.setItem('access_token', response.data.access);
+        localStorage.setItem("access_token", response.data.access);
         return api(originalRequest);
       } catch (error) {
         // Redirect to login page
