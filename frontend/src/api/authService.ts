@@ -5,13 +5,33 @@ interface Credentials {
   password: string;
 }
 
-export const login = async (credentials: Credentials) => {
-  const response = await api.post("/login/", credentials);
-  return response.data; // Return the response data
+interface LoginResponse {
+  access: string;
+  refresh: string;
+  user: {
+    id: number;
+    email: string;
+    username: string;
+  };
+}
+
+export const login = async (credentials: Credentials): Promise<LoginResponse> => {
+  const response = await api.post<LoginResponse>("/login/", credentials);
+  return response.data;
 };
 
-export const logout = async () => {
+export const logout = async (): Promise<void> => {
   await api.post("/logout/");
-  localStorage.removeItem("access_token"); // Clear the access token
-  localStorage.removeItem("refresh_token"); // Clear the refresh token
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+};
+
+export const register = async (userData: Credentials): Promise<LoginResponse> => {
+  const response = await api.post<LoginResponse>("/register/", userData);
+  return response.data;
+};
+
+export const fetchUserProfile = async (): Promise<any> => {
+  const response = await api.get("/profile/");
+  return response.data;
 };
