@@ -10,17 +10,17 @@ import zh from "./locales/zh.json";
 
 export default createI18n({
   legacy: false,
-  locale: "en",
-  fallbackLocale: "en",
+  locale: "en-US",
+  fallbackLocale: "en-US",
   messages: {
-    en,
-    ar,
-    fr,
-    de,
-    es,
-    ja,
-    ko,
-    zh,
+    "en-US": en,
+    "ar-SA": ar,
+    "fr-FR": fr,
+    "de-DE": de,
+    "es-ES": es,
+    "ja-JP": ja,
+    "ko-KR": ko,
+    "zh-CN": zh,
   },
   numberFormats: {
     // Add number formats for each locale
