@@ -4,14 +4,16 @@
     <BaseCard v-if="user">
       <h2 class="text-xl font-bold">{{ user.email }}</h2>
       <p>{{ $t("profile.welcomeMessage") }}</p>
+      <p>{{ $t("profile.level", { level: user.level }) }}</p>
+      <p>{{ $t("profile.points", { points: user.points }) }}</p>
     </BaseCard>
-    <p v-else>Loading user profile...</p>
+    <p v-else>{{ $t("profile.loading") }}</p>
     
     <NotesManager class="mt-8" />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import BaseCard from "@/components/base/BaseCard.vue";

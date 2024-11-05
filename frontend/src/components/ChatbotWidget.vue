@@ -5,7 +5,7 @@
     </button>
     <div v-if="isOpen" class="chatbot-window">
       <div class="chatbot-header">
-        <h3>{{ $t('chatbot.title') }}</h3>
+        <h3>{{ $t("chatbot.title") }}</h3>
         <button @click="toggleChat" class="close-btn">
           <font-awesome-icon :icon="['fas', 'times']" />
         </button>
@@ -25,14 +25,19 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, watch } from 'vue';
-import api from '@/api';
+<script setup lang="ts">
+import { ref, onMounted, watch } from "vue";
+import api from "@/api";
+
+interface ChatMessage {
+  type: "user" | "bot";
+  text: string;
+}
 
 const isOpen = ref(false);
-const messages = ref([]);
-const userInput = ref('');
-const messagesContainer = ref(null);
+const messages = ref<ChatMessage[]>([]);
+const userInput = ref("");
+const messagesContainer = ref<HTMLElement | null>(null);
 
 const toggleChat = () => {
   isOpen.value = !isOpen.value;
@@ -41,21 +46,21 @@ const toggleChat = () => {
 const sendMessage = async () => {
   if (!userInput.value.trim()) return;
 
-  messages.value.push({ type: 'user', text: userInput.value });
+  messages.value.push({ type: "user", text: userInput.value });
 
   try {
-    const response = await api.post('/chatbot/', { input: userInput.value });
-    messages.value.push({ type: 'bot', text: response.data.response_text });
+    const response = await api.post("/chatbot/", { input: userInput.value });
+    messages.value.push({ type: "bot", text: response.data.response_text });
   } catch (error) {
-    console.error('Error sending message to chatbot:', error);
-    messages.value.push({ type: 'bot', text: 'Sorry, I encountered an error. Please try again later.' });
+    console.error("Error sending message to chatbot:", error);
+    messages.value.push({ type: "bot", text: "Sorry, I encountered an error. Please try again later." });
   }
 
-  userInput.value = '';
+  userInput.value = "";
 };
 
 onMounted(() => {
-  messages.value.push({ type: 'bot', text: 'Hello! How can I help you today?' });
+  messages.value.push({ type: "bot", text: "Hello! How can I help you today?" });
 });
 
 watch(messages, () => {
