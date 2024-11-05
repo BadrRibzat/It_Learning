@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "ホーム",
+    "login": "ログイン",
+    "register": "登録",
+    "lessons": "レッスン",
+    "flashcards": "フラッシュカード",
+    "quiz": "クイズ",
+    "profile": "プロフィール"
+  },
+  "home": {
+    "title": "英語学習へようこそ",
+    "description": "インタラクティブなレッスンとクイズで英語学習を始めましょう。",
+    "startLearning": "学習を始める"
+  },
+  "login": {
+    "title": "ログイン",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "submit": "ログイン"
+  },
+  "register": {
+    "title": "登録",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "submit": "登録"
+  },
+  "flashcards": {
+    "title": "フラッシュカード",
+    "noFlashcards": "利用可能なフラッシュカードはありません。"
+  },
+  "profile": {
+    "title": "プロフィール",
+    "welcomeMessage": "プロフィールへようこそ！"
+  },
+  "quiz": {
+    "title": "クイズ",
+    "noQuestions": "利用可能なクイズの質問はありません。",
+    "submit": "クイズを送信"
+  }
+}

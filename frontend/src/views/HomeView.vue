@@ -1,18 +1,20 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
+  <div class="p-8">
+    <h1 class="text-3xl font-bold mb-4">{{ $t("home.title") }}</h1>
+    <p class="text-lg mb-6">{{ $t("home.description") }}</p>
+    <BaseButton @click="startLearning">{{
+      $t("home.startLearning")
+    }}</BaseButton>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-import HelloWorld from "@/components/HelloWorld.vue"; // @ is an alias to /src
+<script setup>
+import { useRouter } from "vue-router";
+import BaseButton from "@/components/base/BaseButton.vue";
 
-export default defineComponent({
-  name: "HomeView",
-  components: {
-    HelloWorld,
-  },
-});
+const router = useRouter();
+
+const startLearning = () => {
+  router.push("/lessons");
+};
 </script>

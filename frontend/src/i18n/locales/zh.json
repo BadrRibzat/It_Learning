@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "首页",
+    "login": "登录",
+    "register": "注册",
+    "lessons": "课程",
+    "flashcards": "闪卡",
+    "quiz": "测验",
+    "profile": "个人资料"
+  },
+  "home": {
+    "title": "欢迎来到英语学习",
+    "description": "通过我们的互动课程和测验开始您的英语学习之旅。",
+    "startLearning": "开始学习"
+  },
+  "login": {
+    "title": "登录",
+    "email": "电子邮件",
+    "password": "密码",
+    "submit": "登录"
+  },
+  "register": {
+    "title": "注册",
+    "email": "电子邮件",
+    "password": "密码",
+    "submit": "注册"
+  },
+  "flashcards": {
+    "title": "闪卡",
+    "noFlashcards": "没有可用的闪卡。"
+  },
+  "profile": {
+    "title": "个人资料",
+    "welcomeMessage": "欢迎来到您的个人资料！"
+  },
+  "quiz": {
+    "title": "测验",
+    "noQuestions": "没有可用的测验问题。",
+    "submit": "提交测验"
+  }
+}

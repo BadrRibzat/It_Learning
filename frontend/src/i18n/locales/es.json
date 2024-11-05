@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "lessons": "Lecciones",
+    "flashcards": "Tarjetas de estudio",
+    "quiz": "Cuestionario",
+    "profile": "Perfil"
+  },
+  "home": {
+    "title": "Bienvenido a Aprender Inglés",
+    "description": "Comience su viaje para aprender inglés con nuestras lecciones interactivas y cuestionarios.",
+    "startLearning": "Comenzar a aprender"
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "submit": "Iniciar sesión"
+  },
+  "register": {
+    "title": "Registrarse",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "submit": "Registrarse"
+  },
+  "flashcards": {
+    "title": "Tarjetas de estudio",
+    "noFlashcards": "No hay tarjetas de estudio disponibles."
+  },
+  "profile": {
+    "title": "Perfil",
+    "welcomeMessage": "¡Bienvenido a tu perfil!"
+  },
+  "quiz": {
+    "title": "Cuestionario",
+    "noQuestions": "No hay preguntas de cuestionario disponibles.",
+    "submit": "Enviar cuestionario"
+  }
+}

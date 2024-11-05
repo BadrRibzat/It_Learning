@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "home": "Home",
+    "login": "Login",
+    "register": "Register",
+    "lessons": "Lessons",
+    "flashcards": "Flashcards",
+    "quiz": "Quiz",
+    "profile": "Profile"
+  },
+  "home": {
+    "title": "Welcome to Learn English",
+    "description": "Start your journey to mastering English with our interactive lessons and quizzes.",
+    "startLearning": "Start Learning"
+  },
+  "login": {
+    "title": "Login",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Login"
+  },
+  "register": {
+    "title": "Register",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Register"
+  },
+  "flashcards": {
+    "title": "Flashcards",
+    "noFlashcards": "No flashcards available."
+  },
+  "profile": {
+    "title": "Profile",
+    "welcomeMessage": "Welcome to your profile!"
+  },
+  "quiz": {
+    "title": "Quiz",
+    "noQuestions": "No quiz questions available.",
+    "submit": "Submit Quiz"
+  }
+}
