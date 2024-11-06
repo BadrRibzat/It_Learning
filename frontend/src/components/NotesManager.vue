@@ -2,16 +2,32 @@
   <div class="notes-manager">
     <h2 class="text-2xl font-bold mb-4">{{ $t("notes.title") }}</h2>
     <form @submit.prevent="addNote" class="mb-4">
-      <BaseInput v-model="newNote.title" :placeholder="$t('notes.titlePlaceholder')" class="mb-2" />
-      <textarea v-model="newNote.content" :placeholder="$t('notes.contentPlaceholder')" class="w-full p-2 border rounded mb-2"></textarea>
+      <BaseInput
+        v-model="newNote.title"
+        :placeholder="$t('notes.titlePlaceholder')"
+        class="mb-2"
+      />
+      <textarea
+        v-model="newNote.content"
+        :placeholder="$t('notes.contentPlaceholder')"
+        class="w-full p-2 border rounded mb-2"
+      ></textarea>
       <BaseButton type="submit">{{ $t("notes.add") }}</BaseButton>
     </form>
-    <div v-for="note in notes" :key="note.id" class="bg-white p-4 rounded shadow mb-4">
+    <div
+      v-for="note in notes"
+      :key="note.id"
+      class="bg-white p-4 rounded shadow mb-4"
+    >
       <h3 class="text-xl font-semibold mb-2">{{ note.title }}</h3>
       <p class="mb-2">{{ note.content }}</p>
       <div class="flex justify-end">
-        <BaseButton @click="editNote(note)" class="mr-2">{{ $t("notes.edit") }}</BaseButton>
-        <BaseButton @click="deleteNote(note.id)" variant="secondary">{{ $t("notes.delete") }}</BaseButton>
+        <BaseButton @click="editNote(note)" class="mr-2">{{
+          $t("notes.edit")
+        }}</BaseButton>
+        <BaseButton @click="deleteNote(note.id)" variant="secondary">{{
+          $t("notes.delete")
+        }}</BaseButton>
       </div>
     </div>
   </div>
@@ -22,16 +38,12 @@ import { ref, onMounted } from "vue";
 import { useStore } from "vuex";
 import BaseInput from "@/components/base/BaseInput.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
+import { key } from "@/store";
+import { Note } from "@/store/modules/notes";
 
-interface Note {
-  id: number;
-  title: string;
-  content: string;
-}
-
-const store = useStore();
+const store = useStore(key);
 const notes = ref<Note[]>([]);
-const newNote = ref({ title: "", content: "" });
+const newNote = ref({ title: "", content: "", note_type: "general" });
 
 onMounted(async () => {
   await fetchNotes();
@@ -39,8 +51,8 @@ onMounted(async () => {
 
 const fetchNotes = async () => {
   try {
-    const response = await store.dispatch("notes/fetchNotes");
-    notes.value = response.data;
+    await store.dispatch("notes/fetchNotes");
+    notes.value = store.state.notes.notes;
   } catch (error) {
     console.error("Error fetching notes:", error);
   }
@@ -49,7 +61,7 @@ const fetchNotes = async () => {
 const addNote = async () => {
   try {
     await store.dispatch("notes/addNote", newNote.value);
-    newNote.value = { title: "", content: "" };
+    newNote.value = { title: "", content: "", note_type: "general" };
     await fetchNotes();
   } catch (error) {
     console.error("Error adding note:", error);

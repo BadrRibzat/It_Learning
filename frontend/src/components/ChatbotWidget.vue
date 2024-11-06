@@ -11,12 +11,20 @@
         </button>
       </div>
       <div class="chatbot-messages" ref="messagesContainer">
-        <div v-for="(message, index) in messages" :key="index" :class="['message', message.type]">
+        <div
+          v-for="(message, index) in messages"
+          :key="index"
+          :class="['message', message.type]"
+        >
           {{ message.text }}
         </div>
       </div>
       <div class="chatbot-input">
-        <input v-model="userInput" @keyup.enter="sendMessage" :placeholder="$t('chatbot.inputPlaceholder')" />
+        <input
+          v-model="userInput"
+          @keyup.enter="sendMessage"
+          :placeholder="$t('chatbot.inputPlaceholder')"
+        />
         <button @click="sendMessage">
           <font-awesome-icon :icon="['fas', 'paper-plane']" />
         </button>
@@ -53,23 +61,34 @@ const sendMessage = async () => {
     messages.value.push({ type: "bot", text: response.data.response_text });
   } catch (error) {
     console.error("Error sending message to chatbot:", error);
-    messages.value.push({ type: "bot", text: "Sorry, I encountered an error. Please try again later." });
+    messages.value.push({
+      type: "bot",
+      text: "Sorry, I encountered an error. Please try again later.",
+    });
   }
 
   userInput.value = "";
 };
 
 onMounted(() => {
-  messages.value.push({ type: "bot", text: "Hello! How can I help you today?" });
+  messages.value.push({
+    type: "bot",
+    text: "Hello! How can I help you today?",
+  });
 });
 
-watch(messages, () => {
-  setTimeout(() => {
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-    }
-  }, 0);
-}, { deep: true });
+watch(
+  messages,
+  () => {
+    setTimeout(() => {
+      if (messagesContainer.value) {
+        messagesContainer.value.scrollTop =
+          messagesContainer.value.scrollHeight;
+      }
+    }, 0);
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>
@@ -84,7 +103,7 @@ watch(messages, () => {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: #4F46E5;
+  background-color: #4f46e5;
   color: white;
   border: none;
   cursor: pointer;
@@ -105,7 +124,7 @@ watch(messages, () => {
 
 .chatbot-header {
   padding: 10px;
-  background-color: #4F46E5;
+  background-color: #4f46e5;
   color: white;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
@@ -135,13 +154,13 @@ watch(messages, () => {
 }
 
 .user {
-  background-color: #E5E7EB;
+  background-color: #e5e7eb;
   align-self: flex-end;
   margin-left: auto;
 }
 
 .bot {
-  background-color: #4F46E5;
+  background-color: #4f46e5;
   color: white;
 }
 
@@ -153,13 +172,13 @@ watch(messages, () => {
 .chatbot-input input {
   flex-grow: 1;
   padding: 5px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #e5e7eb;
   border-radius: 5px;
 }
 
 .chatbot-input button {
   margin-left: 5px;
-  background-color: #4F46E5;
+  background-color: #4f46e5;
   color: white;
   border: none;
   border-radius: 5px;

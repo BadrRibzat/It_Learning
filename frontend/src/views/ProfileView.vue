@@ -8,7 +8,7 @@
       <p>{{ $t("profile.points", { points: user.points }) }}</p>
     </BaseCard>
     <p v-else>{{ $t("profile.loading") }}</p>
-    
+
     <NotesManager class="mt-8" />
   </div>
 </template>
@@ -18,8 +18,9 @@ import { computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import BaseCard from "@/components/base/BaseCard.vue";
 import NotesManager from "@/components/NotesManager.vue";
+import { key } from "@/store";
 
-const store = useStore();
+const store = useStore(key);
 
 const user = computed(() => store.state.auth.user);
 

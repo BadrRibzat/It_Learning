@@ -14,38 +14,38 @@ const routes: Array<RouteRecordRaw> = [
   { path: "/", component: HomeView },
   { path: "/login", component: LoginView },
   { path: "/register", component: RegisterView },
-  { 
-    path: "/levels", 
+  {
+    path: "/levels",
     component: LevelsView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: "/lessons/:levelId", 
-    component: LessonView, 
+  {
+    path: "/lessons/:levelId",
+    component: LessonView,
     name: "lessons",
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: "/flashcards", 
+  {
+    path: "/flashcards",
     component: FlashcardsView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: "/quiz/:lessonId", 
-    component: QuizView, 
+  {
+    path: "/quiz/:lessonId",
+    component: QuizView,
     name: "quiz",
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: "/profile", 
+  {
+    path: "/profile",
     component: ProfileView,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
-  { 
-    path: "/level-test/:levelId", 
-    component: LevelTestView, 
+  {
+    path: "/level-test/:levelId",
+    component: LevelTestView,
     name: "levelTest",
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
 ];
 
@@ -55,11 +55,11 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const isAuthenticated = !!store.state.auth.token;
 
   if (requiresAuth && !isAuthenticated) {
-    next('/login');
+    next("/login");
   } else {
     next();
   }

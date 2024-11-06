@@ -8,8 +8,11 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useRoute } from "vue-router";
+import { useStore } from "vuex";
+import { key } from "@/store";
 
 const route = useRoute();
+const store = useStore(key);
 
 onMounted(() => {
   const levelId = route.params.levelId;

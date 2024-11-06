@@ -15,7 +15,9 @@ interface LoginResponse {
   };
 }
 
-export const login = async (credentials: Credentials): Promise<LoginResponse> => {
+export const login = async (
+  credentials: Credentials
+): Promise<LoginResponse> => {
   const response = await api.post<LoginResponse>("/login/", credentials);
   return response.data;
 };
@@ -26,7 +28,9 @@ export const logout = async (): Promise<void> => {
   localStorage.removeItem("refresh_token");
 };
 
-export const register = async (userData: Credentials): Promise<LoginResponse> => {
+export const register = async (
+  userData: Credentials
+): Promise<LoginResponse> => {
   const response = await api.post<LoginResponse>("/register/", userData);
   return response.data;
 };

@@ -1,17 +1,22 @@
 import { Module } from "vuex";
+import { RootState } from "@/store";
 import api from "@/api";
 
-interface Note {
+export interface Note {
   id: number;
+  user: number;
   title: string;
   content: string;
+  created_at: string;
+  updated_at: string;
+  note_type: string;
 }
 
-interface NotesState {
+export interface NotesState {
   notes: Note[];
 }
 
-const notesModule: Module<NotesState, any> = {
+const notesModule: Module<NotesState, RootState> = {
   namespaced: true,
   state: {
     notes: [],
@@ -32,7 +37,10 @@ const notesModule: Module<NotesState, any> = {
         throw error;
       }
     },
-    async addNote({ dispatch }, note: Omit<Note, "id">) {
+    async addNote(
+      { dispatch },
+      note: Omit<Note, "id" | "user" | "created_at" | "updated_at">
+    ) {
       try {
         await api.post("/notes/", note);
         await dispatch("fetchNotes");
