@@ -3,14 +3,6 @@ import { RootState } from '@/store';
 import api from '@/api';
 import { User } from '@/types/api';
 
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  level: number;
-  points: number;
-}
-
 export interface AuthState {
   user: User | null;
   token: string | null;
