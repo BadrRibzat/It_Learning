@@ -1,6 +1,7 @@
-import { Module } from "vuex";
-import { RootState } from "@/store";
-import api from "@/api";
+import { Module } from 'vuex';
+import { RootState } from '@/store';
+import api from '@/api';
+import { User } from '@/types/api';
 
 export interface User {
   id: number;
@@ -46,21 +47,22 @@ const authModule: Module<AuthState, RootState> = {
   },
   actions: {
     async login({ commit }, credentials: { email: string; password: string }) {
-      const response = await api.post("/login/", credentials);
-      commit("SET_TOKENS", {
-        access: response.data.access,
-        refresh: response.data.refresh,
-      });
-      commit("SET_USER", response.data.user);
+      const response = await api.post<{ access: string; refresh: string; user: User }>('/login/', credentials);
+      commit('SET_TOKENS', { access: response.data.access, refresh: response.data.refresh });
+      commit('SET_USER', response.data.user);
       return response;
     },
     async logout({ commit }) {
-      await api.post("/logout/");
-      commit("CLEAR_AUTH");
+      await api.post('/logout/');
+      commit('CLEAR_AUTH');
     },
     async fetchUserProfile({ commit }) {
-      const response = await api.get("/profile/");
-      commit("SET_USER", response.data);
+      const response = await api.get<User>('/profile/');
+      commit('SET_USER', response.data);
+    },
+    async register({ commit }, userData: { username: string; email: string; password: string }) {
+      const response = await api.post<User>('/register/', userData);
+      return response;
     },
   },
 };

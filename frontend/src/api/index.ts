@@ -1,9 +1,10 @@
-import axios, { AxiosInstance } from "axios";
+import axios from 'axios';
+import { API_BASE_URL } from '@/config';
 
-const api: AxiosInstance = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || "http://127.0.0.1:8000/api",
+const api = axios.create({
+  baseURL: API_BASE_URL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
