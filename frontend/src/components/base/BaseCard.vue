@@ -5,11 +5,12 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  padding?: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  padding: 'p-6',
-});
+withDefaults(
+  defineProps<{
+    padding?: string;
+  }>(),
+  {
+    padding: 'p-6',
+  },
+);
 </script>

@@ -1,31 +1,23 @@
 <template>
-  <div class="chatbot-widget">
-    <button @click="toggleChat" class="chatbot-toggle-btn">
+  <div class="chat-widget">
+    <button @click="toggleChat" class="chat-toggle-btn">
       <font-awesome-icon :icon="['fas', 'comment']" />
     </button>
-    <div v-if="isOpen" class="chatbot-window">
-      <div class="chatbot-header">
-        <h3>{{ $t("chatbot.title") }}</h3>
+    <div v-if="isOpen" class="chat-window">
+      <div class="chat-header">
+        <h3>{{ $t('chat.title') }}</h3>
         <button @click="toggleChat" class="close-btn">
           <font-awesome-icon :icon="['fas', 'times']" />
         </button>
       </div>
-      <div class="chatbot-messages" ref="messagesContainer">
-        <div
-          v-for="(message, index) in messages"
-          :key="index"
-          :class="['message', message.type]"
-        >
+      <div class="chat-messages" ref="messagesContainer">
+        <div v-for="(message, index) in messages" :key="index" :class="['message', message.type]">
           {{ message.text }}
         </div>
       </div>
-      <div class="chatbot-input">
-        <input
-          v-model="userInput"
-          @keyup.enter="sendMessage"
-          :placeholder="$t('chatbot.inputPlaceholder')"
-        />
-        <button @click="sendMessage">
+      <div class="chat-input">
+        <input v-model="userInput" @keyup.enter="sendMessage" :placeholder="$t('chat.inputPlaceholder')" />
+        <button @click="sendMessage" :disabled="loading">
           <font-awesome-icon :icon="['fas', 'paper-plane']" />
         </button>
       </div>
@@ -34,61 +26,49 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
-import api from "@/api";
-
-interface ChatMessage {
-  type: "user" | "bot";
-  text: string;
-}
+import { ref, onMounted, watch } from 'vue';
+import api from '@/api';
+import { ChatbotResponse } from '@/types/api';
 
 const isOpen = ref(false);
-const messages = ref<ChatMessage[]>([]);
-const userInput = ref("");
+const messages = ref<{ type: 'user' | 'bot'; text: string }[]>([]);
+const userInput = ref('');
 const messagesContainer = ref<HTMLElement | null>(null);
+const loading = ref(false);
 
 const toggleChat = () => {
   isOpen.value = !isOpen.value;
 };
 
 const sendMessage = async () => {
-  if (!userInput.value.trim()) return;
+  if (!userInput.value.trim() || loading.value) return;
 
-  messages.value.push({ type: "user", text: userInput.value });
+  messages.value.push({ type: 'user', text: userInput.value });
+  loading.value = true;
 
   try {
-    const response = await api.post("/chatbot/", { input: userInput.value });
-    messages.value.push({ type: "bot", text: response.data.response_text });
+    const response = await api.post<ChatbotResponse>('/chatbot/', { input: userInput.value });
+    messages.value.push({ type: 'bot', text: response.data.response_text });
   } catch (error) {
-    console.error("Error sending message to chatbot:", error);
-    messages.value.push({
-      type: "bot",
-      text: "Sorry, I encountered an error. Please try again later.",
-    });
+    console.error('Error sending message to chatbot:', error);
+    messages.value.push({ type: 'bot', text: 'Sorry, I encountered an error. Please try again later.' });
+  } finally {
+    loading.value = false;
+    userInput.value = '';
   }
-
-  userInput.value = "";
 };
 
 onMounted(() => {
-  messages.value.push({
-    type: "bot",
-    text: "Hello! How can I help you today?",
-  });
+  messages.value.push({ type: 'bot', text: 'Hello! How can I help you today?' });
 });
 
-watch(
-  messages,
-  () => {
-    setTimeout(() => {
-      if (messagesContainer.value) {
-        messagesContainer.value.scrollTop =
-          messagesContainer.value.scrollHeight;
-      }
-    }, 0);
-  },
-  { deep: true }
-);
+watch(messages, () => {
+  setTimeout(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+    }
+  }, 0);
+}, { deep: true });
 </script>
 
 <style scoped>

@@ -31,13 +31,17 @@ const lessonsModule: Module<LessonsState, RootState> = {
     },
   },
   actions: {
-    async fetchLessons({ commit }) {
-      const response = await api.get("/lessons/");
-      commit("SET_LESSONS", response.data);
+    async fetchLessons({ commit }, levelId?: number) {
+      const response = await api.get('/lessons/', { params: { level: levelId } });
+      commit('SET_LESSONS', response.data);
     },
     async fetchLessonById({ commit }, id: number) {
       const response = await api.get(`/lessons/${id}/`);
-      commit("SET_CURRENT_LESSON", response.data);
+      commit('SET_CURRENT_LESSON', response.data);
+    },
+    async fetchRecommendedLessons({ commit }) {
+      const response = await api.get('/recommended-lessons/');
+      commit('SET_LESSONS', response.data);
     },
   },
 };

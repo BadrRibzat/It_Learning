@@ -7,12 +7,9 @@
       </div>
       <div class="flashcard-back">
         <h3 class="text-xl font-bold mb-2">{{ flashcard.question }}</h3>
-        <BaseInput
-          v-model="userAnswer"
-          :placeholder="$t('flashcard.answerPlaceholder')"
-        />
+        <BaseInput v-model="userAnswer" :placeholder="$t('flashcard.answerPlaceholder')" />
         <BaseButton @click.stop="submitAnswer" :disabled="!userAnswer">
-          {{ $t("flashcard.submit") }}
+          {{ $t('flashcard.submit') }}
         </BaseButton>
       </div>
     </div>
@@ -20,9 +17,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits } from "vue";
-import BaseInput from "@/components/base/BaseInput.vue";
-import BaseButton from "@/components/base/BaseButton.vue";
+import { ref, defineProps, defineEmits } from 'vue';
+import BaseInput from '@/components/base/BaseInput.vue';
+import BaseButton from '@/components/base/BaseButton.vue';
 
 const props = defineProps<{
   flashcard: {
@@ -34,22 +31,22 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "answer", payload: { flashcardId: number; userAnswer: string }): void;
+  (e: 'answer', payload: { flashcardId: number; userAnswer: string }): void;
 }>();
 
 const isFlipped = ref(false);
-const userAnswer = ref("");
+const userAnswer = ref('');
 
 const flipCard = () => {
   isFlipped.value = !isFlipped.value;
 };
 
 const submitAnswer = () => {
-  emit("answer", {
+  emit('answer', {
     flashcardId: props.flashcard.id,
     userAnswer: userAnswer.value,
   });
-  userAnswer.value = "";
+  userAnswer.value = '';
   isFlipped.value = false;
 };
 </script>

@@ -16,18 +16,12 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
+defineProps<{
   modelValue: string | number;
   type?: string;
   placeholder?: string;
   error?: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  type: 'text',
-  placeholder: '',
-  error: '',
-});
+}>();
 
 defineEmits<{
   (e: 'update:modelValue', value: string): void;

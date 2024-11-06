@@ -1,10 +1,10 @@
-import { createStore, Store } from "vuex";
+import { createStore, Store } from 'vuex';
 import { InjectionKey } from 'vue';
-import auth, { AuthState } from "./modules/auth";
-import lessons, { LessonsState } from "./modules/lessons";
-import progress, { ProgressState } from "./modules/progress";
-import levels, { LevelsState } from "./modules/levels";
-import notes, { NotesState } from "./modules/notes";
+import auth, { AuthState } from './modules/auth';
+import lessons, { LessonsState } from './modules/lessons';
+import progress, { ProgressState } from './modules/progress';
+import levels, { LevelsState } from './modules/levels';
+import notes, { NotesState } from './modules/notes';
 
 export interface RootState {
   loading: boolean;
@@ -32,12 +32,12 @@ export default createStore<State>({
   state: {
     loading: false,
     error: null,
-    auth: auth.state,
-    lessons: lessons.state,
-    progress: progress.state,
-    levels: levels.state,
-    notes: notes.state,
-  } as State,
+    auth: auth.state as AuthState,
+    lessons: lessons.state as LessonsState,
+    progress: progress.state as ProgressState,
+    levels: levels.state as LevelsState,
+    notes: notes.state as NotesState,
+  },
   mutations: {
     SET_LOADING(state, loading: boolean) {
       state.loading = loading;
@@ -48,10 +48,10 @@ export default createStore<State>({
   },
   actions: {
     setLoading({ commit }, loading: boolean) {
-      commit("SET_LOADING", loading);
+      commit('SET_LOADING', loading);
     },
     setError({ commit }, error: string | null) {
-      commit("SET_ERROR", error);
+      commit('SET_ERROR', error);
     },
   },
 });
