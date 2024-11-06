@@ -1,0 +1,20 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "includePaths": ["frontend/"],
+  "baseBranches": ["master"],
+  "schedule": ["before 3am on Monday"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true
+    }
+  ],
+  "ignoreDeps": ["django"],
+  "ignorePaths": ["django/**"]
+}
