@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import "./registerServiceWorker";
 import router from "./router";
-import store from "./store";
+import store, { key } from "./store";
 import i18n from "./i18n";
 import "./assets/styles/main.css";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -16,7 +16,7 @@ const app = createApp(App);
 
 app.component("font-awesome-icon", FontAwesomeIcon);
 app.use(router);
-app.use(store);
+app.use(store, key);
 app.use(i18n);
 
 app.mount("#app");

@@ -7,7 +7,10 @@
       </div>
       <div class="flashcard-back">
         <h3 class="text-xl font-bold mb-2">{{ flashcard.question }}</h3>
-        <BaseInput v-model="userAnswer" :placeholder="$t('flashcard.answerPlaceholder')" />
+        <BaseInput
+          v-model="userAnswer"
+          :placeholder="$t('flashcard.answerPlaceholder')"
+        />
         <BaseButton @click.stop="submitAnswer" :disabled="!userAnswer">
           {{ $t("flashcard.submit") }}
         </BaseButton>

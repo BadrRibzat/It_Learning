@@ -23,11 +23,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useStore } from "vuex";
-import Flashcard from "@/components/Flashcard.vue";
+import FlashcardComponent from "@/components/FlashcardComponent.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import api from "@/api";
+import { key } from "@/store";
 
-const store = useStore();
+const store = useStore(key);
 const flashcards = ref<any[]>([]);
 const currentFlashcardIndex = ref(0);
 const feedback = ref("");
@@ -58,8 +59,10 @@ const handleAnswer = async ({ flashcardId, userAnswer }: { flashcardId: number; 
     
     if (response.data.is_correct) {
       await store.dispatch("progress/updateUserProgress", {
-        points: response.data.points_earned,
-        lessonCompleted: response.data.lesson_completed,
+        lessonId: currentFlashcard.value.lesson,
+        completed: response.data.lesson_completed,
+        correctAnswers: 1,
+        totalQuestions: 1,
       });
     }
   } catch (error) {

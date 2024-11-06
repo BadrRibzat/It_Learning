@@ -18,7 +18,7 @@
 
     <section class="mb-12">
       <h2 class="text-3xl font-bold mb-4">{{ $t("home.flashcardDemo") }}</h2>
-      <Flashcard :flashcard="demoFlashcard" @answer="handleDemoAnswer" />
+      <FlashcardComponent :flashcard="demoFlashcard" @answer="handleDemoAnswer" />
       <p v-if="demoFeedback" class="mt-4" :class="{ 'text-green-600': demoFeedback === 'Correct!', 'text-red-600': demoFeedback === 'Incorrect. Try again!' }">
         {{ demoFeedback }}
       </p>
@@ -26,12 +26,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import BaseButton from "@/components/base/BaseButton.vue";
-import Flashcard from "@/components/Flashcard.vue";
+import FlashcardComponent from "@/components/FlashcardComponent.vue";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -55,7 +55,7 @@ const demoFlashcard = {
 
 const demoFeedback = ref("");
 
-const handleDemoAnswer = ({ userAnswer }) => {
+const handleDemoAnswer = ({ userAnswer }: { userAnswer: string }) => {
   if (userAnswer.toLowerCase() === "hello") {
     demoFeedback.value = "Correct!";
   } else {

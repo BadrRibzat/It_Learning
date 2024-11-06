@@ -23,7 +23,7 @@ interface Props {
   error?: string;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   type: 'text',
   placeholder: '',
   error: '',

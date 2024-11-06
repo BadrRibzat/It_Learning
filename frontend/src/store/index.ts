@@ -1,16 +1,27 @@
-import { createStore } from "vuex";
-import auth from "./modules/auth";
-import lessons from "./modules/lessons";
-import progress from "./modules/progress";
-import levels from "./modules/levels";
-import notes from "./modules/notes";
+import { createStore, Store } from "vuex";
+import { InjectionKey } from 'vue';
+import auth, { AuthState } from "./modules/auth";
+import lessons, { LessonsState } from "./modules/lessons";
+import progress, { ProgressState } from "./modules/progress";
+import levels, { LevelsState } from "./modules/levels";
+import notes, { NotesState } from "./modules/notes";
 
 export interface RootState {
   loading: boolean;
   error: string | null;
 }
 
-export default createStore<RootState>({
+export interface State extends RootState {
+  auth: AuthState;
+  lessons: LessonsState;
+  progress: ProgressState;
+  levels: LevelsState;
+  notes: NotesState;
+}
+
+export const key: InjectionKey<Store<State>> = Symbol();
+
+export default createStore<State>({
   modules: {
     auth,
     lessons,
@@ -21,7 +32,12 @@ export default createStore<RootState>({
   state: {
     loading: false,
     error: null,
-  },
+    auth: auth.state,
+    lessons: lessons.state,
+    progress: progress.state,
+    levels: levels.state,
+    notes: notes.state,
+  } as State,
   mutations: {
     SET_LOADING(state, loading: boolean) {
       state.loading = loading;

@@ -2,13 +2,30 @@
   <div id="app">
     <nav>
       <router-link to="/">{{ $t("nav.home") }}</router-link> |
-      <router-link v-if="!isLoggedIn" to="/login">{{ $t("nav.login") }}</router-link> |
-      <router-link v-if="!isLoggedIn" to="/register">{{ $t("nav.register") }}</router-link> |
-      <router-link v-if="isLoggedIn" to="/levels">{{ $t("nav.levels") }}</router-link> |
-      <router-link v-if="isLoggedIn" to="/flashcards">{{ $t("nav.flashcards") }}</router-link> |
-      <router-link v-if="isLoggedIn" to="/profile">{{ $t("nav.profile") }}</router-link> |
-      <a v-if="isLoggedIn" href="#" @click.prevent="logout">{{ $t("nav.logout") }}</a>
-      
+      <router-link v-if="!isLoggedIn" to="/login">{{
+        $t("nav.login")
+      }}</router-link>
+      |
+      <router-link v-if="!isLoggedIn" to="/register">{{
+        $t("nav.register")
+      }}</router-link>
+      |
+      <router-link v-if="isLoggedIn" to="/levels">{{
+        $t("nav.levels")
+      }}</router-link>
+      |
+      <router-link v-if="isLoggedIn" to="/flashcards">{{
+        $t("nav.flashcards")
+      }}</router-link>
+      |
+      <router-link v-if="isLoggedIn" to="/profile">{{
+        $t("nav.profile")
+      }}</router-link>
+      |
+      <a v-if="isLoggedIn" href="#" @click.prevent="logout">{{
+        $t("nav.logout")
+      }}</a>
+
       <select v-model="currentLocale" @change="changeLanguage">
         <option
           v-for="locale in supportedLocales"
@@ -30,8 +47,9 @@ import { useStore } from "vuex";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import ChatbotWidget from "@/components/ChatbotWidget.vue";
+import { key } from "@/store";
 
-const store = useStore();
+const store = useStore(key);
 const { locale } = useI18n();
 const router = useRouter();
 

@@ -5,12 +5,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
+import { key } from "@/store";
 
-const store = useStore();
+const store = useStore(key);
 const route = useRoute();
 
 const currentLesson = computed(() => store.state.lessons.currentLesson);

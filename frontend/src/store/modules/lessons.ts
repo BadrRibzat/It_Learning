@@ -1,18 +1,22 @@
 import { Module } from "vuex";
+import { RootState } from "@/store";
 import api from "@/api";
 
-interface Lesson {
+export interface Lesson {
   id: number;
   title: string;
+  level: number;
+  level_order: number;
   content: string;
+  difficulty: string;
 }
 
-interface LessonsState {
+export interface LessonsState {
   lessons: Lesson[];
   currentLesson: Lesson | null;
 }
 
-const lessonsModule: Module<LessonsState, any> = {
+const lessonsModule: Module<LessonsState, RootState> = {
   namespaced: true,
   state: {
     lessons: [],
