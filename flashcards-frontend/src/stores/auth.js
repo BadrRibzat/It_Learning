@@ -47,6 +47,15 @@ const actions = {
       throw error;
     }
   },
+  async checkUser({ commit }, { email, password }) {
+    try {
+      const response = await authService.checkUser(email, password);
+      return response.data;
+    } catch (error) {
+      console.error('User check failed', error);
+      throw error;
+    }
+  },
 };
 
 const mutations = {
