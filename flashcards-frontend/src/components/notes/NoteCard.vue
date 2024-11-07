@@ -15,15 +15,15 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-})
+});
 
-const emit = defineEmits(['update', 'delete'])
+const emit = defineEmits(['update', 'delete']);
 
 const editNote = () => {
-  emit('update', props.note)
-}
+  emit('update', props.note);
+};
 
 const deleteNote = () => {
-  emit('delete', props.note.id)
-}
+  emit('delete', props.note.id);
+};
 </script>
