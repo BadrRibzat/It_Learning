@@ -35,6 +35,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import User
 from .serializers import UserSerializer, UserRegistrationSerializer
+from .models import ProfilePicture
 
 User = get_user_model()
 
@@ -253,6 +254,18 @@ class UserProgressView(APIView):
     def get(self, request):
         serializer = UserProgressSerializer(request.user)
         return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def delete_profile_picture(request):
+    user = request.user
+    try:
+        profile_picture = ProfilePicture.objects.get(user=user)
+        profile_picture.image.delete(save=True)
+        profile_picture.delete()
+        return Response({"detail": "Profile picture deleted successfully"}, status=status.HTTP_200_OK)
+    except ProfilePicture.DoesNotExist:
+        return Response({"detail": "Profile picture not found"}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

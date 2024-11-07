@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     CustomTokenObtainPairView, RegisterView, LoginView, ProfileView,
     UserStatisticsView, PasswordResetView, PasswordResetConfirmView,
-    LogoutView, ResetProgressView, UploadProfilePictureView, NoteViewSet,
+    LogoutView, ResetProgressView, UploadProfilePictureView, delete_profile_picture, NoteViewSet,
     RecommendedLessonsView, update_current_lesson, UserProgressView
 )
 
@@ -24,6 +24,7 @@ urlpatterns = [
     path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset-progress/', ResetProgressView.as_view(), name='reset_progress'),
     path('upload-profile-picture/', UploadProfilePictureView.as_view(), name='upload_profile_picture'),
+    path('delete-profile-picture/', delete_profile_picture, name='delete-profile-picture'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('recommended-lessons/', RecommendedLessonsView.as_view(), name='recommended_lessons'),
     path('', include(router.urls)),
