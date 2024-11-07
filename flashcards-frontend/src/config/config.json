@@ -1,0 +1,62 @@
+{
+  "api": {
+    "baseUrl": "http://localhost:8000/api",
+    "endpoints": {
+      "auth": {
+        "login": "/auth/login/",
+        "register": "/auth/register/",
+        "logout": "/auth/logout/",
+        "profile": "/auth/profile/"
+      },
+      "levels": {
+        "list": "/levels/",
+        "detail": "/levels/{id}/",
+        "test": "/levels/{id}/test/"
+      },
+      "lessons": {
+        "list": "/lessons/",
+        "detail": "/lessons/{id}/",
+        "flashcards": "/lessons/{id}/flashcards/"
+      },
+      "notes": {
+        "list": "/notes/",
+        "create": "/notes/",
+        "update": "/notes/{id}/",
+        "delete": "/notes/{id}/"
+      },
+      "progress": {
+        "overall": "/progress/overall/",
+        "level": "/progress/level/{id}/",
+        "lesson": "/progress/lesson/{id}/",
+        "reset": {
+          "level": "/progress/reset/level/{id}/",
+          "lesson": "/progress/reset/lesson/{id}/"
+        }
+      }
+    }
+  },
+  "app": {
+    "name": "Learn English",
+    "version": "1.0.0",
+    "description": "An interactive platform for learning English",
+    "minPasswordLength": 8,
+    "maxNoteTitleLength": 100,
+    "maxNoteContentLength": 1000
+  },
+  "theme": {
+    "colors": {
+      "primary": "#4F46E5",
+      "secondary": "#34D399",
+      "accent": "#818CF8",
+      "background": "#F3F4F6",
+      "text": "#1F2937",
+      "error": "#EF4444",
+      "success": "#10B981",
+      "warning": "#F59E0B"
+    },
+    "fonts": {
+      "main": "Inter, sans-serif",
+      "headings": "Poppins, sans-serif"
+    }
+  }
+}

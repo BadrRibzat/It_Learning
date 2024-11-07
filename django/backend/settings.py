@@ -219,13 +219,13 @@ REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
     'user': '1000/day'
 }
 
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:8080')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
     ]
 
 CORS_ALLOW_METHODS = [
