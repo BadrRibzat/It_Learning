@@ -14,16 +14,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useStore } from 'vuex'
-import Sidebar from '@/components/dashboard/Sidebar.vue'
-import ProgressLevelProgress from '@/components/dashboard/ProgressLevelProgress.vue' // Ensure this path is correct
+import { ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import Sidebar from '@/components/dashboard/Sidebar.vue';
+import ProgressLevelProgress from '@/components/dashboard/ProgressLevelProgress.vue';
 
-const store = useStore()
-const userLevelProgress = ref([])
+const store = useStore();
+const userLevelProgress = ref([]);
 
 onMounted(async () => {
-  await store.dispatch('progress/fetchUserLevelProgress')
-  userLevelProgress.value = store.state.progress.userLevelProgress
-})
+  await store.dispatch('progress/fetchUserLevelProgress');
+  userLevelProgress.value = store.state.progress.userLevelProgress;
+});
 </script>

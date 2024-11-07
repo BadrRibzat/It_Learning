@@ -30,46 +30,46 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useStore } from 'vuex'
-import Sidebar from '@/components/dashboard/Sidebar.vue'
-import NoteCard from '@/components/notes/NoteCard.vue'
+import { ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import Sidebar from '@/components/dashboard/Sidebar.vue';
+import NoteCard from '@/components/notes/NoteCard.vue';
 
-const store = useStore()
-const notes = ref([])
-const newNote = ref({ title: '', content: '' })
+const store = useStore();
+const notes = ref([]);
+const newNote = ref({ title: '', content: '' });
 
 onMounted(async () => {
   try {
-    await store.dispatch('notes/fetchNotes')
-    notes.value = store.state.notes.notes
+    await store.dispatch('notes/fetchNotes');
+    notes.value = store.state.notes.notes;
   } catch (error) {
-    console.error('Failed to fetch notes:', error)
+    console.error('Failed to fetch notes:', error);
   }
-})
+});
 
 const createNote = async () => {
   try {
-    await store.dispatch('notes/createNote', newNote.value)
-    newNote.value = { title: '', content: '' }
+    await store.dispatch('notes/createNote', newNote.value);
+    newNote.value = { title: '', content: '' };
   } catch (error) {
-    console.error('Failed to create note:', error)
+    console.error('Failed to create note:', error);
   }
-}
+};
 
 const updateNote = async (note) => {
   try {
-    await store.dispatch('notes/updateNote', { id: note.id, noteData: note })
+    await store.dispatch('notes/updateNote', { id: note.id, noteData: note });
   } catch (error) {
-    console.error('Failed to update note:', error)
+    console.error('Failed to update note:', error);
   }
-}
+};
 
 const deleteNote = async (id) => {
   try {
-    await store.dispatch('notes/deleteNote', id)
+    await store.dispatch('notes/deleteNote', id);
   } catch (error) {
-    console.error('Failed to delete note:', error)
+    console.error('Failed to delete note:', error);
   }
-}
+};
 </script>

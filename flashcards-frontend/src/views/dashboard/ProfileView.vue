@@ -39,38 +39,38 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useStore } from 'vuex'
-import Sidebar from '@/components/dashboard/Sidebar.vue'
+import { ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import Sidebar from '@/components/dashboard/Sidebar.vue';
 
-const store = useStore()
-const profile = ref({})
-const file = ref(null)
+const store = useStore();
+const profile = ref({});
+const file = ref(null);
 
 onMounted(async () => {
-  await store.dispatch('profile/fetchProfile')
-  profile.value = store.state.profile.profile
-})
+  await store.dispatch('profile/fetchProfile');
+  profile.value = store.state.profile.profile;
+});
 
 const updateProfile = async () => {
-  await store.dispatch('profile/updateProfile', profile.value)
-}
+  await store.dispatch('profile/updateProfile', profile.value);
+};
 
 const handleFileChange = (event) => {
-  file.value = event.target.files[0]
-}
+  file.value = event.target.files[0];
+};
 
 const uploadProfilePicture = async () => {
-  const formData = new FormData()
-  formData.append('profile_picture', file.value)
-  await store.dispatch('profile/uploadProfilePicture', formData)
-}
+  const formData = new FormData();
+  formData.append('profile_picture', file.value);
+  await store.dispatch('profile/uploadProfilePicture', formData);
+};
 
 const deleteProfilePicture = async () => {
   // Implement delete profile picture logic
-}
+};
 
 const resetProgress = async () => {
-  await store.dispatch('profile/resetProgress')
-}
+  await store.dispatch('profile/resetProgress');
+};
 </script>

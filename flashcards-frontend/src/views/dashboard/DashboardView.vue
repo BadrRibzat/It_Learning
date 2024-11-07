@@ -11,16 +11,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useStore } from 'vuex'
-import Sidebar from '@/components/dashboard/Sidebar.vue'
-import LessonCard from '@/components/lessons/LessonCard.vue'
+import { ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import Sidebar from '@/components/dashboard/Sidebar.vue';
+import LessonCard from '@/components/lessons/LessonCard.vue';
 
-const store = useStore()
-const lessons = ref([])
+const store = useStore();
+const lessons = ref([]);
 
 onMounted(async () => {
-  await store.dispatch('lessons/fetchLessons')
-  lessons.value = store.state.lessons.lessons
-})
+  await store.dispatch('lessons/fetchLessons');
+  lessons.value = store.state.lessons.lessons;
+});
 </script>

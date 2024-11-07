@@ -22,37 +22,37 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useStore } from 'vuex'
-import { useRoute } from 'vue-router'
-import Sidebar from '@/components/dashboard/Sidebar.vue'
+import { ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import Sidebar from '@/components/dashboard/Sidebar.vue';
 
-const store = useStore()
-const route = useRoute()
-const level = ref({})
-const levelTestQuestions = ref([])
-const answers = ref({})
+const store = useStore();
+const route = useRoute();
+const level = ref({});
+const levelTestQuestions = ref([]);
+const answers = ref({});
 
 onMounted(async () => {
-  const levelId = route.params.id
-  await store.dispatch('levels/fetchLevel', levelId)
-  level.value = store.state.levels.currentLevel
-  await store.dispatch('levels/fetchLevelTestQuestions', levelId)
-  levelTestQuestions.value = store.state.levels.levelTestQuestions
-})
+  const levelId = route.params.id;
+  await store.dispatch('levels/fetchLevel', levelId);
+  level.value = store.state.levels.currentLevel;
+  await store.dispatch('levels/fetchLevelTestQuestions', levelId);
+  levelTestQuestions.value = store.state.levels.levelTestQuestions;
+});
 
 const submitTest = async () => {
-  const score = calculateScore()
-  await store.dispatch('levels/submitLevelTest', { levelId: level.value.id, score })
-}
+  const score = calculateScore();
+  await store.dispatch('levels/submitLevelTest', { levelId: level.value.id, score });
+};
 
 const calculateScore = () => {
-  let correctAnswers = 0
+  let correctAnswers = 0;
   levelTestQuestions.value.forEach((question) => {
     if (answers.value[question.id] === question.correct_answer) {
-      correctAnswers++
+      correctAnswers++;
     }
-  })
-  return (correctAnswers / levelTestQuestions.value.length) * 100
-}
+  });
+  return (correctAnswers / levelTestQuestions.value.length) * 100;
+};
 </script>
