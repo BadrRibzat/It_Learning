@@ -18,6 +18,15 @@ const actions = {
       throw error;
     }
   },
+  async fetchFlashcards({ commit }, lessonId) {
+    try {
+      const response = await flashcardsService.getFlashcards(lessonId);
+      commit('setFlashcards', response.data);
+    } catch (error) {
+      console.error('Failed to fetch flashcards', error);
+      throw error;
+    }
+  },
   async fetchFlashcard({ commit }, id) {
     try {
       const response = await flashcardsService.getFlashcard(id);

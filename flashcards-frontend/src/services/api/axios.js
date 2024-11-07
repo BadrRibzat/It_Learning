@@ -1,15 +1,13 @@
+// src/services/api/axios.js
 import axios from 'axios';
 
-const baseURL = 'http://127.0.0.1:8000/api';
-
 const axiosInstance = axios.create({
-  baseURL,
+  baseURL: 'http://127.0.0.1:8000/api/',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add a request interceptor to include the JWT token in the headers
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
