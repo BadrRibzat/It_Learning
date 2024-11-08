@@ -23,16 +23,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
 const store = useStore();
 const router = useRouter();
-const isAuthenticated = ref(false);
+const isAuthenticated = ref(store.state.auth.isAuthenticated);
+
+// Watch for authentication state changes
+watch(() => store.state.auth.isAuthenticated, (newValue) => {
+  isAuthenticated.value = newValue;
+});
 
 onMounted(() => {
   isAuthenticated.value = store.state.auth.isAuthenticated;
+  
+  // Listen for auth state changes
+  window.addEventListener('auth-state-changed', () => {
+    isAuthenticated.value = store.state.auth.isAuthenticated;
+  });
 });
 
 const logout = async () => {

@@ -63,47 +63,36 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch } from 'vue';
+import { useStore } from 'vuex';
 
-const isChatOpen = ref(false)
-const messages = ref([
-  {
-    type: 'bot',
-    text: 'Hello! How can I help you with your language learning journey today?'
-  }
-])
-const newMessage = ref('')
-const chatContainer = ref(null)
+const store = useStore();
+const isChatOpen = ref(false);
+const newMessage = ref('');
+const chatContainer = ref(null);
 
 const toggleChat = () => {
-  isChatOpen.value = !isChatOpen.value
-}
+  isChatOpen.value = !isChatOpen.value;
+};
 
-const sendMessage = () => {
-  if (!newMessage.value.trim()) return
+const sendMessage = async () => {
+  if (!newMessage.value.trim()) return;
+  
+  try {
+    await store.dispatch('chatbot/sendMessage', newMessage.value);
+    newMessage.value = '';
+  } catch (error) {
+    console.error('Error sending message:', error);
+  }
+};
 
-  // Add user message
-  messages.value.push({
-    type: 'user',
-    text: newMessage.value
-  })
-
-  // Simulate bot response
-  setTimeout(() => {
-    messages.value.push({
-      type: 'bot',
-      text: 'Thanks for your message! Our team will help you with your question.'
-    })
-  }, 1000)
-
-  newMessage.value = ''
-}
+const messages = computed(() => store.state.chatbot.messages);
 
 watch(messages, () => {
   setTimeout(() => {
     if (chatContainer.value) {
-      chatContainer.value.scrollTop = chatContainer.value.scrollHeight
+      chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
     }
-  }, 50)
-}, { deep: true })
+  }, 50);
+}, { deep: true });
 </script>

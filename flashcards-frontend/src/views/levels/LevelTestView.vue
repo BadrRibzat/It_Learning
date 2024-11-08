@@ -24,26 +24,48 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import Sidebar from '@/components/dashboard/Sidebar.vue';
 
 const store = useStore();
 const route = useRoute();
+const router = useRouter();
 const level = ref({});
 const levelTestQuestions = ref([]);
 const answers = ref({});
 
 onMounted(async () => {
-  const levelId = route.params.id;
-  await store.dispatch('levels/fetchLevel', levelId);
-  level.value = store.state.levels.currentLevel;
-  await store.dispatch('levels/fetchLevelTestQuestions', levelId);
-  levelTestQuestions.value = store.state.levels.levelTestQuestions;
+  try {
+    const levelId = route.params.id;
+    await store.dispatch('levels/fetchLevel', levelId);
+    level.value = store.state.levels.currentLevel;
+    
+    // Fetch test questions for this level
+    const response = await store.dispatch('levels/fetchLevelTestQuestions', levelId);
+    levelTestQuestions.value = response.data;
+  } catch (error) {
+    console.error('Failed to load level test:', error);
+  }
 });
 
 const submitTest = async () => {
-  const score = calculateScore();
-  await store.dispatch('levels/submitLevelTest', { levelId: level.value.id, score });
+  try {
+    const score = calculateScore();
+    const response = await store.dispatch('levels/submitLevelTest', {
+      id: level.value.id,
+      score,
+    });
+
+    // Handle the response
+    if (response.data.passed) {
+      // Show success message and redirect
+      router.push('/dashboard/levels');
+    } else {
+      // Show failure message
+    }
+  } catch (error) {
+    console.error('Failed to submit test:', error);
+  }
 };
 
 const calculateScore = () => {

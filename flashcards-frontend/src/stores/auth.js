@@ -69,6 +69,7 @@ const mutations = {
   },
   setAuthenticated(state, isAuthenticated) {
     state.isAuthenticated = isAuthenticated;
+    window.dispatchEvent(new CustomEvent('auth-state-changed'));
   },
   setUser(state, user) {
     state.user = user;
