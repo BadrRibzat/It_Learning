@@ -27,30 +27,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
-const { register } = useAuth();
 
-const store = useStore();
-const router = useRouter();
+const { register } = useAuth();
 
 const username = ref('');
 const email = ref('');
 const password = ref('');
 const passwordConfirmation = ref('');
-
-const register = async () => {
-  try {
-    await store.dispatch('auth/register', {
-      username: username.value,
-      email: email.value,
-      password: password.value,
-      password_confirmation: passwordConfirmation.value,
-    });
-    router.push('/dashboard');
-  } catch (error) {
-    console.error('Registration failed', error);
-  }
-};
 </script>

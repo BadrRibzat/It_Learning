@@ -1,4 +1,5 @@
 import { createI18n } from 'vue-i18n';
+import { LANGUAGES } from '@/config';
 import en from '../locales/en/messages.js';
 import fr from '../locales/fr/messages.js';
 import es from '../locales/es/messages.js';
@@ -38,4 +39,4 @@ const i18n = createI18n({
   },
 });
 
-export default i18n;
+export const SUPPORTED_LANGUAGES = LANGUAGES;

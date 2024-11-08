@@ -19,23 +19,10 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
-const { login } = useAuth();
 
-const store = useStore();
-const router = useRouter();
+const { login } = useAuth();
 
 const email = ref('');
 const password = ref('');
-
-const login = async () => {
-  try {
-    await store.dispatch('auth/login', { email: email.value, password: password.value });
-    router.push('/dashboard');
-  } catch (error) {
-    console.error('Login failed', error);
-  }
-};
 </script>

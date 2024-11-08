@@ -1,11 +1,12 @@
 import axiosInstance from './axios';
+import { API_ENDPOINTS } from '@/config';
 
 const authService = {
-  login: (credentials) => axiosInstance.post('/login/', credentials),
-  register: (userData) => axiosInstance.post('/register/', userData),
-  logout: () => axiosInstance.post('/logout/'),
-  checkUser: (email, password) => axiosInstance.post('/check-user/', { email, password }),
-  refreshToken: () => axiosInstance.post('/token/refresh/', {
+  login: (credentials) => axiosInstance.post(API_ENDPOINTS.AUTH.LOGIN, credentials),
+  register: (userData) => axiosInstance.post(API_ENDPOINTS.AUTH.REGISTER, userData),
+  logout: () => axiosInstance.post(API_ENDPOINTS.AUTH.LOGOUT),
+  checkUser: (email, password) => axiosInstance.post(API_ENDPOINTS.AUTH.CHECK_USER, { email, password }),
+  refreshToken: () => axiosInstance.post(API_ENDPOINTS.AUTH.REFRESH_TOKEN, {
     refresh: localStorage.getItem('refreshToken')
   }),
 };

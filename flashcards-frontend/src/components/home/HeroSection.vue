@@ -1,4 +1,3 @@
-<!-- src/components/home/HeroSection.vue -->
 <template>
   <div class="relative bg-white overflow-hidden">
     <div class="max-w-7xl mx-auto">
@@ -6,21 +5,21 @@
         <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
           <div class="sm:text-center lg:text-left">
             <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-              <span class="block xl:inline">Learn languages with</span>
-              <span class="block text-primary xl:inline">interactive flashcards</span>
+              <span class="block xl:inline">{{ $t('hero_title_1') }}</span>
+              <span class="block text-primary xl:inline">{{ $t('hero_title_2') }}</span>
             </h1>
             <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-              Boost your language skills with our engaging and effective flashcard system. Start your journey to fluency today!
+              {{ $t('hero_description') }}
             </p>
             <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
               <div class="rounded-md shadow">
                 <router-link to="/auth/register" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark md:py-4 md:text-lg md:px-10">
-                  Get started
+                  {{ $t('get_started') }}
                 </router-link>
               </div>
               <div class="mt-3 sm:mt-0 sm:ml-3">
                 <router-link to="/about" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-indigo-100 hover:bg-indigo-200 md:py-4 md:text-lg md:px-10">
-                  Learn more
+                  {{ $t('learn_more') }}
                 </router-link>
               </div>
             </div>
