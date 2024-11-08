@@ -35,6 +35,15 @@ const actions = {
       throw error;
     }
   },
+  async deleteProfilePicture({ commit }) {
+    try {
+      const response = await profileService.deleteProfilePicture();
+      return response;
+    } catch (error) {
+      console.error('Failed to delete profile picture', error);
+      throw error;
+    }
+  },
   async resetProgress({ commit }) {
     try {
       const response = await profileService.resetProgress();

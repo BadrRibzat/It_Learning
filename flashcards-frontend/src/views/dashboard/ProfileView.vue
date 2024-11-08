@@ -64,10 +64,12 @@ const uploadProfilePicture = async () => {
   const formData = new FormData();
   formData.append('profile_picture', file.value);
   await store.dispatch('profile/uploadProfilePicture', formData);
+  await store.dispatch('profile/fetchProfile');
 };
 
 const deleteProfilePicture = async () => {
-  // Implement delete profile picture logic
+  await store.dispatch('profile/deleteProfilePicture');
+  await store.dispatch('profile/fetchProfile');
 };
 
 const resetProgress = async () => {

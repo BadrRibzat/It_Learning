@@ -14,6 +14,7 @@ import LessonDetailView from '@/views/lessons/LessonDetailView.vue';
 import FlashcardsView from '@/views/flashcards/FlashcardsView.vue';
 import FlashcardDetailView from '@/views/flashcards/FlashcardDetailView.vue';
 import ProgressView from '@/views/ProgressView.vue';
+import QuizDetailView from '@/views/quizzes/QuizDetailView.vue';
 
 const routes = [
   {
@@ -89,6 +90,12 @@ const routes = [
     path: '/dashboard/progress',
     name: 'Progress',
     component: ProgressView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/dashboard/quizzes/:id',
+    name: 'QuizDetail',
+    component: QuizDetailView,
     meta: { requiresAuth: true },
   },
 ];

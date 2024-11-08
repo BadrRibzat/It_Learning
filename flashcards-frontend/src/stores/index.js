@@ -6,6 +6,7 @@ import levels from './levels';
 import notes from './notes';
 import profile from './profile';
 import progress from './progress';
+import quizzes from './quizzes';
 
 export default createStore({
   modules: {
@@ -16,5 +17,6 @@ export default createStore({
     notes,
     profile,
     progress,
+    quizzes,
   },
 });

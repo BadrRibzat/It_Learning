@@ -30,7 +30,12 @@ onMounted(async () => {
   flashcard.value = store.state.flashcards.currentFlashcard;
 });
 
-const handleAnswer = (result) => {
-  console.log('Answer submitted:', result);
+const handleAnswer = async (result) => {
+  try {
+    const response = await store.dispatch('flashcards/submitAnswer', { id: flashcard.value.id, answer: result.userAnswer });
+    console.log('Answer submitted:', response);
+  } catch (error) {
+    console.error('Error submitting answer:', error);
+  }
 };
 </script>

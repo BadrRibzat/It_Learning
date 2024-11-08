@@ -8,6 +8,7 @@ const profileService = {
       'Content-Type': 'multipart/form-data',
     },
   }),
+  deleteProfilePicture: () => axiosInstance.post('/delete-profile-picture/'),
   resetProgress: () => axiosInstance.post('/reset-progress/'),
 };
 

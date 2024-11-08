@@ -1,14 +1,6 @@
 import createBaseStore from './base';
 import levelsService from '@/services/api/levels';
 
-const initialState = {
-  levels: [],
-  currentLevel: null,
-  levelTestQuestions: [],
-};
-
-const { state, setState } = createBaseStore(initialState);
-
 const actions = {
   async fetchLevels({ commit }) {
     try {
@@ -37,17 +29,14 @@ const actions = {
       throw error;
     }
   },
-};
-
-const mutations = {
-  setLevels(state, levels) {
-    state.levels = levels;
-  },
-  setCurrentLevel(state, level) {
-    state.currentLevel = level;
-  },
-  setLevelTestQuestions(state, questions) {
-    state.levelTestQuestions = questions;
+  async submitLevelTest({ commit }, { id, score }) {
+    try {
+      const response = await levelsService.submitLevelTest(id, score);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to submit level test', error);
+      throw error;
+    }
   },
 };
 
