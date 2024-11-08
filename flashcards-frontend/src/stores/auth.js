@@ -1,5 +1,6 @@
 import { reactive } from 'vue';
 import authService from '@/services/api/auth';
+import router from '@/router';
 
 const initialState = {
   user: null,
@@ -17,10 +18,24 @@ const actions = {
       localStorage.setItem('token', token);
       commit('setToken', token);
       commit('setAuthenticated', true);
+      router.push('/dashboard');
       return response;
     } catch (error) {
       console.error('Login failed', error);
       throw error;
+    }
+  },
+  async logout({ commit }) {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.warn('Logout API call failed', error);
+    } finally {
+      // Always clear local storage and reset state
+      localStorage.removeItem('token');
+      commit('setToken', null);
+      commit('setAuthenticated', false);
+      router.push('/');
     }
   },
   async register({ commit }, userData) {
@@ -33,17 +48,6 @@ const actions = {
       return response;
     } catch (error) {
       console.error('Registration failed', error);
-      throw error;
-    }
-  },
-  async logout({ commit }) {
-    try {
-      await authService.logout();
-      localStorage.removeItem('token');
-      commit('setToken', null);
-      commit('setAuthenticated', false);
-    } catch (error) {
-      console.error('Logout failed', error);
       throw error;
     }
   },

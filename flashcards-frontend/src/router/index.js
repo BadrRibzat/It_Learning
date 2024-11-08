@@ -23,6 +23,21 @@ const routes = [
     component: Home,
   },
   {
+    path: '/about',
+    name: 'About',
+    component: () => import('@/views/About.vue'),
+  },
+  {
+    path: '/features',
+    name: 'Features',
+    component: () => import('@/views/Features.vue'),
+  },
+  {
+    path: '/pricing',
+    name: 'Pricing',
+    component: () => import('@/views/Pricing.vue'),
+  },
+  {
     path: '/auth/login',
     name: 'Login',
     component: LoginView,
@@ -97,6 +112,12 @@ const routes = [
     name: 'QuizDetail',
     component: QuizDetailView,
     meta: { requiresAuth: true },
+  },
+   // Catch-all route
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue'),
   },
 ];
 

@@ -1,5 +1,12 @@
 import createBaseStore from './base';
 import levelsService from '@/services/api/levels';
+const initialState = {
+levels: [],
+currentLevel: null,
+levelTestQuestions: [],
+};
+
+const { state, setState } = createBaseStore(initialState);
 
 const actions = {
   async fetchLevels({ commit }) {
@@ -38,6 +45,18 @@ const actions = {
       throw error;
     }
   },
+};
+
+const mutations = {
+setLevels(state, levels) {
+state.levels = levels;
+},
+setCurrentLevel(state, level) {
+state.currentLevel = level;
+},
+setLevelTestQuestions(state, questions) {
+state.levelTestQuestions = questions;
+},
 };
 
 export default {

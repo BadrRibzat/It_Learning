@@ -1,4 +1,5 @@
 import axios from 'axios';
+import store from '@/stores';
 
 const axiosInstance = axios.create({
   baseURL: 'http://127.0.0.1:8000/api/',
@@ -16,6 +17,17 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Unauthorized, log out the user
+      store.dispatch('auth/logout');
+    }
     return Promise.reject(error);
   }
 );
