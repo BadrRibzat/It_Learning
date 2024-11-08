@@ -2,27 +2,120 @@
   <div class="min-h-screen bg-gray-100">
     <Sidebar />
     <div class="ml-64 p-8">
-      <h1 class="text-3xl font-bold mb-8">Level Test</h1>
-      <div class="bg-white p-8 rounded-lg shadow-lg">
-        <h2 class="text-2xl font-bold mb-4">Test for Level {{ level.name }}</h2>
-        <div v-for="(question, index) in levelTestQuestions" :key="question.id" class="mb-8">
-          <h3 class="text-xl font-bold mb-4">Question {{ index + 1 }}</h3>
-          <p class="mb-4">{{ question.question_text }}</p>
-          <div class="flex flex-col">
-            <label v-for="option in question.options" :key="option" class="mb-2">
-              <input type="radio" :value="option" v-model="answers[question.id]" />
-              {{ option }}
-            </label>
+      <div class="max-w-3xl mx-auto">
+        <!-- Test Header -->
+        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+          <h1 class="text-3xl font-bold mb-4">Level Test: {{ currentLevel?.name }}</h1>
+          <div class="flex justify-between items-center">
+            <p class="text-gray-600">
+              Question {{ currentQuestionNumber }} of {{ totalQuestions }}
+            </p>
+            <div class="flex items-center space-x-2">
+              <span class="text-sm text-gray-500">Progress:</span>
+              <div class="w-32 h-2 bg-gray-200 rounded-full">
+                <div 
+                  class="h-full bg-primary rounded-full"
+                  :style="{ width: `${progressPercentage}%` }"
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
-        <button @click="submitTest" class="bg-primary text-white px-4 py-2 rounded-lg">Submit Test</button>
+
+        <!-- Test Content -->
+        <div v-if="currentQuestion" class="bg-white p-6 rounded-lg shadow-lg mb-6">
+          <!-- Question -->
+          <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">{{ currentQuestion.question_text }}</h2>
+            
+            <!-- Answer Options -->
+            <div class="space-y-4">
+              <label 
+                v-for="option in currentQuestion.options" 
+                :key="option"
+                class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50"
+                :class="{ 'border-primary bg-primary-50': isSelected(option) }"
+              >
+                <input
+                  type="radio"
+                  :value="option"
+                  v-model="selectedAnswer"
+                  class="h-4 w-4 text-primary"
+                />
+                <span class="ml-3">{{ option }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between mt-8">
+            <button
+              @click="previousQuestion"
+              :disabled="isFirstQuestion"
+              class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              v-if="!isLastQuestion"
+              @click="nextQuestion"
+              :disabled="!selectedAnswer"
+              class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
+            >
+              Next
+            </button>
+            <button
+              v-else
+              @click="submitTest"
+              :disabled="!isTestComplete"
+              class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+            >
+              Submit Test
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div v-else-if="isLoading" class="bg-white p-6 rounded-lg shadow-lg">
+          <div class="flex justify-center items-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        </div>
+
+        <!-- Test Results Modal -->
+        <div
+          v-if="showResults"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+            <h2 class="text-2xl font-bold mb-4">Test Results</h2>
+            <div class="mb-6">
+              <div class="text-center">
+                <div class="text-6xl font-bold mb-2" :class="scoreColor">
+                  {{ score }}%
+                </div>
+                <p class="text-xl" :class="scoreColor">
+                  {{ scoreMessage }}
+                </p>
+              </div>
+            </div>
+            <div class="flex justify-center">
+              <button
+                @click="handleTestCompletion"
+                class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark"
+              >
+                {{ passed ? 'Continue to Next Level' : 'Try Again' }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import Sidebar from '@/components/dashboard/Sidebar.vue';
@@ -30,51 +123,105 @@ import Sidebar from '@/components/dashboard/Sidebar.vue';
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
-const level = ref({});
-const levelTestQuestions = ref([]);
-const answers = ref({});
 
-onMounted(async () => {
-  try {
-    const levelId = route.params.id;
-    await store.dispatch('levels/fetchLevel', levelId);
-    level.value = store.state.levels.currentLevel;
-    
-    // Fetch test questions for this level
-    const response = await store.dispatch('levels/fetchLevelTestQuestions', levelId);
-    levelTestQuestions.value = response.data;
-  } catch (error) {
-    console.error('Failed to load level test:', error);
-  }
+const isLoading = ref(true);
+const showResults = ref(false);
+const selectedAnswer = ref('');
+const score = ref(0);
+const passed = ref(false);
+
+// Computed Properties
+const currentLevel = computed(() => store.state.levels.currentLevel);
+const levelTestQuestions = computed(() => store.state.levels.levelTestQuestions);
+const currentQuestionIndex = computed(() => store.state.levels.testProgress.currentQuestion);
+const currentQuestion = computed(() => levelTestQuestions.value[currentQuestionIndex.value]);
+const currentQuestionNumber = computed(() => currentQuestionIndex.value + 1);
+const totalQuestions = computed(() => levelTestQuestions.value.length);
+const progressPercentage = computed(() => 
+  (currentQuestionIndex.value / totalQuestions.value) * 100
+);
+
+const isFirstQuestion = computed(() => currentQuestionIndex.value === 0);
+const isLastQuestion = computed(() => currentQuestionIndex.value === totalQuestions.value - 1);
+const isTestComplete = computed(() => {
+  return Object.keys(store.state.levels.testProgress.answers).length === totalQuestions.value;
 });
+
+const scoreColor = computed(() => {
+  return passed.value ? 'text-green-500' : 'text-red-500';
+});
+
+const scoreMessage = computed(() => {
+  return passed.value 
+    ? 'Congratulations! You passed the test!'
+    : 'You need to score at least 80% to pass. Try again!';
+});
+
+// Methods
+const isSelected = (option) => selectedAnswer.value === option;
+
+const nextQuestion = () => {
+  if (selectedAnswer.value) {
+    store.dispatch('levels/setTestAnswer', {
+      questionId: currentQuestion.value.id,
+      answer: selectedAnswer.value
+    });
+    store.dispatch('levels/nextQuestion');
+    selectedAnswer.value = '';
+  }
+};
+
+const previousQuestion = () => {
+  store.dispatch('levels/previousQuestion');
+  selectedAnswer.value = store.state.levels.testProgress.answers[currentQuestion.value.id] || '';
+};
 
 const submitTest = async () => {
   try {
-    const score = calculateScore();
-    const response = await store.dispatch('levels/submitLevelTest', {
-      id: level.value.id,
-      score,
+    const result = await store.dispatch('levels/submitLevelTest', {
+      levelId: currentLevel.value.id,
+      answers: store.state.levels.testProgress.answers
     });
-
-    // Handle the response
-    if (response.data.passed) {
-      // Show success message and redirect
-      router.push('/dashboard/levels');
-    } else {
-      // Show failure message
-    }
+    
+    score.value = result.score;
+    passed.value = result.passed;
+    showResults.value = true;
   } catch (error) {
-    console.error('Failed to submit test:', error);
+    console.error('Error submitting test:', error);
+    // Handle error (show error message)
   }
 };
 
-const calculateScore = () => {
-  let correctAnswers = 0;
-  levelTestQuestions.value.forEach((question) => {
-    if (answers.value[question.id] === question.correct_answer) {
-      correctAnswers++;
-    }
-  });
-  return (correctAnswers / levelTestQuestions.value.length) * 100;
+const handleTestCompletion = () => {
+  if (passed.value) {
+    router.push('/dashboard/levels');
+  } else {
+    store.dispatch('levels/resetTest');
+    showResults.value = false;
+    selectedAnswer.value = '';
+  }
 };
+
+// Lifecycle Hooks
+onMounted(async () => {
+  try {
+    const levelId = route.params.id;
+    await Promise.all([
+      store.dispatch('levels/fetchLevel', levelId),
+      store.dispatch('levels/fetchLevelTestQuestions', levelId)
+    ]);
+  } catch (error) {
+    console.error('Error loading level test:', error);
+    // Handle error (show error message or redirect)
+  } finally {
+    isLoading.value = false;
+  }
+});
+
+// Watch for stored answers to update selected answer
+watch(currentQuestion, (newQuestion) => {
+  if (newQuestion) {
+    selectedAnswer.value = store.state.levels.testProgress.answers[newQuestion.id] || '';
+  }
+});
 </script>
