@@ -14,32 +14,51 @@ import {
   faBars,
   faPaperPlane,
   faEnvelope,
-  faPhone
+  faChevronDown,
+  faLightbulb,
+  faClock,
+  faPhone,
+  faEdit,
+  faTrash
 } from '@fortawesome/free-solid-svg-icons';
 import './assets/tailwind.css';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { createI18n } from 'vue-i18n';
 import messages from '@/locales/en/messages.js';
-library.add(
-  faUpload, 
-  faUser, 
-  faBook, 
-  faGraduationCap, 
-  faChartPie, 
-  faComment, 
-  faTimes, 
-  faBars,
-  faPaperPlane,
-  faEnvelope,
-  faPhone
-);
 
 const i18n = createI18n({
   locale: 'en',
   messages: {
     en: messages,
+    ar: messages,
+    es: messages,
+    fr: messages,
+    de: messages,
+    ja: messages,
+    ko: messages,
+    zh: messages,
+    ru: messages,
   },
 });
+
+library.add(
+  faUpload,
+  faUser,
+  faBook,
+  faGraduationCap,
+  faChartPie,
+  faComment,
+  faTimes,
+  faBars,
+  faPaperPlane,
+  faEnvelope,
+  faChevronDown,
+  faLightbulb,
+  faClock,
+  faPhone,
+  faEdit,
+  faTrash
+);
 
 const app = createApp(App);
 app.use(router);

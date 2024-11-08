@@ -1,13 +1,13 @@
 import { createI18n } from 'vue-i18n';
-import en from './locales/en.js';
-import fr from './locales/fr.js';
-import es from './locales/es.js';
-import ar from './locales/ar.js';
-import de from './locales/de.js';
-import ja from './locales/ja.js';
-import ko from './locales/ko.js';
-import zh from './locales/zh.js';
-import ru from './locales/ru.js';
+import en from '../locales/en/messages.js';
+import fr from '../locales/fr/messages.js';
+import es from '../locales/es/messages.js';
+import ar from '../locales/ar/messages.js';
+import de from '../locales/de/messages.js';
+import ja from '../locales/ja/messages.js';
+import ko from '../locales/ko/messages.js';
+import zh from '../locales/zh/messages.js';
+import ru from '../locales/ru/messages.js';
 
 export const SUPPORTED_LANGUAGES = {
   en: { name: 'English', dir: 'ltr', code: 'en' },
@@ -15,7 +15,7 @@ export const SUPPORTED_LANGUAGES = {
   es: { name: 'Español', dir: 'ltr', code: 'es' },
   ar: { name: 'العربية', dir: 'rtl', code: 'ar' },
   de: { name: 'Deutsch', dir: 'ltr', code: 'de' },
-  js: { name: 'Japanese', dir: 'ltr', code: 'ja' },
+  ja: { name: 'Japanese', dir: 'ltr', code: 'ja' },
   ko: { name: 'Korean', dir: 'ltr', code: 'ko' },
   zh: { name: 'Chinese', dir: 'ltr', code: 'zh' },
   ru: { name: 'Русский', dir: 'ltr', code: 'ru' },

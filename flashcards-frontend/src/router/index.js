@@ -131,7 +131,9 @@ router.beforeEach(async (to, from, next) => {
   const isAuthenticated = store.state.auth.isAuthenticated;
 
   if (requiresAuth && !isAuthenticated) {
-    next({ name: 'Login' });
+    next({ name: 'Login', query: { redirect: to.fullPath } });
+  } else if ((to.name === 'Login' || to.name === 'Register') && isAuthenticated) {
+    next({ name: 'Dashboard' });
   } else {
     next();
   }

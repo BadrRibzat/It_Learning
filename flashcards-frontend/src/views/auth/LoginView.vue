@@ -21,6 +21,8 @@
 import { ref } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
+const { login } = useAuth();
 
 const store = useStore();
 const router = useRouter();

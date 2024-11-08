@@ -29,6 +29,8 @@
 import { ref } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
+const { register } = useAuth();
 
 const store = useStore();
 const router = useRouter();

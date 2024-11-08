@@ -1,15 +1,16 @@
 export default {
   login: 'Login',
   register: 'Register',
-  try_it_yourself: 'Try It Yourself',
-  interactive_demo_description: 'Engage with our interactive demo to see how our flashcard system works.',
-  click_to_flip: 'Click to flip',
-  type_your_answer: 'Type your answer',
-  footer_description: 'Learn English with our interactive flashcards and lessons.',
+  chat_help: 'How can I help you?',
+  type_message: 'Type your message...',
+  footer_description: 'Learn English with interactive flashcards and real-time progress tracking.',
   quick_links: 'Quick Links',
-  contact_us: 'Contact Us',
   about_us: 'About Us',
   features: 'Features',
   pricing: 'Pricing',
+  contact_us: 'Contact Us',
+  try_it_yourself: 'Try it yourself',
+  interactive_demo_description: 'Experience our interactive flashcard system',
+  click_to_flip: 'Click to flip',
   // Add more translations as needed
-}
+};
