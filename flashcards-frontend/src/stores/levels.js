@@ -1,4 +1,3 @@
-import createBaseStore from './base';
 import levelsService from '@/services/api/levels';
 
 const initialState = {
@@ -12,8 +11,6 @@ const initialState = {
     completed: false,
   },
 };
-
-const { state, setState } = createBaseStore(initialState);
 
 const actions = {
   async fetchLevels({ commit }) {

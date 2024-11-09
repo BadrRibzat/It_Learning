@@ -1,4 +1,3 @@
-import createBaseStore from './base';
 import notesService from '@/services/api/notes';
 
 const initialState = {
@@ -7,8 +6,6 @@ const initialState = {
   isEditing: false,
   editingNote: null,
 };
-
-const { state, setState } = createBaseStore(initialState);
 
 const actions = {
   async fetchNotes({ commit }) {

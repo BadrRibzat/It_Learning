@@ -1,12 +1,9 @@
-import createBaseStore from './base';
 import chatbotService from '@/services/api/chatbot';
 
 const initialState = {
   messages: [],
   isLoading: false,
 };
-
-const { state, setState } = createBaseStore(initialState);
 
 const actions = {
   async sendMessage({ commit }, message) {

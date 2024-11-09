@@ -1,4 +1,5 @@
 import authService from '@/services/api/auth';
+import router from '@/router';
 
 const initialState = {
   user: JSON.parse(localStorage.getItem('user')) || null,
@@ -6,55 +7,64 @@ const initialState = {
   refreshToken: localStorage.getItem('refreshToken') || null,
   isAuthenticated: !!localStorage.getItem('token'),
   error: null,
+  loading: false
 };
 
 const actions = {
   async register({ commit }, userData) {
+    commit('setLoading', true);
+    commit('setError', null);
     try {
       const response = await authService.register(userData);
-      const { access, refresh } = response.data;
-      
+      const { access, refresh, user } = response;
+
       localStorage.setItem('token', access);
       localStorage.setItem('refreshToken', refresh);
-      localStorage.setItem('user', JSON.stringify(response.data));
-      
+      localStorage.setItem('user', JSON.stringify(user));
+
       commit('setToken', access);
-      commit('setUser', response.data);
+      commit('setUser', user);
       commit('setAuthenticated', true);
-      commit('setError', null);
-      
+
       return response;
     } catch (error) {
-      console.error('Registration failed:', error);
-      const errorMessage = error.response?.data?.detail || 'Registration failed';
+      const errorMessage = error.response?.data?.detail ||
+        error.response?.data?.message ||
+        'Registration failed';
       commit('setError', errorMessage);
       throw error;
+    } finally {
+      commit('setLoading', false);
     }
   },
 
   async login({ commit }, credentials) {
+    commit('setLoading', true);
+    commit('setError', null);
     try {
       const response = await authService.login(credentials);
-      const { access, refresh } = response.data;
-      
+      const { access, refresh, user } = response;
+
       localStorage.setItem('token', access);
       localStorage.setItem('refreshToken', refresh);
-      localStorage.setItem('user', JSON.stringify(response.data));
-      
+      localStorage.setItem('user', JSON.stringify(user));
+
       commit('setToken', access);
-      commit('setUser', response.data);
+      commit('setUser', user);
       commit('setAuthenticated', true);
-      commit('setError', null);
-      
+
       return response;
     } catch (error) {
-      console.error('Login failed:', error);
-      commit('setError', error.response?.data?.detail || 'Login failed');
+      const errorMessage = error.response?.data?.detail || 'Login failed';
+      commit('setError', errorMessage);
       throw error;
+    } finally {
+      commit('setLoading', false);
     }
   },
 
   async logout({ commit }) {
+    commit('setLoading', true);
     try {
       await authService.logout();
     } catch (error) {
@@ -67,30 +77,25 @@ const actions = {
       commit('setUser', null);
       commit('setAuthenticated', false);
       commit('setError', null);
+      commit('setLoading', false);
+      router.push('/');
     }
   },
 
-  async refreshToken({ commit }) {
+  async refreshToken({ commit, dispatch }) {
     try {
       const response = await authService.refreshToken();
       const { access } = response.data;
-      
+
       localStorage.setItem('token', access);
       commit('setToken', access);
-      commit('setError', null);
-      
+
       return response;
     } catch (error) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      commit('setToken', null);
-      commit('setUser', null);
-      commit('setAuthenticated', false);
-      commit('setError', error.response?.data?.detail || 'Token refresh failed');
+      await dispatch('logout');
       throw error;
     }
-  },
+  }
 };
 
 const mutations = {
@@ -107,11 +112,14 @@ const mutations = {
   setError(state, error) {
     state.error = error;
   },
+  setLoading(state, loading) {
+    state.loading = loading;
+  }
 };
 
 export default {
   namespaced: true,
   state: initialState,
   actions,
-  mutations,
+  mutations
 };

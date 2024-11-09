@@ -1,4 +1,3 @@
-import createBaseStore from './base';
 import statisticsService from '@/services/api/statistics';
 
 const initialState = {
@@ -7,8 +6,6 @@ const initialState = {
   recentActivity: [],
   isLoading: false,
 };
-
-const { state, setState } = createBaseStore(initialState);
 
 const actions = {
   async fetchStats({ commit }) {

@@ -1,4 +1,3 @@
-import createBaseStore from './base';
 import progressService from '@/services/api/progress';
 
 const initialState = {
@@ -7,8 +6,6 @@ const initialState = {
   userLevelProgress: [],
   userQuizAttempts: [],
 };
-
-const { state, setState } = createBaseStore(initialState);
 
 const actions = {
   async fetchUserProgress({ commit }) {

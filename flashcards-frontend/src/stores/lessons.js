@@ -1,4 +1,3 @@
-import createBaseStore from './base';
 import lessonsService from '@/services/api/lessons';
 
 const initialState = {
@@ -6,8 +5,6 @@ const initialState = {
   currentLesson: null,
   recommendedLessons: [],
 };
-
-const { state, setState } = createBaseStore(initialState);
 
 const actions = {
   async fetchLessons({ commit }, levelId) {

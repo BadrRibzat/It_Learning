@@ -1,12 +1,9 @@
-import createBaseStore from './base';
 import flashcardsService from '@/services/api/flashcards';
 
 const initialState = {
   flashcards: [],
   currentFlashcard: null,
 };
-
-const { state, setState } = createBaseStore(initialState);
 
 const actions = {
   async fetchFlashcards({ commit }, lessonId) {

@@ -1,12 +1,9 @@
-import createBaseStore from './base';
 import quizzesService from '@/services/api/quizzes';
 
 const initialState = {
   quizzes: [],
   currentQuiz: null,
 };
-
-const { state, setState } = createBaseStore(initialState);
 
 const actions = {
   async fetchQuizzes({ commit }, lessonId) {
