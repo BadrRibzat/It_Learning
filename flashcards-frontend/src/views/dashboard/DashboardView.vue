@@ -5,11 +5,11 @@
       <div v-if="loading" class="flex justify-center items-center h-64">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
       </div>
-      
+
       <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
         {{ error }}
       </div>
-      
+
       <div v-else>
         <h1 class="text-3xl font-bold mb-8">Welcome, {{ username }}</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -27,7 +27,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Quick Stats -->
           <div class="bg-white p-6 rounded-lg shadow-lg">
             <h2 class="text-xl font-bold mb-4">Your Progress</h2>

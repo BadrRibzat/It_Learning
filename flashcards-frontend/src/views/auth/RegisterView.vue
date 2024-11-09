@@ -5,46 +5,46 @@
       <form @submit.prevent="handleRegister">
         <div class="mb-4">
           <label class="block text-gray-700">Username</label>
-          <input 
-            v-model="username" 
-            type="text" 
-            class="w-full px-4 py-2 border rounded-lg" 
+          <input
+            v-model="username"
+            type="text"
+            class="w-full px-4 py-2 border rounded-lg"
             autocomplete="username"
             required
           />
         </div>
         <div class="mb-4">
           <label class="block text-gray-700">Email</label>
-          <input 
-            v-model="email" 
-            type="email" 
-            class="w-full px-4 py-2 border rounded-lg" 
+          <input
+            v-model="email"
+            type="email"
+            class="w-full px-4 py-2 border rounded-lg"
             autocomplete="email"
             required
           />
         </div>
         <div class="mb-4">
           <label class="block text-gray-700">Password</label>
-          <input 
-            v-model="password" 
-            type="password" 
-            class="w-full px-4 py-2 border rounded-lg" 
+          <input
+            v-model="password"
+            type="password"
+            class="w-full px-4 py-2 border rounded-lg"
             autocomplete="new-password"
             required
           />
         </div>
         <div class="mb-4">
           <label class="block text-gray-700">Confirm Password</label>
-          <input 
-            v-model="passwordConfirmation" 
-            type="password" 
-            class="w-full px-4 py-2 border rounded-lg" 
+          <input
+            v-model="passwordConfirmation"
+            type="password"
+            class="w-full px-4 py-2 border rounded-lg"
             autocomplete="new-password"
             required
           />
         </div>
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           class="bg-primary text-white px-4 py-2 rounded-lg w-full"
           :disabled="isLoading"
         >
@@ -87,7 +87,7 @@ const handleRegister = async () => {
       password: password.value,
       password_confirmation: passwordConfirmation.value
     };
-    
+
     await register(userData);
     router.push('/dashboard');
   } catch (err) {

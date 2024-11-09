@@ -113,7 +113,6 @@ const routes = [
     component: QuizDetailView,
     meta: { requiresAuth: true },
   },
-   // Catch-all route
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',

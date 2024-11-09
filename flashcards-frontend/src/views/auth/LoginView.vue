@@ -5,25 +5,25 @@
       <form @submit.prevent="handleLogin">
         <div class="mb-4">
           <label class="block text-gray-700">Email</label>
-          <input 
-            v-model="email" 
-            type="email" 
-            class="w-full px-4 py-2 border rounded-lg" 
+          <input
+            v-model="email"
+            type="email"
+            class="w-full px-4 py-2 border rounded-lg"
             required
           />
         </div>
         <div class="mb-4">
           <label class="block text-gray-700">Password</label>
-          <input 
-            v-model="password" 
-            type="password" 
-            class="w-full px-4 py-2 border rounded-lg" 
+          <input
+            v-model="password"
+            type="password"
+            class="w-full px-4 py-2 border rounded-lg"
             autocomplete="current-password"
             required
           />
         </div>
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           class="bg-primary text-white px-4 py-2 rounded-lg w-full"
         >
           Login
