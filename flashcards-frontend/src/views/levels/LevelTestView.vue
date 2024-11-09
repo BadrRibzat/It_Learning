@@ -13,7 +13,7 @@
             <div class="flex items-center space-x-2">
               <span class="text-sm text-gray-500">Progress:</span>
               <div class="w-32 h-2 bg-gray-200 rounded-full">
-                <div 
+                <div
                   class="h-full bg-primary rounded-full"
                   :style="{ width: `${progressPercentage}%` }"
                 ></div>
@@ -27,23 +27,15 @@
           <!-- Question -->
           <div class="mb-8">
             <h2 class="text-xl font-semibold mb-4">{{ currentQuestion.question_text }}</h2>
-            
-            <!-- Answer Options -->
+
+            <!-- Answer Input -->
             <div class="space-y-4">
-              <label 
-                v-for="option in currentQuestion.options" 
-                :key="option"
-                class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50"
-                :class="{ 'border-primary bg-primary-50': isSelected(option) }"
-              >
-                <input
-                  type="radio"
-                  :value="option"
-                  v-model="selectedAnswer"
-                  class="h-4 w-4 text-primary"
-                />
-                <span class="ml-3">{{ option }}</span>
-              </label>
+              <input
+                v-model="userAnswer"
+                type="text"
+                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-primary focus:ring-primary"
+                placeholder="Type your answer here"
+              />
             </div>
           </div>
 
@@ -59,7 +51,7 @@
             <button
               v-if="!isLastQuestion"
               @click="nextQuestion"
-              :disabled="!selectedAnswer"
+              :disabled="!userAnswer"
               class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
             >
               Next
@@ -126,7 +118,7 @@ const router = useRouter();
 
 const isLoading = ref(true);
 const showResults = ref(false);
-const selectedAnswer = ref('');
+const userAnswer = ref('');
 const score = ref(0);
 const passed = ref(false);
 
@@ -137,7 +129,7 @@ const currentQuestionIndex = computed(() => store.state.levels.testProgress.curr
 const currentQuestion = computed(() => levelTestQuestions.value[currentQuestionIndex.value]);
 const currentQuestionNumber = computed(() => currentQuestionIndex.value + 1);
 const totalQuestions = computed(() => levelTestQuestions.value.length);
-const progressPercentage = computed(() => 
+const progressPercentage = computed(() =>
   (currentQuestionIndex.value / totalQuestions.value) * 100
 );
 
@@ -152,28 +144,26 @@ const scoreColor = computed(() => {
 });
 
 const scoreMessage = computed(() => {
-  return passed.value 
+  return passed.value
     ? 'Congratulations! You passed the test!'
     : 'You need to score at least 80% to pass. Try again!';
 });
 
 // Methods
-const isSelected = (option) => selectedAnswer.value === option;
-
 const nextQuestion = () => {
-  if (selectedAnswer.value) {
+  if (userAnswer.value) {
     store.dispatch('levels/setTestAnswer', {
       questionId: currentQuestion.value.id,
-      answer: selectedAnswer.value
+      answer: userAnswer.value
     });
     store.dispatch('levels/nextQuestion');
-    selectedAnswer.value = '';
+    userAnswer.value = '';
   }
 };
 
 const previousQuestion = () => {
   store.dispatch('levels/previousQuestion');
-  selectedAnswer.value = store.state.levels.testProgress.answers[currentQuestion.value.id] || '';
+  userAnswer.value = store.state.levels.testProgress.answers[currentQuestion.value.id] || '';
 };
 
 const submitTest = async () => {
@@ -182,7 +172,7 @@ const submitTest = async () => {
       levelId: currentLevel.value.id,
       answers: store.state.levels.testProgress.answers
     });
-    
+
     score.value = result.score;
     passed.value = result.passed;
     showResults.value = true;
@@ -198,7 +188,7 @@ const handleTestCompletion = () => {
   } else {
     store.dispatch('levels/resetTest');
     showResults.value = false;
-    selectedAnswer.value = '';
+    userAnswer.value = '';
   }
 };
 
@@ -221,7 +211,7 @@ onMounted(async () => {
 // Watch for stored answers to update selected answer
 watch(currentQuestion, (newQuestion) => {
   if (newQuestion) {
-    selectedAnswer.value = store.state.levels.testProgress.answers[newQuestion.id] || '';
+    userAnswer.value = store.state.levels.testProgress.answers[newQuestion.id] || '';
   }
 });
 </script>

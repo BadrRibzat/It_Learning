@@ -10,24 +10,24 @@
             <!-- Profile Picture -->
             <div class="flex items-center space-x-4 mb-6">
               <div class="relative">
-                <img 
+                <img
                   :src="profilePictureUrl || '/default-avatar.png'"
                   class="w-24 h-24 rounded-full object-cover"
                   alt="Profile picture"
                 />
-                <label 
+                <label
                   class="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary-dark"
                 >
-                  <input 
-                    type="file" 
-                    class="hidden" 
+                  <input
+                    type="file"
+                    class="hidden"
                     accept="image/*"
                     @change="handleFileChange"
                   />
                   <font-awesome-icon icon="upload" />
                 </label>
               </div>
-              <button 
+              <button
                 v-if="profilePictureUrl"
                 @click="deleteProfilePicture"
                 class="text-red-500 hover:text-red-700"
@@ -40,16 +40,16 @@
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700">Username</label>
-                <input 
+                <input
                   v-model="profileData.username"
                   type="text"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium text-gray-700">Email</label>
-                <input 
+                <input
                   v-model="profileData.email"
                   type="email"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
@@ -58,7 +58,7 @@
 
               <div>
                 <label class="block text-sm font-medium text-gray-700">Language</label>
-                <select 
+                <select
                   v-model="profileData.language"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 >
@@ -70,14 +70,14 @@
             </div>
 
             <div class="flex justify-end space-x-4">
-              <button 
+              <button
                 type="button"
                 @click="resetProgress"
                 class="px-4 py-2 border border-red-500 text-red-500 rounded hover:bg-red-50"
               >
                 Reset Progress
               </button>
-              <button 
+              <button
                 type="submit"
                 class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
               >

@@ -10,9 +10,9 @@ const initialState = {
 const { state, setState } = createBaseStore(initialState);
 
 const actions = {
-  async fetchLessons({ commit }) {
+  async fetchLessons({ commit }, levelId) {
     try {
-      const response = await lessonsService.getLessons();
+      const response = await lessonsService.getLessons(levelId);
       commit('setLessons', response.data);
     } catch (error) {
       console.error('Failed to fetch lessons', error);

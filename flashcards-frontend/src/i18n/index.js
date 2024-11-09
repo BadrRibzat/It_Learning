@@ -10,18 +10,6 @@ import ko from '../locales/ko/messages.js';
 import zh from '../locales/zh/messages.js';
 import ru from '../locales/ru/messages.js';
 
-export const SUPPORTED_LANGUAGES = {
-  en: { name: 'English', dir: 'ltr', code: 'en' },
-  fr: { name: 'Français', dir: 'ltr', code: 'fr' },
-  es: { name: 'Español', dir: 'ltr', code: 'es' },
-  ar: { name: 'العربية', dir: 'rtl', code: 'ar' },
-  de: { name: 'Deutsch', dir: 'ltr', code: 'de' },
-  ja: { name: 'Japanese', dir: 'ltr', code: 'ja' },
-  ko: { name: 'Korean', dir: 'ltr', code: 'ko' },
-  zh: { name: 'Chinese', dir: 'ltr', code: 'zh' },
-  ru: { name: 'Русский', dir: 'ltr', code: 'ru' },
-};
-
 const i18n = createI18n({
   legacy: false,
   locale: localStorage.getItem('userLanguage') || 'en',
@@ -40,3 +28,5 @@ const i18n = createI18n({
 });
 
 export const SUPPORTED_LANGUAGES = LANGUAGES;
+
+export default i18n;

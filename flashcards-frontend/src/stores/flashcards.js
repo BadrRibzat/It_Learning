@@ -9,15 +9,6 @@ const initialState = {
 const { state, setState } = createBaseStore(initialState);
 
 const actions = {
-  async fetchFlashcards({ commit }) {
-    try {
-      const response = await flashcardsService.getFlashcards();
-      commit('setFlashcards', response.data);
-    } catch (error) {
-      console.error('Failed to fetch flashcards', error);
-      throw error;
-    }
-  },
   async fetchFlashcards({ commit }, lessonId) {
     try {
       const response = await flashcardsService.getFlashcards(lessonId);

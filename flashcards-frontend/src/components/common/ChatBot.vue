@@ -77,7 +77,7 @@ const toggleChat = () => {
 
 const sendMessage = async () => {
   if (!newMessage.value.trim()) return;
-  
+
   try {
     await store.dispatch('chatbot/sendMessage', newMessage.value);
     newMessage.value = '';

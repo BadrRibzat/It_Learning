@@ -2,7 +2,7 @@
   <form @submit.prevent="submitForm">
     <input v-model="username" type="text" placeholder="Username" required />
     <input v-model="email" type="email" placeholder="Email" required />
-    <input v-model="password" type="password" placeholder="Password" required />
+    <input v-model="password" type="password" autocomplete="current-password"class="w-full px-4 py-2 border rounded-lg" />
     <button type="submit">Register</button>
   </form>
 </template>

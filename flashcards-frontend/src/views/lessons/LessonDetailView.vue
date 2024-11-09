@@ -34,4 +34,8 @@ const startLesson = async () => {
   await store.dispatch('flashcards/fetchFlashcards', { lessonId: lesson.value.id });
   router.push('/dashboard/flashcards');
 };
+
+const showQuiz = computed(() => {
+  return lessonProgress.value?.completed;
+});
 </script>

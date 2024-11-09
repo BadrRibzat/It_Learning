@@ -1,6 +1,5 @@
 import createBaseStore from './base';
 import notesService from '@/services/api/notes';
-import { reactive } from 'vue';
 
 const initialState = {
   notes: [],

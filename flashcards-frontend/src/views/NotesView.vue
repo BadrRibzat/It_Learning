@@ -10,9 +10,9 @@
           <form @submit.prevent="createNote" class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">Title</label>
-              <input 
-                v-model="newNote.title" 
-                type="text" 
+              <input
+                v-model="newNote.title"
+                type="text"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 :maxlength="config.maxNoteTitleLength"
                 required
@@ -23,8 +23,8 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Content</label>
-              <textarea 
-                v-model="newNote.content" 
+              <textarea
+                v-model="newNote.content"
                 rows="4"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 :maxlength="config.maxNoteContentLength"
@@ -36,7 +36,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Note Type</label>
-              <select 
+              <select
                 v-model="newNote.note_type"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
               >
@@ -45,8 +45,8 @@
                 <option value="grammar">Grammar</option>
               </select>
             </div>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               class="w-full bg-primary text-white py-2 rounded-md hover:bg-primary-dark transition"
             >
               Create Note
@@ -55,17 +55,17 @@
         </div>
 
         <!-- Existing Notes -->
-        <NoteCard 
-          v-for="note in notes" 
-          :key="note.id" 
+        <NoteCard
+          v-for="note in notes"
+          :key="note.id"
           :note="note"
           @edit="startEditing"
           @delete="deleteNote"
         />
 
         <!-- Edit Modal -->
-        <div 
-          v-if="isEditing" 
+        <div
+          v-if="isEditing"
           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         >
           <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
@@ -73,9 +73,9 @@
             <form @submit.prevent="updateNote" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700">Title</label>
-                <input 
-                  v-model="editingNote.title" 
-                  type="text" 
+                <input
+                  v-model="editingNote.title"
+                  type="text"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                   :maxlength="config.maxNoteTitleLength"
                   required
@@ -83,8 +83,8 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Content</label>
-                <textarea 
-                  v-model="editingNote.content" 
+                <textarea
+                  v-model="editingNote.content"
                   rows="4"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                   :maxlength="config.maxNoteContentLength"
@@ -93,7 +93,7 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Note Type</label>
-                <select 
+                <select
                   v-model="editingNote.note_type"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 >
@@ -103,15 +103,15 @@
                 </select>
               </div>
               <div class="flex justify-between">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   @click="cancelEditing"
                   class="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   class="bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-dark"
                 >
                   Update Note
@@ -130,7 +130,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import Sidebar from '@/components/dashboard/Sidebar.vue';
 import NoteCard from '@/components/notes/NoteCard.vue';
-import config from '@/config/config.json';
 
 const store = useStore();
 const newNote = ref({
@@ -189,3 +188,15 @@ const cancelEditing = () => {
   store.dispatch('notes/cancelEditing');
 };
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

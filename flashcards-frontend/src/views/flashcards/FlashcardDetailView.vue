@@ -21,10 +21,10 @@
             <div class="absolute w-full h-full bg-white rounded-lg shadow p-6 backface-hidden rotate-y-180">
               <p class="text-xl font-semibold mb-4">{{ flashcard.question }}</p>
               <div class="mt-4">
-                <AnswerForm 
-                  :flashcardId="flashcard?.id" 
+                <AnswerForm
+                  :flashcardId="flashcard?.id"
                   :correctAnswer="flashcard?.word"
-                  @answer-submitted="handleAnswer" 
+                  @answer-submitted="handleAnswer"
                 />
               </div>
             </div>
@@ -33,8 +33,8 @@
 
         <!-- Progress and Navigation -->
         <div class="flex justify-between items-center mt-6">
-          <button 
-            @click="previousCard" 
+          <button
+            @click="previousCard"
             class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
             :disabled="!hasPrevious"
           >
@@ -44,8 +44,8 @@
             <p class="text-lg font-semibold">{{ currentIndex + 1 }} / {{ totalCards }}</p>
             <p class="text-sm text-gray-600">Progress: {{ progress }}%</p>
           </div>
-          <button 
-            @click="nextCard" 
+          <button
+            @click="nextCard"
             class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
             :disabled="!hasNext"
           >
@@ -142,7 +142,7 @@ onMounted(async () => {
       await store.dispatch('flashcards/fetchFlashcards', { lessonId });
       flashcards.value = store.state.flashcards.flashcards;
       totalCards.value = flashcards.value.length;
-      
+
       // Load first flashcard
       if (flashcards.value.length > 0) {
         loadFlashcard(flashcards.value[0].id);
