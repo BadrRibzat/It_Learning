@@ -148,20 +148,6 @@ class NoteViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def update_current_lesson(request):
-    lesson_id = request.data.get('lesson_id')
-    if lesson_id:
-        try:
-            lesson = Lesson.objects.get(id=lesson_id)
-            request.user.current_lesson = lesson
-            request.user.save()
-            return Response({'status': 'success'}, status=status.HTTP_200_OK)
-        except Lesson.DoesNotExist:
-            return Response({'error': 'Lesson not found'}, status=status.HTTP_404_NOT_FOUND)
-    return Response({'error': 'Lesson ID is required'}, status=status.HTTP_400_BAD_REQUEST)
-
 class RecommendedLessonsView(APIView):
     permission_classes = [IsAuthenticated]
 

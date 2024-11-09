@@ -10,7 +10,6 @@ class User(AbstractUser):
     points = models.IntegerField(default=0)
     level = models.IntegerField(default=1)
     language = models.CharField(max_length=50, default='en')
-    current_lesson = models.ForeignKey('lessons.Lesson', on_delete=models.SET_NULL, null=True, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -21,7 +20,6 @@ class User(AbstractUser):
     def reset_progress(self):
         self.points = 0
         self.level = 1
-        self.current_lesson = None
         self.save()
         if hasattr(self, 'progress'):
             self.progress.all().delete()

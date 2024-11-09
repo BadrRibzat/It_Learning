@@ -6,7 +6,7 @@ from .views import (
     CustomTokenObtainPairView, RegisterView, LoginView, ProfileView,
     UserStatisticsView, PasswordResetView, PasswordResetConfirmView,
     LogoutView, ResetProgressView, UploadProfilePictureView, delete_profile_picture, NoteViewSet,
-    RecommendedLessonsView, update_current_lesson, UserProgressView
+    RecommendedLessonsView, UserProgressView
 )
 
 router = DefaultRouter()
@@ -29,6 +29,5 @@ urlpatterns = [
     path('recommended-lessons/', RecommendedLessonsView.as_view(), name='recommended_lessons'),
     path('', include(router.urls)),
     path('check-user/', views.check_user, name='check_user'),
-    path('update-current-lesson/', update_current_lesson, name='update_current_lesson'),
     path('user-progress/', UserProgressView.as_view(), name='user_progress'),
 ]
