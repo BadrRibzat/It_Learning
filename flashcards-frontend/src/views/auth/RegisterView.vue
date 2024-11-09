@@ -9,6 +9,7 @@
             v-model="username" 
             type="text" 
             class="w-full px-4 py-2 border rounded-lg" 
+            autocomplete="username"
             required
           />
         </div>
@@ -18,6 +19,7 @@
             v-model="email" 
             type="email" 
             class="w-full px-4 py-2 border rounded-lg" 
+            autocomplete="email"
             required
           />
         </div>
@@ -44,9 +46,13 @@
         <button 
           type="submit" 
           class="bg-primary text-white px-4 py-2 rounded-lg w-full"
+          :disabled="isLoading"
         >
-          Register
+          {{ isLoading ? 'Registering...' : 'Register' }}
         </button>
+        <div v-if="error" class="mt-4 p-3 bg-red-100 text-red-700 rounded">
+          {{ error }}
+        </div>
       </form>
     </div>
   </div>
@@ -63,21 +69,29 @@ const username = ref('');
 const email = ref('');
 const password = ref('');
 const passwordConfirmation = ref('');
+const error = ref('');
+const isLoading = ref(false);
 
 const handleRegister = async () => {
   if (password.value !== passwordConfirmation.value) {
-    alert("Passwords don't match");
+    error.value = "Passwords don't match";
     return;
   }
+
   try {
+    isLoading.value = true;
+    error.value = '';
     await register({
       username: username.value,
       email: email.value,
-      password: password.value
+      password: password.value,
+      password_confirmation: passwordConfirmation.value
     });
     router.push('/dashboard');
-  } catch (error) {
-    console.error('Registration failed:', error);
+  } catch (err) {
+    error.value = err.response?.data?.detail || 'Registration failed';
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>

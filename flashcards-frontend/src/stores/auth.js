@@ -5,6 +5,7 @@ const initialState = {
   token: localStorage.getItem('token') || null,
   refreshToken: localStorage.getItem('refreshToken') || null,
   isAuthenticated: !!localStorage.getItem('token'),
+  error: null,
 };
 
 const actions = {
@@ -17,9 +18,11 @@ const actions = {
       commit('setToken', access);
       commit('setUser', user);
       commit('setAuthenticated', true);
+      commit('setError', null);
       return response;
     } catch (error) {
       console.error('Login failed', error);
+      commit('setError', error.response?.data?.detail || 'Login failed');
       throw error;
     }
   },
@@ -28,14 +31,25 @@ const actions = {
     try {
       const response = await authService.register(userData);
       const { access, refresh, user } = response.data;
+    
+    // Store tokens
       localStorage.setItem('token', access);
       localStorage.setItem('refreshToken', refresh);
+    
+    // Update store
       commit('setToken', access);
       commit('setUser', user);
       commit('setAuthenticated', true);
+      commit('setError', null);
+    
+    // Return for chaining
       return response;
-    } catch (error) {
+  }   catch (error) {
       console.error('Registration failed', error);
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.message ||
+                          'Registration failed';
+      commit('setError', errorMessage);
       throw error;
     }
   },
@@ -51,6 +65,7 @@ const actions = {
       commit('setToken', null);
       commit('setUser', null);
       commit('setAuthenticated', false);
+      commit('setError', null);
     }
   },
 
@@ -60,12 +75,14 @@ const actions = {
       const { access } = response.data;
       localStorage.setItem('token', access);
       commit('setToken', access);
+      commit('setError', null);
       return access;
     } catch (error) {
       console.error('Token refresh failed', error);
       commit('setToken', null);
       commit('setUser', null);
       commit('setAuthenticated', false);
+      commit('setError', error.response?.data?.detail || 'Token refresh failed');
       throw error;
     }
   }
@@ -81,6 +98,9 @@ const mutations = {
   },
   setAuthenticated(state, isAuthenticated) {
     state.isAuthenticated = isAuthenticated;
+  },
+  setError(state, error) {
+    state.error = error;
   },
 };
 

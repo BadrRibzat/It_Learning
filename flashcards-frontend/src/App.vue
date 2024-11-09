@@ -164,12 +164,16 @@ const toggleUserMenu = () => {
   showLanguageMenu.value = false;
 };
 
-const closeLanguageMenu = () => {
-  showLanguageMenu.value = false;
+const closeLanguageMenu = (event) => {
+  if (event) {
+    showLanguageMenu.value = false;
+  }
 };
 
-const closeUserMenu = () => {
-  showUserMenu.value = false;
+const closeUserMenu = (event) => {
+  if (event) {
+    showUserMenu.value = false;
+  }
 };
 
 const changeLanguage = (langCode) => {
