@@ -5,11 +5,18 @@ export const API_ENDPOINTS = {
     LOGIN: '/login/',
     REGISTER: '/register/',
     LOGOUT: '/logout/',
-    PROFILE: '/profile/',
-    CHECK_USER: '/check-user/',
     REFRESH_TOKEN: '/token/refresh/',
-    RESET_PASSWORD: '/password-reset/',
-    RESET_PASSWORD_CONFIRM: (uidb64, token) => `/password-reset-confirm/${uidb64}/${token}/`,
+    CHECK_USER: '/check-user/',
+  },
+  PROFILE: {
+    DETAIL: '/profile/',
+    UPLOAD_PICTURE: '/upload-profile-picture/',
+    DELETE_PICTURE: '/delete-profile-picture/',
+    RESET_PROGRESS: '/reset-progress/',
+  },
+  STATISTICS: {
+    USER: '/statistics/',
+    PROGRESS: '/user-progress/',
   },
   LEVELS: {
     LIST: '/levels/',
@@ -37,12 +44,6 @@ export const API_ENDPOINTS = {
   NOTES: {
     LIST: '/notes/',
     DETAIL: (id) => `/notes/${id}/`,
-  },
-  PROFILE: {
-    DETAIL: '/profile/',
-    UPLOAD_PICTURE: '/upload-profile-picture/',
-    DELETE_PICTURE: '/delete-profile-picture/',
-    RESET_PROGRESS: '/reset-progress/',
   },
   PROGRESS: {
     USER: '/user-progress/',

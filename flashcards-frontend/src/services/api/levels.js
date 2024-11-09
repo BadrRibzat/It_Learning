@@ -1,11 +1,12 @@
 import axiosInstance from './axios';
+import { API_ENDPOINTS } from '@/config';
 
 const levelsService = {
-  getLevels: () => axiosInstance.get('/levels/'),
-  getLevel: (id) => axiosInstance.get(`/levels/${id}/`),
-  getLevelLessons: (levelId) => axiosInstance.get(`/levels/${levelId}/lessons/`),
-  getLevelTestQuestions: (levelId) => axiosInstance.get(`/level-test-questions/?level=${levelId}`),
-  submitLevelTest: (levelId, answers) => axiosInstance.post(`/level-test-submit/${levelId}/`, { answers }),
+  getLevels: () => axiosInstance.get(API_ENDPOINTS.LEVELS.LIST),
+  getLevel: (id) => axiosInstance.get(API_ENDPOINTS.LEVELS.DETAIL(id)),
+  getLevelLessons: (levelId) => axiosInstance.get(API_ENDPOINTS.LEVELS.LESSONS(levelId)),
+  getLevelTestQuestions: (levelId) => axiosInstance.get(API_ENDPOINTS.LEVELS.TEST_QUESTIONS(levelId)),
+  submitLevelTest: (levelId, answers) => axiosInstance.post(API_ENDPOINTS.LEVELS.SUBMIT_TEST(levelId), { answers }),
 };
 
 export default levelsService;

@@ -1,9 +1,10 @@
 import axiosInstance from './axios';
+import { API_ENDPOINTS } from '@/config';
 
 const quizzesService = {
-  getQuizzes: (lessonId) => axiosInstance.get(`/quizzes/?lesson=${lessonId}`),
-  getQuiz: (id) => axiosInstance.get(`/quizzes/${id}/`),
-  submitQuiz: (id, answers) => axiosInstance.post(`/quiz-submit/${id}/`, { answers }),
+  getQuizzes: (lessonId) => axiosInstance.get(`${API_ENDPOINTS.QUIZZES.LIST}?lesson=${lessonId}`),
+  getQuiz: (id) => axiosInstance.get(API_ENDPOINTS.QUIZZES.DETAIL(id)),
+  submitQuiz: (id, answers) => axiosInstance.post(API_ENDPOINTS.QUIZZES.SUBMIT(id), { answers }),
 };
 
 export default quizzesService;
