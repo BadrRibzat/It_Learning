@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    LevelViewSet, LessonViewSet, FlashcardViewSet, QuizViewSet, QuizQuestionViewSet,
+    LevelViewSet, FlashcardViewSet, QuizViewSet, QuizQuestionViewSet,
     UserProgressViewSet, UserFlashcardProgressViewSet, UserQuizAttemptViewSet, UserLevelProgressViewSet,
     LevelTestViewSet, LevelTestQuestionViewSet, recommend_next_lesson, flashcard_submit, level_test_submit,
     quiz_submit
@@ -9,7 +9,6 @@ from .views import (
 
 router = DefaultRouter()
 router.register(r'levels', LevelViewSet)
-router.register(r'lessons', LessonViewSet)
 router.register(r'flashcards', FlashcardViewSet)
 router.register(r'quizzes', QuizViewSet)
 router.register(r'quiz-questions', QuizQuestionViewSet)

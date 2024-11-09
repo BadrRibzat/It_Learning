@@ -4,13 +4,13 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .serializers import (
-    LevelSerializer, LessonSerializer, FlashcardSerializer, QuizSerializer,
+    LevelSerializer, FlashcardSerializer, QuizSerializer,
     QuizQuestionSerializer, UserProgressSerializer, UserFlashcardProgressSerializer,
     UserQuizAttemptSerializer, UserLevelProgressSerializer, LevelTestSerializer,
     LevelTestQuestionSerializer
 )
 from .models import (
-    Level, Lesson, Flashcard, Quiz, QuizQuestion, UserProgress,
+    Level, Flashcard, Quiz, QuizQuestion, UserProgress,
     UserFlashcardProgress, UserQuizAttempt, UserLevelProgress, LevelTest,
     LevelTestQuestion
 )
@@ -26,17 +26,6 @@ class LevelViewSet(viewsets.ModelViewSet):
         lessons = Lesson.objects.filter(level=level)
         serializer = LessonSerializer(lessons, many=True)
         return Response(serializer.data)
-
-class LessonViewSet(viewsets.ModelViewSet):
-    queryset = Lesson.objects.all()
-    serializer_class = LessonSerializer
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        level_id = self.request.query_params.get('level')
-        if level_id and level_id.lower() != 'undefined':
-            queryset = queryset.filter(level_id=level_id)
-        return queryset
 
 class FlashcardViewSet(viewsets.ModelViewSet):
     queryset = Flashcard.objects.all().order_by('id')

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Level, Lesson, Flashcard, Quiz, QuizQuestion, UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress, LevelTest, LevelTestQuestion
+from .models import Level, Flashcard, Quiz, QuizQuestion, UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress, LevelTest, LevelTestQuestion
 
 class NestedLessonSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,11 +12,6 @@ class LevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Level
         fields = ['id', 'name', 'level_order', 'lessons']
-
-class LessonSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lesson
-        fields = ['id', 'title', 'level', 'level_order', 'content', 'difficulty']
 
 class FlashcardSerializer(serializers.ModelSerializer):
     class Meta:
