@@ -81,12 +81,14 @@ const handleRegister = async () => {
   try {
     isLoading.value = true;
     error.value = '';
-    await register({
+    const userData = {
       username: username.value,
       email: email.value,
       password: password.value,
       password_confirmation: passwordConfirmation.value
-    });
+    };
+    
+    await register(userData);
     router.push('/dashboard');
   } catch (err) {
     error.value = err.response?.data?.detail || 'Registration failed';

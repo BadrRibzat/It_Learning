@@ -1,7 +1,7 @@
 import authService from '@/services/api/auth';
 
 const initialState = {
-  user: null,
+  user: JSON.parse(localStorage.getItem('user')) || null,
   token: localStorage.getItem('token') || null,
   refreshToken: localStorage.getItem('refreshToken') || null,
   isAuthenticated: !!localStorage.getItem('token'),
@@ -9,47 +9,47 @@ const initialState = {
 };
 
 const actions = {
-  async login({ commit }, credentials) {
+  async register({ commit }, userData) {
     try {
-      const response = await authService.login(credentials);
-      const { access, refresh, user } = response.data;
+      const response = await authService.register(userData);
+      const { access, refresh } = response.data;
+      
       localStorage.setItem('token', access);
       localStorage.setItem('refreshToken', refresh);
+      localStorage.setItem('user', JSON.stringify(response.data));
+      
       commit('setToken', access);
-      commit('setUser', user);
+      commit('setUser', response.data);
       commit('setAuthenticated', true);
       commit('setError', null);
+      
       return response;
     } catch (error) {
-      console.error('Login failed', error);
-      commit('setError', error.response?.data?.detail || 'Login failed');
+      console.error('Registration failed:', error);
+      const errorMessage = error.response?.data?.detail || 'Registration failed';
+      commit('setError', errorMessage);
       throw error;
     }
   },
 
-  async register({ commit }, userData) {
+  async login({ commit }, credentials) {
     try {
-      const response = await authService.register(userData);
-      const { access, refresh, user } = response.data;
-    
-    // Store tokens
+      const response = await authService.login(credentials);
+      const { access, refresh } = response.data;
+      
       localStorage.setItem('token', access);
       localStorage.setItem('refreshToken', refresh);
-    
-    // Update store
+      localStorage.setItem('user', JSON.stringify(response.data));
+      
       commit('setToken', access);
-      commit('setUser', user);
+      commit('setUser', response.data);
       commit('setAuthenticated', true);
       commit('setError', null);
-    
-    // Return for chaining
+      
       return response;
-  }   catch (error) {
-      console.error('Registration failed', error);
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message ||
-                          'Registration failed';
-      commit('setError', errorMessage);
+    } catch (error) {
+      console.error('Login failed:', error);
+      commit('setError', error.response?.data?.detail || 'Login failed');
       throw error;
     }
   },
@@ -58,10 +58,11 @@ const actions = {
     try {
       await authService.logout();
     } catch (error) {
-      console.warn('Logout API call failed', error);
+      console.warn('Logout API call failed:', error);
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
       commit('setToken', null);
       commit('setUser', null);
       commit('setAuthenticated', false);
@@ -73,28 +74,32 @@ const actions = {
     try {
       const response = await authService.refreshToken();
       const { access } = response.data;
+      
       localStorage.setItem('token', access);
       commit('setToken', access);
       commit('setError', null);
-      return access;
+      
+      return response;
     } catch (error) {
-      console.error('Token refresh failed', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
       commit('setToken', null);
       commit('setUser', null);
       commit('setAuthenticated', false);
       commit('setError', error.response?.data?.detail || 'Token refresh failed');
       throw error;
     }
-  }
+  },
 };
 
 const mutations = {
+  setUser(state, user) {
+    state.user = user;
+  },
   setToken(state, token) {
     state.token = token;
     state.isAuthenticated = !!token;
-  },
-  setUser(state, user) {
-    state.user = user;
   },
   setAuthenticated(state, isAuthenticated) {
     state.isAuthenticated = isAuthenticated;

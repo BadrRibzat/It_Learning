@@ -1,10 +1,11 @@
 import axiosInstance from './axios';
+import { API_ENDPOINTS } from '@/config';
 
 const progressService = {
-  getUserProgress: () => axiosInstance.get('/user-progress/'),
-  getUserFlashcardProgress: () => axiosInstance.get('/user-flashcard-progress/'),
-  getUserLevelProgress: () => axiosInstance.get('/user-level-progress/'),
-  getUserQuizAttempts: () => axiosInstance.get('/user-quiz-attempts/'),
+  getUserProgress: () => axiosInstance.get(API_ENDPOINTS.PROGRESS.USER),
+  getUserFlashcardProgress: () => axiosInstance.get(API_ENDPOINTS.PROGRESS.FLASHCARD),
+  getUserLevelProgress: () => axiosInstance.get(API_ENDPOINTS.PROGRESS.LEVEL),
+  getUserQuizAttempts: () => axiosInstance.get(API_ENDPOINTS.PROGRESS.QUIZ_ATTEMPTS),
 };
 
 export default progressService;
