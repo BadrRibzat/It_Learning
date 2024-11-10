@@ -25,6 +25,11 @@ import {
   faClock,
   faPhone,
   faEdit,
+  faCheck,
+  faTrophy,
+  faArrowRight,
+  faArrowLeft,
+  faStar,
   faTrash
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -57,6 +62,11 @@ library.add(
   faClock,
   faPhone,
   faEdit,
+  faCheck,
+  faTrophy,
+  faArrowRight,
+  faArrowLeft,
+  faStar,
   faTrash
 )
 

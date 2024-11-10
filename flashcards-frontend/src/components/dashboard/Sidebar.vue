@@ -21,6 +21,9 @@
           <router-link to="/dashboard/lessons" class="block py-2 px-4 text-gray-700 hover:bg-gray-100">Lessons</router-link>
         </li>
         <li class="mb-4">
+          <router-link to="/dashboard/quizzes" class="block py-2 px-4 text-gray-700 hover:bg-gray-100">Quizzes</router-link>
+        </li>
+        <li class="mb-4">
           <router-link to="/dashboard/flashcards" class="block py-2 px-4 text-gray-700 hover:bg-gray-100">Flashcards</router-link>
         </li>
       </ul>

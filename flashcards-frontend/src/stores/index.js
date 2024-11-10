@@ -9,6 +9,7 @@ import statistics from './statistics';
 import progress from './progress';
 import quizzes from './quizzes';
 import chatbot from './chatbot';
+
 export default createStore({
   modules: {
     auth,

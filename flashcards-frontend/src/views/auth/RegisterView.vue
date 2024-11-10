@@ -60,11 +60,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useAuth } from '@/composables/useAuth';
+import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
+const store = useStore();
 const router = useRouter();
-const { register } = useAuth();
+
 const username = ref('');
 const email = ref('');
 const password = ref('');
@@ -88,8 +89,8 @@ const handleRegister = async () => {
       password_confirmation: passwordConfirmation.value
     };
 
-    await register(userData);
-    router.push('/dashboard');
+    await store.dispatch('auth/register', userData);
+    router.push('/login');
   } catch (err) {
     error.value = err.response?.data?.detail || 'Registration failed';
   } finally {

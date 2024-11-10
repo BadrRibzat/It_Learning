@@ -7,11 +7,22 @@ const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  },
-  withCredentials: true
+  }
 });
 
+// Add token to requests if available
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Handle token refresh
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -25,17 +36,6 @@ const processQueue = (error, token = null) => {
   });
   failedQueue = [];
 };
-
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 axiosInstance.interceptors.response.use(
   (response) => response,
@@ -58,14 +58,16 @@ axiosInstance.interceptors.response.use(
       try {
         const response = await store.dispatch('auth/refreshToken');
         const { access } = response.data;
-        processQueue(null, access);
+        
         originalRequest.headers.Authorization = `Bearer ${access}`;
+        processQueue(null, access);
+        
         return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
-        await store.dispatch('auth/logout');
+      } catch (error) {
+        processQueue(error, null);
+        store.dispatch('auth/logout');
         router.push('/auth/login');
-        return Promise.reject(refreshError);
+        return Promise.reject(error);
       } finally {
         isRefreshing = false;
       }

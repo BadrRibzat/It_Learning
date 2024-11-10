@@ -241,17 +241,28 @@ class UserProgressView(APIView):
         serializer = UserProgressSerializer(request.user)
         return Response(serializer.data)
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_profile_picture(request):
     user = request.user
     try:
         profile_picture = ProfilePicture.objects.get(user=user)
-        profile_picture.image.delete(save=True)
+        if profile_picture.image:
+            profile_picture.image.delete(save=True)
         profile_picture.delete()
         return Response({"detail": "Profile picture deleted successfully"}, status=status.HTTP_200_OK)
     except ProfilePicture.DoesNotExist:
         return Response({"detail": "Profile picture not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    user = request.user
+    serializer = ProfileSerializer(user.profile, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

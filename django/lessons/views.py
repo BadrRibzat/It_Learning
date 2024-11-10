@@ -7,18 +7,29 @@ from .serializers import (
     LevelSerializer, FlashcardSerializer, QuizSerializer,
     QuizQuestionSerializer, UserProgressSerializer, UserFlashcardProgressSerializer,
     UserQuizAttemptSerializer, UserLevelProgressSerializer, LevelTestSerializer,
-    LevelTestQuestionSerializer
+    LevelTestQuestionSerializer, LessonSerializer
 )
 from .models import (
     Level, Flashcard, Quiz, QuizQuestion, UserProgress,
     UserFlashcardProgress, UserQuizAttempt, UserLevelProgress, LevelTest,
-    LevelTestQuestion
+    LevelTestQuestion, Lesson
 )
 from .utils import get_recommended_lessons
 
 class LevelViewSet(viewsets.ModelViewSet):
     queryset = Level.objects.all()
     serializer_class = LevelSerializer
+
+    @action(detail=True, methods=['get'])
+    def lessons(self, request, pk=None):
+        level = self.get_object()
+        lessons = Lesson.objects.filter(level=level)
+        serializer = LessonSerializer(lessons, many=True)
+        return Response(serializer.data)
+
+class LessonViewSet(viewsets.ModelViewSet):
+    queryset = Lesson.objects.all()
+    serializer_class = LessonSerializer
 
     @action(detail=True, methods=['get'])
     def lessons(self, request, pk=None):

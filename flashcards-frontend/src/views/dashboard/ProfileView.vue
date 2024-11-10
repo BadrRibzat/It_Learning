@@ -35,7 +35,6 @@
                 Delete Picture
               </button>
             </div>
-
             <!-- Profile Fields -->
             <div class="space-y-4">
               <div>
@@ -46,7 +45,6 @@
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
-
               <div>
                 <label class="block text-sm font-medium text-gray-700">Email</label>
                 <input
@@ -55,7 +53,6 @@
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
-
               <div>
                 <label class="block text-sm font-medium text-gray-700">Language</label>
                 <select
@@ -68,7 +65,6 @@
                 </select>
               </div>
             </div>
-
             <div class="flex justify-end space-x-4">
               <button
                 type="button"
@@ -86,7 +82,6 @@
             </div>
           </form>
         </div>
-
         <!-- Statistics -->
         <div class="space-y-6">
           <!-- Learning Progress -->
@@ -103,7 +98,6 @@
               </div>
             </div>
           </div>
-
           <!-- Achievement Stats -->
           <div class="bg-white p-6 rounded-lg shadow-lg">
             <h3 class="text-xl font-bold mb-4">Achievements</h3>
@@ -118,7 +112,6 @@
               </div>
             </div>
           </div>
-
           <!-- Recent Activity -->
           <div class="bg-white p-6 rounded-lg shadow-lg">
             <h3 class="text-xl font-bold mb-4">Recent Activity</h3>
@@ -143,6 +136,7 @@
 </template>
 
 <script setup>
+import profileService from '@/services/api/profile';
 import { ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import Sidebar from '@/components/dashboard/Sidebar.vue';
@@ -199,12 +193,8 @@ const handleFileChange = async (event) => {
   if (file) {
     const formData = new FormData();
     formData.append('profile_picture', file);
-    try {
-      await store.dispatch('profile/uploadProfilePicture', formData);
-      await loadProfile();
-    } catch (error) {
-      console.error('Error uploading profile picture:', error);
-    }
+    await profileService.uploadProfilePicture(formData);
+    await loadProfile(); // Reload profile to get the updated picture
   }
 };
 

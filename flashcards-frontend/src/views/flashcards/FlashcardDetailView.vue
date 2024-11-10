@@ -2,7 +2,19 @@
   <div class="min-h-screen bg-gray-100">
     <Sidebar />
     <div class="ml-64 p-8">
-      <div class="bg-white p-8 rounded-lg shadow-lg">
+      <div v-if="loading" class="flex justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-primary"></div>
+      </div>
+
+      <div v-else-if="error" class="bg-red-100 text-red-700 p-4 rounded-lg">
+        {{ error }}
+      </div>
+
+      <div v-else-if="!flashcard.id" class="text-center py-8">
+        <p class="text-gray-500">No flashcard found</p>
+      </div>
+
+      <div v-else class="bg-white p-8 rounded-lg shadow-lg">
         <!-- Flashcard Front/Back -->
         <div class="relative w-full h-96 perspective-1000 mb-8">
           <div
@@ -20,16 +32,41 @@
             <!-- Back -->
             <div class="absolute w-full h-full bg-white rounded-lg shadow p-6 backface-hidden rotate-y-180">
               <p class="text-xl font-semibold mb-4">{{ flashcard.question }}</p>
-              <div class="mt-4">
-                <AnswerForm
-                  :flashcardId="flashcard?.id"
-                  :correctAnswer="flashcard?.word"
-                  @answer-submitted="handleAnswer"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+              <!-- Answer Form Section -->
+  <div class="mt-6">
+    <form @submit.prevent="submitAnswer" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Your Answer</label>
+        <input
+          v-model="userAnswer"
+          type="text"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-primary focus:border-primary"
+          :disabled="showingFeedback"
+        />
+      </div>
+
+      <!-- Feedback Message -->
+      <div v-if="showingFeedback" :class="feedbackClass" class="p-4 rounded-md">
+        <p class="font-medium">{{ feedbackMessage }}</p>
+        <button 
+          v-if="!isCorrect"
+          @click="resetAnswer"
+          class="mt-2 px-4 py-2 bg-white text-gray-700 rounded border hover:bg-gray-50"
+        >
+          Try Again
+        </button>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="w-full bg-primary text-white py-2 rounded-md hover:bg-primary-dark"
+        :disabled="showingFeedback || !userAnswer"
+      >
+        Submit Answer
+      </button>
+    </form>
+  </div>
 
         <!-- Progress and Navigation -->
         <div class="flex justify-between items-center mt-6">

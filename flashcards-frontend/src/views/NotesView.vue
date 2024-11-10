@@ -4,7 +4,7 @@
     <div class="ml-64 p-8">
       <h1 class="text-3xl font-bold mb-8">Notes</h1>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- New Note Card -->
+        <!-- Create New Note Form -->
         <div class="bg-white p-6 rounded-lg shadow-lg">
           <h2 class="text-2xl font-bold mb-4">Create New Note</h2>
           <form @submit.prevent="createNote" class="space-y-4">
@@ -54,7 +54,7 @@
           </form>
         </div>
 
-        <!-- Existing Notes -->
+        <!-- Note Cards -->
         <NoteCard
           v-for="note in notes"
           :key="note.id"
@@ -63,7 +63,7 @@
           @delete="deleteNote"
         />
 
-        <!-- Edit Modal -->
+        <!-- Edit Note Modal -->
         <div
           v-if="isEditing"
           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
@@ -128,10 +128,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
+import { APP_CONFIG } from '@/config';
 import Sidebar from '@/components/dashboard/Sidebar.vue';
 import NoteCard from '@/components/notes/NoteCard.vue';
 
+const config = APP_CONFIG;
 const store = useStore();
+
 const newNote = ref({
   title: '',
   content: '',

@@ -9,6 +9,7 @@
             v-model="email"
             type="email"
             class="w-full px-4 py-2 border rounded-lg"
+	    autocomplete="email"
             required
           />
         </div>
@@ -28,6 +29,9 @@
         >
           Login
         </button>
+        <div v-if="error" class="mt-4 p-3 bg-red-100 text-red-700 rounded">
+          {{ error }}
+        </div>
       </form>
     </div>
   </div>
@@ -35,23 +39,25 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useAuth } from '@/composables/useAuth';
+import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
+const store = useStore();
 const router = useRouter();
-const { login } = useAuth();
+
 const email = ref('');
 const password = ref('');
+const error = ref('');
 
 const handleLogin = async () => {
   try {
-    await login({
+    await store.dispatch('auth/login', {
       email: email.value,
       password: password.value
     });
     router.push('/dashboard');
-  } catch (error) {
-    console.error('Login failed:', error);
+  } catch (err) {
+    error.value = err.response?.data?.detail || 'Login failed';
   }
 };
 </script>
