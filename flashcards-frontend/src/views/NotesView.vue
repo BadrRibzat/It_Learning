@@ -3,7 +3,19 @@
     <Sidebar />
     <div class="ml-64 p-8">
       <h1 class="text-3xl font-bold mb-8">Notes</h1>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <!-- Loading State -->
+      <div v-if="loading" class="flex justify-center items-center h-64">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary"></div>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        {{ error }}
+      </div>
+
+      <!-- Notes Content -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Create New Note Form -->
         <div class="bg-white p-6 rounded-lg shadow-lg">
           <h2 class="text-2xl font-bold mb-4">Create New Note</h2>
@@ -14,11 +26,14 @@
                 v-model="newNote.title"
                 type="text"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                :maxlength="config.maxNoteTitleLength"
+                :maxlength="config.validation.maxNoteTitleLength"
                 required
               />
-              <p class="mt-1 text-sm text-gray-500">
-                {{ newNote.title.length }} / {{ config.maxNoteTitleLength }}
+              <p 
+                v-if="titleError" 
+                class="text-red-500 text-sm mt-1"
+              >
+                {{ titleError }}
               </p>
             </div>
             <div>
@@ -27,11 +42,14 @@
                 v-model="newNote.content"
                 rows="4"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                :maxlength="config.maxNoteContentLength"
+                :maxlength="config.validation.maxNoteContentLength"
                 required
               ></textarea>
-              <p class="mt-1 text-sm text-gray-500">
-                {{ newNote.content.length }} / {{ config.maxNoteContentLength }}
+              <p 
+                v-if="contentError" 
+                class="text-red-500 text-sm mt-1"
+              >
+                {{ contentError }}
               </p>
             </div>
             <div>
@@ -48,8 +66,9 @@
             <button
               type="submit"
               class="w-full bg-primary text-white py-2 rounded-md hover:bg-primary-dark transition"
+              :disabled="loading || !isFormValid"
             >
-              Create Note
+              {{ loading ? 'Creating...' : 'Create Note' }}
             </button>
           </form>
         </div>
@@ -60,98 +79,85 @@
           :key="note.id"
           :note="note"
           @edit="startEditing"
-          @delete="deleteNote"
+          @delete="confirmDeleteNote"
         />
 
         <!-- Edit Note Modal -->
-        <div
-          v-if="isEditing"
-          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-        >
-          <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h2 class="text-2xl font-bold mb-4">Edit Note</h2>
-            <form @submit.prevent="updateNote" class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Title</label>
-                <input
-                  v-model="editingNote.title"
-                  type="text"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                  :maxlength="config.maxNoteTitleLength"
-                  required
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Content</label>
-                <textarea
-                  v-model="editingNote.content"
-                  rows="4"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                  :maxlength="config.maxNoteContentLength"
-                  required
-                ></textarea>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Note Type</label>
-                <select
-                  v-model="editingNote.note_type"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                >
-                  <option value="general">General</option>
-                  <option value="vocabulary">Vocabulary</option>
-                  <option value="grammar">Grammar</option>
-                </select>
-              </div>
-              <div class="flex justify-between">
-                <button
-                  type="button"
-                  @click="cancelEditing"
-                  class="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  class="bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-dark"
-                >
-                  Update Note
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <EditNoteModal 
+          v-if="isEditing && editingNote"
+          :note="editingNote"
+          @update="updateNote"
+          @cancel="cancelEditing"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { APP_CONFIG } from '@/config';
 import Sidebar from '@/components/dashboard/Sidebar.vue';
 import NoteCard from '@/components/notes/NoteCard.vue';
+import EditNoteModal from '@/components/notes/EditNoteModal.vue';
 
 const config = APP_CONFIG;
 const store = useStore();
 
+// State
 const newNote = ref({
   title: '',
   content: '',
   note_type: 'general'
 });
 
+// Computed properties from store
 const notes = computed(() => store.state.notes.notes);
 const isEditing = computed(() => store.state.notes.isEditing);
 const editingNote = computed(() => store.state.notes.editingNote);
+const loading = computed(() => store.state.notes.loading);
+const error = computed(() => store.state.notes.error);
 
+// Validation
+const titleError = computed(() => {
+  const title = newNote.value.title;
+  if (!title) return 'Title is required';
+  if (title.length < 3) return 'Title must be at least 3 characters';
+  if (title.length > 100) return 'Title cannot exceed 100 characters';
+  return '';
+});
+
+const contentError = computed(() => {
+  const content = newNote.value.content;
+  if (!content) return 'Content is required';
+  if (content.length < 10) return 'Content must be at least 10 characters';
+  if (content.length > 1000) return 'Content cannot exceed 1000 characters';
+  return '';
+});
+
+const isFormValid = computed(() => {
+  return !titleError.value && !contentError.value;
+});
+
+// Lifecycle
 onMounted(async () => {
   await store.dispatch('notes/fetchNotes');
 });
 
+// Methods
 const createNote = async () => {
+  if (!isFormValid.value) {
+    store.dispatch('app/showNotification', {
+      message: 'Please fix the errors before submitting',
+      type: 'error'
+    });
+    return;
+  }
+
   try {
     await store.dispatch('notes/createNote', newNote.value);
+    // Reset form
     newNote.value = {
       title: '',
       content: '',
@@ -166,21 +172,22 @@ const startEditing = (note) => {
   store.dispatch('notes/startEditing', note);
 };
 
-const updateNote = async () => {
+const updateNote = async (updatedNote) => {
   try {
     await store.dispatch('notes/updateNote', {
-      id: editingNote.value.id,
-      noteData: editingNote.value
+      id: updatedNote.id,
+      noteData: updatedNote
     });
   } catch (error) {
     console.error('Failed to update note:', error);
   }
 };
 
-const deleteNote = async (id) => {
-  if (confirm('Are you sure you want to delete this note?')) {
+const confirmDeleteNote = async (note) => {
+  const confirmed = window.confirm('Are you sure you want to delete this note?');
+  if (confirmed) {
     try {
-      await store.dispatch('notes/deleteNote', id);
+      await store.dispatch('notes/deleteNote', note.id);
     } catch (error) {
       console.error('Failed to delete note:', error);
     }

@@ -21,14 +21,16 @@
         <button 
           @click="$emit('edit', note)"
           class="text-primary hover:text-primary-dark transition-colors"
+          aria-label="Edit Note"
         >
-          <font-awesome-icon icon="edit" class="w-5 h-5" />
+          <font-awesome-icon :icon="['fas', 'edit']" class="w-5 h-5" />
         </button>
         <button 
           @click="$emit('delete', note)"
           class="text-red-500 hover:text-red-700 transition-colors"
+          aria-label="Delete Note"
         >
-          <font-awesome-icon icon="trash" class="w-5 h-5" />
+          <font-awesome-icon :icon="['fas', 'trash']" class="w-5 h-5" />
         </button>
       </div>
     </div>

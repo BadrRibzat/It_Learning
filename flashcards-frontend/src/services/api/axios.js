@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '@/config';
-import store from '@/stores';
+import store from '@/store';
 import router from '@/router';
 
 const axiosInstance = axios.create({

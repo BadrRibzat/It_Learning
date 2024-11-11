@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import store from './stores'
+import store from './store'
 import { createI18n } from 'vue-i18n'
 import messages from '@/locales/en/messages'
 import Notifications from '@kyvg/vue3-notification'
@@ -25,6 +25,7 @@ import {
   faClock,
   faPhone,
   faEdit,
+  faTrash, 
   faCheck,
   faTrophy,
   faArrowRight,
@@ -32,7 +33,11 @@ import {
   faStar,
   faTrash,
   faEye,
-  faEyeSlash
+  faEyeSlash,
+  faQuestionCircle,
+  faExclamationCircle,
+  faInfoCircle,
+  faSpinner
 } from '@fortawesome/free-solid-svg-icons'
 
 // Tailwind CSS
@@ -64,6 +69,7 @@ library.add(
   faClock,
   faPhone,
   faEdit,
+  faTrash, 
   faCheck,
   faTrophy,
   faArrowRight,
@@ -71,26 +77,24 @@ library.add(
   faStar,
   faTrash,
   faEye,
-  faEyeSlash
+  faEyeSlash,
+  faQuestionCircle,
+  faExclamationCircle,
+  faInfoCircle,
+  faSpinner
 )
 
 // Create Vue app
 const app = createApp(App)
 
 // Register click-outside directive
-app.directive('click-outside', {
-  beforeMount(el, binding) {
-    el.clickOutsideEvent = (event) => {
-      if (!(el === event.target || el.contains(event.target))) {
-        binding.value(event);
-      }
-    };
-    document.addEventListener('click', el.clickOutsideEvent);
-  },
-  unmounted(el) {
-    document.removeEventListener('click', el.clickOutsideEvent);
-  },
-});
+app.directive('fallback-icon', {
+  mounted(el, binding) {
+    if (!binding.value) {
+      el.setAttribute('data-icon', 'info-circle');
+    }
+  }
+})
 
 // Use plugins
 app.use(router)

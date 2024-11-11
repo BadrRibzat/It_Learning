@@ -93,5 +93,15 @@ class UserProgressSerializer(serializers.ModelSerializer):
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        fields = ['id', 'user', 'title', 'content', 'created_at', 'updated_at', 'note_type']
-        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
+        fields = ['id', 'title', 'content', 'note_type', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate(self, data):
+        # Additional validation can be added here
+        return data
+
+    def create(self, validated_data):
+        # Ensure user is set from the request context
+        user = self.context['request'].user
+        note = Note.objects.create(user=user, **validated_data)
+        return note

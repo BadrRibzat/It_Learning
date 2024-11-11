@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.core.validators import MaxLengthValidator, MinLengthValidator
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -77,12 +78,38 @@ class ProfilePicture(models.Model):
         return f"{self.user.username}'s Profile Picture"
 
 class Note(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
-    content = models.TextField()
+    NOTE_TYPES = [
+        ('general', 'General'),
+        ('vocabulary', 'Vocabulary'),
+        ('grammar', 'Grammar')
+    ]
+
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='notes')
+    title = models.CharField(
+        max_length=100, 
+        validators=[
+            MinLengthValidator(3, message="Title must be at least 3 characters long"),
+            MaxLengthValidator(100, message="Title cannot exceed 100 characters")
+        ]
+    )
+    content = models.TextField(
+        validators=[
+            MinLengthValidator(10, message="Content must be at least 10 characters long"),
+            MaxLengthValidator(1000, message="Content cannot exceed 1000 characters")
+        ]
+    )
+    note_type = models.CharField(
+        max_length=50, 
+        choices=NOTE_TYPES, 
+        default='general'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    note_type = models.CharField(max_length=50, default='general')
 
     def __str__(self):
         return f"{self.user.username}'s Note: {self.title}"
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Note'
+        verbose_name_plural = 'Notes'

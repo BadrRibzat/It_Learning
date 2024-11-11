@@ -134,19 +134,63 @@ class ResetProgressView(APIView):
 
 class NoteViewSet(viewsets.ModelViewSet):
     """
-    CRUD operations for user notes.
+    A viewset for handling CRUD operations on Notes
     """
     serializer_class = NoteSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        if getattr(self, 'swagger_fake_view', False):
-            # Swagger schema generation
-            return Note.objects.none()
+        """
+        Ensure users can only see their own notes
+        """
         return Note.objects.filter(user=self.request.user)
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def create(self, request, *args, **kwargs):
+        """
+        Custom create method with additional validation and error handling
+        """
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except serializers.ValidationError as e:
+            return Response({
+                'error': 'Validation failed',
+                'details': e.detail
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Custom update method with additional validation and error handling
+        """
+        try:
+            partial = kwargs.pop('partial', False)
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        except serializers.ValidationError as e:
+            return Response({
+                'error': 'Validation failed',
+                'details': e.detail
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Custom destroy method with additional error handling
+        """
+        try:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({
+                'error': 'Failed to delete note',
+                'details': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class RecommendedLessonsView(APIView):
     permission_classes = [IsAuthenticated]
