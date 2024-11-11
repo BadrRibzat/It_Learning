@@ -29,7 +29,6 @@ export const API_ENDPOINTS = {
         LIST: '/lessons/',
         DETAIL: (id) => `/lessons/${id}/`,
         RECOMMEND: '/recommend-next-lesson/',
-        UPDATE_CURRENT: '/update-current-lesson/',
     },
     FLASHCARDS: {
         LIST: '/flashcards/',

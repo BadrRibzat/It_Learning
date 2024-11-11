@@ -44,14 +44,6 @@ export default {
         });
     },
     
-    updateCurrentLesson({ commit }, lessonId) {
-      return lessonsService.updateCurrentLesson(lessonId)
-        .catch(error => {
-          console.error('Failed to update current lesson', error);
-          throw error;
-        });
-    },
-  },
   mutations: {
     setLessons(state, lessons) {
       state.lessons = lessons;

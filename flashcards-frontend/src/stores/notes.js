@@ -38,14 +38,27 @@ export default {
             }
         },
         async deleteNote({ commit }, id) {
-	  try {
-	    await notesService.deleteNote(id);
-	    commit('removeNote', id);
-	  } catch (error) {
-	    console.error('Failed to delete note:', error);
-	    throw error;
-	  }
-	},
+            try {
+                const confirmed = window.confirm('Are you sure you want to delete this note?');
+                if (confirmed) {
+                    await notesService.deleteNote(id);
+                    commit('removeNote', id);
+                    // Optional: Show success notification
+                    this.dispatch('app/showNotification', {
+                        message: 'Note deleted successfully',
+                        type: 'success'
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to delete note:', error);
+                // Show error notification
+                this.dispatch('app/showNotification', {
+                    message: error.message || 'Failed to delete note',
+                    type: 'error'
+                });
+                throw error;
+            }
+        },
         startEditing({ commit }, note) {
             commit('setEditingNote', note);
             commit('setEditing', true);

@@ -16,12 +16,5 @@ const lessonsService = {
   recommendNextLesson() {
     return axiosInstance.get(API_ENDPOINTS.LESSONS.RECOMMEND);
   },
-  
-  updateCurrentLesson(lessonId) {
-    return axiosInstance.post(API_ENDPOINTS.LESSONS.UPDATE_CURRENT, { 
-      lesson_id: lessonId 
-    });
-  }
-};
 
 export default lessonsService;

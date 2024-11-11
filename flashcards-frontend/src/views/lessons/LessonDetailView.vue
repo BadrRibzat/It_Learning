@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
 import Sidebar from '@/components/dashboard/Sidebar.vue';
@@ -52,6 +52,7 @@ const route = useRoute();
 const router = useRouter();
 const lesson = ref({});
 const quizzes = ref([]);
+const flashcards = ref([]);
 const loading = ref(true);
 const error = ref(null);
 
@@ -60,31 +61,6 @@ const fetchLessonData = async (lessonId) => {
     loading.value = true;
     error.value = null;
 
-    // Fetch lesson and its quizzes in parallel
-    const [lessonResponse, quizzesResponse] = await Promise.all([
-      store.dispatch('lessons/fetchLesson', lessonId),
-      store.dispatch('quizzes/fetchQuizzes', lessonId)
-    ]);
-
-    lesson.value = lessonResponse.data;
-    quizzes.value = quizzesResponse.data;
-  } catch (err) {
-    error.value = 'Failed to load lesson content';
-    console.error('Error loading lesson:', err);
-  } finally {
-    loading.value = false;
-  }
-};
-
-const startFlashcards = async () => {
-  await store.dispatch('lessons/updateCurrentLesson', lesson.value.id);
-  await store.dispatch('flashcards/fetchFlashcards', { lessonId: lesson.value.id });
-  router.push(`/dashboard/flashcards?lesson=${lesson.value.id}`);
-};
-
-onMounted(async () => {
-  try {
-    const lessonId = route.params.id;
     const [lessonResponse, quizzesResponse, flashcardsResponse] = await Promise.all([
       store.dispatch('lessons/fetchLesson', lessonId),
       store.dispatch('quizzes/fetchQuizzes', lessonId),
@@ -93,11 +69,31 @@ onMounted(async () => {
 
     lesson.value = lessonResponse.data;
     quizzes.value = quizzesResponse.data;
+    flashcards.value = flashcardsResponse.data;
   } catch (err) {
     error.value = 'Failed to load lesson content';
     console.error('Error loading lesson:', err);
   } finally {
     loading.value = false;
   }
+};
+
+const startFlashcards = () => {
+  if (flashcards.value.length > 0) {
+    router.push({
+      path: '/dashboard/flashcards',
+      query: { lesson: lesson.value.id }
+    });
+  } else {
+    store.dispatch('app/showNotification', {
+      message: 'No flashcards available for this lesson',
+      type: 'warning'
+    });
+  }
+};
+
+onMounted(async () => {
+  const lessonId = route.params.id;
+  await fetchLessonData(lessonId);
 });
 </script>
