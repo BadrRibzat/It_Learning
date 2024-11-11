@@ -33,40 +33,43 @@
             <div class="absolute w-full h-full bg-white rounded-lg shadow p-6 backface-hidden rotate-y-180">
               <p class="text-xl font-semibold mb-4">{{ flashcard.question }}</p>
               <!-- Answer Form Section -->
-  <div class="mt-6">
-    <form @submit.prevent="submitAnswer" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Your Answer</label>
-        <input
-          v-model="userAnswer"
-          type="text"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-primary focus:border-primary"
-          :disabled="showingFeedback"
-        />
-      </div>
+              <div class="mt-6">
+                <form @submit.prevent="submitAnswer" class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Your Answer</label>
+                    <input
+                      v-model="userAnswer"
+                      type="text"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-primary focus:border-primary"
+                      :disabled="showingFeedback"
+                    />
+                  </div>
 
-      <!-- Feedback Message -->
-      <div v-if="showingFeedback" :class="feedbackClass" class="p-4 rounded-md">
-        <p class="font-medium">{{ feedbackMessage }}</p>
-        <button 
-          v-if="!isCorrect"
-          @click="resetAnswer"
-          class="mt-2 px-4 py-2 bg-white text-gray-700 rounded border hover:bg-gray-50"
-        >
-          Try Again
-        </button>
-      </div>
+                  <!-- Feedback Message -->
+                  <div v-if="showingFeedback" :class="feedbackClass" class="p-4 rounded-md">
+                    <p class="font-medium">{{ feedbackMessage }}</p>
+                    <button 
+                      v-if="!isCorrect"
+                      @click="resetAnswer"
+                      class="mt-2 px-4 py-2 bg-white text-gray-700 rounded border hover:bg-gray-50"
+                    >
+                      Try Again
+                    </button>
+                  </div>
 
-      <!-- Submit Button -->
-      <button
-        type="submit"
-        class="w-full bg-primary text-white py-2 rounded-md hover:bg-primary-dark"
-        :disabled="showingFeedback || !userAnswer"
-      >
-        Submit Answer
-      </button>
-    </form>
-  </div>
+                  <!-- Submit Button -->
+                  <button
+                    type="submit"
+                    class="w-full bg-primary text-white py-2 rounded-md hover:bg-primary-dark"
+                    :disabled="showingFeedback || !userAnswer"
+                  >
+                    Submit Answer
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Progress and Navigation -->
         <div class="flex justify-between items-center mt-6">
@@ -150,18 +153,24 @@ const handleAnswer = async (result) => {
     });
 
     if (response.isCorrect) {
-      // Real Time Update progress Tracking
+      // Update user progress
       await store.dispatch('progress/updateFlashcardProgress', {
         flashcardId: flashcard.value.id,
         completed: true
       });
 
-      // Automatically move to next card after short delay
+      // Update lesson progress
+      await store.dispatch('lessons/updateLessonProgress', {
+        lessonId: lesson.value.id,
+        correctAnswer: true
+      });
+
+      // Automatically move to next card or complete lesson
       setTimeout(() => {
         if (hasNext.value) {
           nextCard();
         } else {
-          // Complete lesson if all cards are done
+          // Complete lesson and potentially unlock next lesson
           router.push('/dashboard/lessons');
         }
       }, 1500);

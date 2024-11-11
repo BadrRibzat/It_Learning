@@ -1,10 +1,8 @@
-// src/components/levels/LevelCard.vue
 <template>
   <div class="bg-white p-6 rounded-lg shadow-lg">
     <h3 class="text-xl font-bold mb-4">{{ level.name }}</h3>
     <p class="text-gray-700 mb-4">Level Order: {{ level.level_order }}</p>
     
-    <!-- Level status badge -->
     <div class="mb-4">
       <span 
         :class="levelStatusClass"
@@ -14,9 +12,7 @@
       </span>
     </div>
 
-    <!-- Action button -->
     <div class="mt-4">
-      <!-- For beginner level -->
       <router-link 
         v-if="isBeginnerLevel"
         :to="{ name: 'Lessons', query: { level: level.id }}"
@@ -25,7 +21,6 @@
         Start Learning
       </router-link>
 
-      <!-- For other levels - locked state -->
       <button
         v-else-if="isLocked"
         class="bg-gray-300 text-gray-600 px-4 py-2 rounded-lg cursor-not-allowed"
@@ -34,7 +29,6 @@
         Complete Previous Level
       </button>
 
-      <!-- For other levels - unlocked state -->
       <router-link 
         v-else
         :to="`/dashboard/levels/${level.id}/test`"
@@ -60,10 +54,21 @@ const props = defineProps({
 
 const isBeginnerLevel = computed(() => props.level.level_order === 1);
 const userLevel = computed(() => store.state.auth.user?.level || 1);
+const userProgress = computed(() => store.state.progress.userLevelProgress || []);
+
+const hasPassedTest = computed(() => {
+  if (isBeginnerLevel.value) return true;
+  return userProgress.value.some(p => 
+    p.level === props.level.id && p.completed
+  );
+});
 
 const isLocked = computed(() => {
   if (isBeginnerLevel.value) return false;
-  return props.level.level_order > userLevel.value;
+  const previousLevel = props.level.level_order - 1;
+  return !userProgress.value.some(p => 
+    p.level === previousLevel && p.completed
+  );
 });
 
 const levelStatusClass = computed(() => {

@@ -1,4 +1,5 @@
 import { createStore } from 'vuex';
+import app from './app';
 import auth from './auth';
 import flashcards from './flashcards';
 import lessons from './lessons';
@@ -12,6 +13,7 @@ import chatbot from './chatbot';
 
 export default createStore({
   modules: {
+    app,
     auth,
     flashcards,
     lessons,

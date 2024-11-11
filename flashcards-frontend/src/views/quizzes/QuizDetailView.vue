@@ -40,8 +40,36 @@ onMounted(async () => {
 
 const submitQuiz = async () => {
   try {
-    const response = await store.dispatch('quizzes/submitQuiz', { id: quiz.value.id, answers: answers.value });
-    console.log('Quiz submitted:', response);
+    const response = await store.dispatch('quizzes/submitQuiz', { 
+      id: quiz.value.id, 
+      answers: Object.entries(answers.value).map(([questionId, answer]) => ({
+        question_id: parseInt(questionId),
+        answer
+      }))
+    });
+
+    // Real-time feedback and progress tracking
+    const { score, total_questions, percentage } = response;
+    
+    // Update user progress
+    await store.dispatch('progress/updateQuizProgress', {
+      quizId: quiz.value.id,
+      score,
+      totalQuestions: total_questions
+    });
+
+    // Show result modal or redirect
+    if (percentage >= 80) {
+      // Unlock next lesson or level
+      await store.dispatch('lessons/unlockNextLesson', lesson.value.id);
+      
+      // Show success message
+      alert('Congratulations! You passed the quiz and unlocked the next lesson.');
+      router.push('/dashboard/lessons');
+    } else {
+      // Show improvement message
+      alert(`You scored ${percentage}%. Try again to unlock the next lesson.`);
+    }
   } catch (error) {
     console.error('Error submitting quiz:', error);
   }

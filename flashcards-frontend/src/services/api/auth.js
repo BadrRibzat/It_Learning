@@ -3,13 +3,21 @@ import { API_ENDPOINTS } from '@/config';
 
 const authService = {
   login: async (credentials) => {
-    const response = await axiosInstance.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
-    if (response.data.access) {
-      localStorage.setItem('token', response.data.access);
-      localStorage.setItem('refreshToken', response.data.refresh);
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
+    try {
+      const response = await axiosInstance.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
+      const { user, access, refresh } = response.data;
+
+      if (access) {
+        localStorage.setItem('token', access);
+        localStorage.setItem('refreshToken', refresh || '');
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      }
+
+      return { user, access, refresh };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
-    return response.data;
   },
 
   register: async (userData) => {

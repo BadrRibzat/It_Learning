@@ -10,7 +10,51 @@ const axiosInstance = axios.create({
   }
 });
 
-// Add token to requests if available
+// Global error handler
+const handleError = (error) => {
+  const errorMessage = error.response?.data?.detail || 'An unexpected error occurred';
+  
+  // Log the error
+  console.error('API Error:', error);
+
+  // Different handling based on error type
+  if (error.response) {
+    switch (error.response.status) {
+      case 400:
+        store.dispatch('app/showNotification', {
+          message: 'Invalid request. Please check your input.',
+          type: 'error'
+        });
+        break;
+      case 401:
+        store.dispatch('auth/logout');
+        router.push('/login');
+        break;
+      case 403:
+        store.dispatch('app/showNotification', {
+          message: 'You do not have permission to perform this action.',
+          type: 'error'
+        });
+        break;
+      case 404:
+        store.dispatch('app/showNotification', {
+          message: 'The requested resource was not found.',
+          type: 'error'
+        });
+        break;
+      case 500:
+        store.dispatch('app/showNotification', {
+          message: 'Server error. Please try again later.',
+          type: 'error'
+        });
+        break;
+    }
+  }
+
+  return Promise.reject(error);
+};
+
+// Request interceptor for adding token
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -22,58 +66,10 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle token refresh
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
+// Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then(token => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return axiosInstance(originalRequest);
-        }).catch(err => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const response = await store.dispatch('auth/refreshToken');
-        const { access } = response.data;
-        
-        originalRequest.headers.Authorization = `Bearer ${access}`;
-        processQueue(null, access);
-        
-        return axiosInstance(originalRequest);
-      } catch (error) {
-        processQueue(error, null);
-        store.dispatch('auth/logout');
-        router.push('/auth/login');
-        return Promise.reject(error);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-    return Promise.reject(error);
-  }
+  handleError
 );
 
 export default axiosInstance;

@@ -38,14 +38,14 @@ export default {
             }
         },
         async deleteNote({ commit }, id) {
-            try {
-                await notesService.deleteNote(note.id);
-                commit('removeNote', id);
-            } catch (error) {
-                console.error('Failed to delete note:', error);
-                throw error;
-            }
-        },
+	  try {
+	    await notesService.deleteNote(id);
+	    commit('removeNote', id);
+	  } catch (error) {
+	    console.error('Failed to delete note:', error);
+	    throw error;
+	  }
+	},
         startEditing({ commit }, note) {
             commit('setEditingNote', note);
             commit('setEditing', true);

@@ -23,7 +23,7 @@ export function useAuth() {
   const register = async (userData) => {
     try {
       await store.dispatch('auth/register', userData);
-      router.push('/dashboard');
+      router.push('/login');
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;

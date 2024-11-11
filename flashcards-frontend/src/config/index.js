@@ -26,7 +26,7 @@ export const API_ENDPOINTS = {
         SUBMIT_TEST: (id) => `/level-test-submit/${id}/`,
     },
     LESSONS: {
-        LIST: '/levels/:levelId/lessons/',
+        LIST: '/lessons/',
         DETAIL: (id) => `/lessons/${id}/`,
         RECOMMEND: '/recommend-next-lesson/',
         UPDATE_CURRENT: '/update-current-lesson/',

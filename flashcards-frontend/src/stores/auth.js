@@ -4,9 +4,18 @@ import router from '@/router';
 export default {
   namespaced: true,
   state: () => ({
-    user: JSON.parse(localStorage.getItem('user')),
-    token: localStorage.getItem('token'),
-    refreshToken: localStorage.getItem('refreshToken'),
+    user: (() => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        return storedUser ? JSON.parse(storedUser) : null;
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+        localStorage.removeItem('user');
+        return null;
+      }
+    })(),
+    token: localStorage.getItem('token') || null,
+    refreshToken: localStorage.getItem('refreshToken') || null,
     isAuthenticated: !!localStorage.getItem('token'),
     error: null
   }),
@@ -14,12 +23,13 @@ export default {
     async login({ commit }, credentials) {
       try {
         const response = await authService.login(credentials);
-        commit('setUser', response.user);
-        commit('setToken', response.access);
-        commit('setRefreshToken', response.refresh);
+        commit('setUser', response.user || null);
+        commit('setToken', response.access || null);
+        commit('setRefreshToken', response.refresh || null);
         return response;
       } catch (error) {
-        commit('setError', error.response?.data?.detail || 'Login failed');
+        const errorMessage = error.response?.data?.detail || 'Login failed';
+        commit('setError', errorMessage);
         throw error;
       }
     },
@@ -30,7 +40,8 @@ export default {
         router.push('/auth/login');
         return response;
       } catch (error) {
-        commit('setError', error.response?.data?.detail || 'Registration failed');
+        const errorMessage = error.response?.data?.detail || 'Registration failed';
+        commit('setError', errorMessage);
         throw error;
       }
     },
@@ -47,7 +58,7 @@ export default {
     async refreshToken({ commit }) {
       try {
         const response = await authService.refreshToken();
-        commit('setToken', response.data.access);
+        commit('setToken', response.data.access || null);
         return response;
       } catch (error) {
         commit('clearAuth');
@@ -58,16 +69,32 @@ export default {
   mutations: {
     setUser(state, user) {
       state.user = user;
-      localStorage.setItem('user', JSON.stringify(user));
+      if (user) {
+        try {
+          localStorage.setItem('user', JSON.stringify(user));
+        } catch (error) {
+          console.error('Error storing user in localStorage:', error);
+        }
+      } else {
+        localStorage.removeItem('user');
+      }
     },
     setToken(state, token) {
       state.token = token;
-      state.isAuthenticated = true;
-      localStorage.setItem('token', token);
+      state.isAuthenticated = !!token;
+      if (token) {
+        localStorage.setItem('token', token);
+      } else {
+        localStorage.removeItem('token');
+      }
     },
     setRefreshToken(state, refreshToken) {
       state.refreshToken = refreshToken;
-      localStorage.setItem('refreshToken', refreshToken);
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+      } else {
+        localStorage.removeItem('refreshToken');
+      }
     },
     setError(state, error) {
       state.error = error;

@@ -83,11 +83,21 @@ const startFlashcards = async () => {
 };
 
 onMounted(async () => {
+  try {
     const lessonId = route.params.id;
-    await Promise.all([
-        store.dispatch('lessons/fetchLesson', lessonId),
-        store.dispatch('quizzes/fetchQuizzes', lessonId), // Fetch quizzes for the lesson
-        store.dispatch('flashcards/fetchFlashcards', lessonId) // Fetch flashcards for the lesson
+    const [lessonResponse, quizzesResponse, flashcardsResponse] = await Promise.all([
+      store.dispatch('lessons/fetchLesson', lessonId),
+      store.dispatch('quizzes/fetchQuizzes', lessonId),
+      store.dispatch('flashcards/fetchFlashcards', lessonId)
     ]);
+
+    lesson.value = lessonResponse.data;
+    quizzes.value = quizzesResponse.data;
+  } catch (err) {
+    error.value = 'Failed to load lesson content';
+    console.error('Error loading lesson:', err);
+  } finally {
+    loading.value = false;
+  }
 });
 </script>

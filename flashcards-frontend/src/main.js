@@ -30,7 +30,9 @@ import {
   faArrowRight,
   faArrowLeft,
   faStar,
-  faTrash
+  faTrash,
+  faEye,
+  faEyeSlash
 } from '@fortawesome/free-solid-svg-icons'
 
 // Tailwind CSS
@@ -67,7 +69,9 @@ library.add(
   faArrowRight,
   faArrowLeft,
   faStar,
-  faTrash
+  faTrash,
+  faEye,
+  faEyeSlash
 )
 
 // Create Vue app

@@ -1,22 +1,38 @@
 <template>
   <div id="app" :dir="currentLanguageDir">
-    <nav class="bg-white shadow">
+    <nav class="bg-white shadow-md">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
+        <div class="flex justify-between h-16 items-center">
+          <!-- Logo -->
           <div class="flex items-center">
-            <div class="flex-shrink-0">
+            <router-link to="/" class="flex-shrink-0">
               <img class="h-8 w-auto" src="@/assets/logo.svg" alt="Logo" />
-            </div>
-            <div class="hidden md:block ml-10">
+            </router-link>
+
+            <!-- Navigation Links -->
+            <div class="hidden md:flex ml-10 space-x-4">
               <router-link 
                 to="/" 
-                class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900"
+                class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 {{ $t('home') }}
+              </router-link>
+              <router-link 
+                to="/features" 
+                class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                {{ $t('features') }}
+              </router-link>
+              <router-link 
+                to="/pricing" 
+                class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                {{ $t('pricing') }}
               </router-link>
             </div>
           </div>
 
+          <!-- Right side navigation -->
           <div class="flex items-center space-x-4">
             <!-- Language Switcher -->
             <div class="relative" v-click-outside="closeLanguageMenu">
@@ -130,6 +146,7 @@
 </template>
 
 <script setup>
+import Notification from '@/components/global/Notification.vue';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';

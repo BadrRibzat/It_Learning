@@ -8,42 +8,48 @@ export default {
     recommendedLessons: [],
   }),
   actions: {
-    async fetchLessons({ commit }, levelId) {
-    try {
-      const response = await lessonsService.getLessons(levelId);
-      commit('setLessons', response.data);
-      return response;
-    } catch (error) {
-      console.error('Failed to fetch lessons:', error);
-      throw error;
-    }
-  },
-    async fetchLesson({ commit }, id) {
-      try {
-        const response = await lessonsService.getLesson(id);
-        commit('setCurrentLesson', response.data);
-      } catch (error) {
-        console.error('Failed to fetch lesson', error);
-        throw error;
-      }
+    fetchLessons({ commit }, levelId) {
+      return lessonsService.getLessons(levelId)
+        .then(response => {
+          commit('setLessons', response.data);
+          return response;
+        })
+        .catch(error => {
+          console.error('Failed to fetch lessons:', error);
+          throw error;
+        });
     },
-    async recommendNextLesson({ commit }) {
-      try {
-        const response = await lessonsService.recommendNextLesson();
-        commit('setRecommendedLessons', response.data);
-      } catch (error) {
-        console.error('Failed to fetch recommended lessons', error);
-        throw error;
-      }
+    
+    fetchLesson({ commit }, id) {
+      return lessonsService.getLesson(id)
+        .then(response => {
+          commit('setCurrentLesson', response.data);
+          return response;
+        })
+        .catch(error => {
+          console.error('Failed to fetch lesson', error);
+          throw error;
+        });
     },
-    async updateCurrentLesson({ commit }, lessonId) {
-      try {
-        const response = await lessonsService.updateCurrentLesson(lessonId);
-        return response;
-      } catch (error) {
-        console.error('Failed to update current lesson', error);
-        throw error;
-      }
+    
+    recommendNextLesson({ commit }) {
+      return lessonsService.recommendNextLesson()
+        .then(response => {
+          commit('setRecommendedLessons', response.data);
+          return response;
+        })
+        .catch(error => {
+          console.error('Failed to fetch recommended lessons', error);
+          throw error;
+        });
+    },
+    
+    updateCurrentLesson({ commit }, lessonId) {
+      return lessonsService.updateCurrentLesson(lessonId)
+        .catch(error => {
+          console.error('Failed to update current lesson', error);
+          throw error;
+        });
     },
   },
   mutations: {

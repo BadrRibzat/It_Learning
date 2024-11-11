@@ -4,8 +4,7 @@
     <div class="ml-64 p-8">
       <h1 class="text-3xl font-bold mb-8">Lessons</h1>
       
-      <!-- Level Selection -->
-      <div class="mb-6">
+      <div class="mb-6" v-if="levels.length">
         <select 
           v-model="selectedLevel"
           @change="fetchLessonsForLevel"
@@ -26,12 +25,15 @@
         {{ error }}
       </div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div v-else-if="filteredLessons.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <LessonCard 
           v-for="lesson in filteredLessons" 
           :key="lesson.id" 
           :lesson="lesson" 
         />
+      </div>
+      <div v-else class="text-center text-gray-500 py-8">
+        No lessons available for this level.
       </div>
     </div>
   </div>
@@ -44,11 +46,11 @@ import { useStore } from 'vuex';
 import Sidebar from '@/components/dashboard/Sidebar.vue';
 import LessonCard from '@/components/lessons/LessonCard.vue';
 
-const route = useRouter();
+const router = useRouter();
 const store = useStore();
-const loading = ref(false);
+const loading = ref(true);
 const error = ref(null);
-const selectedLevel = ref(route.query.level || '');
+const selectedLevel = ref('');
 const lessons = ref([]);
 const levels = ref([]);
 
@@ -56,39 +58,69 @@ const fetchLessonsForLevel = async () => {
   try {
     loading.value = true;
     error.value = null;
-    const response = await store.dispatch('lessons/fetchLessons', selectedLevel.value);
-    lessons.value = response.data || [];
-    console.log('Fetched lessons:', lessons.value); // Debugging statement
+
+    if (!selectedLevel.value) {
+      const response = await store.dispatch('lessons/fetchLessons');
+      lessons.value = response.data || [];
+      return;
+    }
+
+    const level = levels.value.find(l => l.id === parseInt(selectedLevel.value));
+    
+    if (!level) {
+      error.value = 'Selected level not found';
+      return;
+    }
+
+    if (level.level_order === 1) {
+      const response = await store.dispatch('lessons/fetchLessons', selectedLevel.value);
+      lessons.value = response.data || [];
+      return;
+    }
+
+    try {
+      const levelProgress = await store.dispatch('progress/getUserLevelProgress');
+      const hasPassedTest = levelProgress.some(p => 
+        p.level === parseInt(selectedLevel.value) && p.completed
+      );
+
+      if (hasPassedTest) {
+        const response = await store.dispatch('lessons/fetchLessons', selectedLevel.value);
+        lessons.value = response.data || [];
+      } else {
+        router.push(`/dashboard/levels/${selectedLevel.value}/test`);
+      }
+    } catch (progressError) {
+      error.value = 'Error checking level progress';
+      console.error(progressError);
+    }
   } catch (err) {
-    error.value = 'Failed to fetch lessons. Please try again.';
-    console.error('Failed to fetch lessons:', err);
+    error.value = 'Failed to fetch lessons';
+    console.error(err);
   } finally {
     loading.value = false;
   }
 };
 
 const filteredLessons = computed(() => {
-  if (selectedLevel.value) {
-    return lessons.value.filter(lesson => lesson.level === parseInt(selectedLevel.value));
-  }
-  return lessons.value;
+  if (!selectedLevel.value) return lessons.value;
+  return lessons.value.filter(lesson => lesson.level === parseInt(selectedLevel.value));
 });
 
 onMounted(async () => {
   try {
-    loading.value = true;
     await store.dispatch('levels/fetchLevels');
     levels.value = store.state.levels.levels || [];
-    console.log('Fetched levels:', levels.value); // Debugging statement
 
-    if (route.query.level) {
-      selectedLevel.value = route.query.level;
+    const queryLevel = router.currentRoute.value.query.level;
+    if (queryLevel) {
+      selectedLevel.value = queryLevel;
     }
 
     await fetchLessonsForLevel();
   } catch (err) {
-    error.value = 'Failed to initialize lessons view. Please try again.';
-    console.error('Error in lessons view:', err);
+    error.value = 'Failed to initialize lessons view';
+    console.error(err);
   } finally {
     loading.value = false;
   }

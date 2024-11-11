@@ -3,9 +3,17 @@ export default {
   home: 'Home',
   dashboard: 'Dashboard',
   profile: 'Profile',
-  login: 'Login',
-  register: 'Register',
+  signIn: 'Sign In',
+  signUp: 'Sign Up',
   logout: 'Logout',
+  
+  signIn: 'Sign In',
+  signUp: 'Sign Up',
+  signingUp: 'Signing Up...',
+  username: 'Username',
+  email: 'Email',
+  password: 'Password',
+  confirmPassword: 'Confirm Password',
 
   // Hero Section
   hero_title_1: 'Master English with',
