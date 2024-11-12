@@ -1,5 +1,7 @@
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.authentication import SessionAuthentication
+
 from rest_framework import (
     status, 
     viewsets, 
@@ -46,6 +48,10 @@ from .utils import send_verification_email, send_password_reset_email
 
 User = get_user_model()
 
+class BaseAuthenticatedView(APIView):
+    authentication_classes = [JWTAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
 class UserRegistrationView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
@@ -70,8 +76,17 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 class LoginView(CustomTokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
-    pass
+    def post(self, request, *args, **kwargs):
+
+        email = request.data.get('email')
+        password = request.data.get('password')
+        
+        if not email or not password:
+            return Response({
+                'error': 'Email and password are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        return super().post(request, *args, **kwargs)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]

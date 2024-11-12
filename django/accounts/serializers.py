@@ -105,49 +105,28 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = 'email'
+
     def validate(self, attrs):
         try:
-            email = attrs.get('email')
-            password = attrs.get('password')
+            user = User.objects.get(email=attrs.get('email'))
+            if not user.check_password(attrs.get('password')):
+                raise serializers.ValidationError('Invalid credentials')
+        except User.DoesNotExist:
+            raise serializers.ValidationError('No user found with this email')
 
-            if not email or not password:
-                raise serializers.ValidationError({
-                    'error': 'Email and password are required.'
-                })
-
-            # Find user by email
-            try:
-                user = User.objects.get(email=email)
-            except User.DoesNotExist:
-                raise serializers.ValidationError({
-                    'error': 'No account found with this email.'
-                })
-
-            # Authenticate
-            if not user.check_password(password):
-                raise serializers.ValidationError({
-                    'error': 'Invalid credentials.'
-                })
-
-            # Generate tokens
-            refresh = self.get_token(user)
-            
-            return {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'user': {
-                    'id': user.id,
-                    'username': user.username,
-                    'email': user.email
-                }
+        # Use the parent method to generate tokens
+        refresh = self.get_token(user)
+    
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
             }
-        
-        except Exception as e:
-            # Comprehensive logging
-            print(f"Login Error: {str(e)}")
-            raise serializers.ValidationError({
-                'error': 'Authentication failed. Please try again.'
-            })
+        }
 
     @classmethod
     def get_token(cls, user):
