@@ -1,25 +1,24 @@
 import os
-from datetime import timedelta
 from pathlib import Path
-
 from decouple import config
 import warnings
+from datetime import timedelta
+from dotenv import load_dotenv
 
-
-# Suppress deprecation warnings
-warnings.filterwarnings('ignore', category=DeprecationWarning)
-warnings.filterwarnings('ignore', category=PendingDeprecationWarning)
+# Load environment variables
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', default='your-default-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
+# Determine allowed hosts
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
 # Application definition
 INSTALLED_APPS = [
@@ -175,10 +174,16 @@ CACHES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    'EXCEPTION_HANDLER': 
+        'rest_framework_simplejwt.token_blacklist',
+    ],
+    'EXCEPTION_HANDLER': [
         'accounts.exceptions.custom_exception_handler',
     ],
 }
@@ -249,6 +254,7 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+import json
 
 # OAuth 2.0 Settings
 GOOGLE_OAUTH2_CLIENT_ID = config('GOOGLE_OAUTH2_CLIENT_ID')
@@ -257,7 +263,21 @@ GOOGLE_OAUTH2_REDIRECT_URI = config('GOOGLE_OAUTH2_REDIRECT_URI')
 
 # Load OAuth 2.0 credentials from the JSON file
 GOOGLE_OAUTH2_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'backend', 'google_oauth2_credentials.json')
-GOOGLE_OAUTH2_CREDENTIALS = None  # Initialize as None
+
+try:
+    with open(GOOGLE_OAUTH2_CREDENTIALS_FILE, 'r') as f:
+        GOOGLE_OAUTH2_CREDENTIALS = json.load(f)
+
+    # Ensure web credentials are used
+    GOOGLE_OAUTH2_CLIENT_ID = GOOGLE_OAUTH2_CREDENTIALS['web']['client_id']
+    GOOGLE_OAUTH2_CLIENT_SECRET = GOOGLE_OAUTH2_CREDENTIALS['web']['client_secret']
+    GOOGLE_OAUTH2_REDIRECT_URIS = GOOGLE_OAUTH2_CREDENTIALS['web']['redirect_uris']
+except Exception as e:
+    print(f"Error loading Google OAuth2 credentials: {e}")
+    GOOGLE_OAUTH2_CREDENTIALS = None
+    GOOGLE_OAUTH2_CLIENT_ID = config('GOOGLE_OAUTH2_CLIENT_ID', default='')
+    GOOGLE_OAUTH2_CLIENT_SECRET = config('GOOGLE_OAUTH2_CLIENT_SECRET', default='')
+    GOOGLE_OAUTH2_REDIRECT_URIS = [config('GOOGLE_OAUTH2_REDIRECT_URI', default='')]
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -267,7 +287,7 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
-DEFAULT_FROM_EMAIL = 'badrribzat@gmail.com'
+DEFAULT_FROM_EMAIL = 'badrribzat003@gmail.com'
 
 # Test Runner
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'

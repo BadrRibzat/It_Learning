@@ -1,57 +1,54 @@
 from rest_framework import serializers
-from .models import Level, Lesson, Flashcard, Quiz, QuizQuestion, UserProgress, UserFlashcardProgress, UserQuizAttempt, UserLevelProgress, LevelTest, LevelTestQuestion
+from .models import (
+    Level, Lesson, Flashcard, Quiz, QuizQuestion, 
+    UserProgress, LevelTest, LevelTestQuestion
+)
 
 class LevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Level
         fields = ['id', 'name', 'level_order']
 
-class LessonSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Lesson
-        fields = ['id', 'title', 'level', 'level_order', 'content', 'difficulty']
-
 class FlashcardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flashcard
-        fields = '__all__'
-
-class QuizSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Quiz
-        fields = '__all__'
+        fields = ['id', 'word', 'definition', 'example', 'translation']
 
 class QuizQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizQuestion
-        fields = '__all__'
+        fields = ['id', 'question_text', 'correct_answer', 'options']
 
-class LevelTestSerializer(serializers.ModelSerializer):
+class QuizSerializer(serializers.ModelSerializer):
+    questions = QuizQuestionSerializer(many=True, read_only=True)
+
     class Meta:
-        model = LevelTest
-        fields = '__all__'
+        model = Quiz
+        fields = ['id', 'lesson', 'title', 'passing_score', 'questions']
+
+class LessonSerializer(serializers.ModelSerializer):
+    flashcards = FlashcardSerializer(many=True, read_only=True)
+    quizzes = QuizSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Lesson
+        fields = ['id', 'title', 'level', 'content', 'difficulty', 'is_unlocked', 'flashcards', 'quizzes']
 
 class LevelTestQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = LevelTestQuestion
-        fields = '__all__'
+        fields = ['id', 'question_text', 'correct_answer', 'options']
+
+class LevelTestSerializer(serializers.ModelSerializer):
+    questions = LevelTestQuestionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = LevelTest
+        fields = ['id', 'level', 'title', 'passing_score', 'questions']
 
 class UserProgressSerializer(serializers.ModelSerializer):
+    lesson = LessonSerializer(read_only=True)
+
     class Meta:
         model = UserProgress
-        fields = ['id', 'user', 'lesson', 'completed', 'date_completed', 'correct_answers', 'total_questions']
-
-class UserFlashcardProgressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserFlashcardProgress
-        fields = '__all__'
-
-class UserQuizAttemptSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserQuizAttempt
-        fields = '__all__'
-
-class UserLevelProgressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserLevelProgress
-        fields = ['id', 'user', 'level', 'completed', 'date_completed', 'correct_answers', 'total_questions']
+        fields = ['id', 'user', 'lesson', 'completed', 'score', 'total_questions', 'completed_at']

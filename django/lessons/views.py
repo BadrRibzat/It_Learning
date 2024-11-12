@@ -1,170 +1,96 @@
-from django.shortcuts import get_object_or_404
+from rest_framework.authentication import SessionAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.utils import timezone
 from rest_framework import viewsets, status
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .serializers import (
-    LevelSerializer, FlashcardSerializer, QuizSerializer,
-    QuizQuestionSerializer, UserProgressSerializer, UserFlashcardProgressSerializer,
-    UserQuizAttemptSerializer, UserLevelProgressSerializer, LevelTestSerializer,
-    LevelTestQuestionSerializer, LessonSerializer
-)
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from .models import (
-    Level, Flashcard, Quiz, QuizQuestion, UserProgress,
-    UserFlashcardProgress, UserQuizAttempt, UserLevelProgress, LevelTest,
-    LevelTestQuestion, Lesson
+    Level, Lesson, Flashcard, Quiz, QuizQuestion, 
+    UserProgress, LevelTest, LevelTestQuestion
 )
-from .utils import get_recommended_lessons
-
-class LevelViewSet(viewsets.ModelViewSet):
-    queryset = Level.objects.all()
-    serializer_class = LevelSerializer
-
-    @action(detail=True, methods=['get'])
-    def lessons(self, request, pk=None):
-        level = self.get_object()
-        lessons = Lesson.objects.filter(level=level)
-        serializer = LessonSerializer(lessons, many=True)
-        return Response(serializer.data)
+from .serializers import (
+    LevelSerializer, LessonSerializer, FlashcardSerializer, 
+    QuizSerializer, UserProgressSerializer
+)
 
 class LessonViewSet(viewsets.ModelViewSet):
-    queryset = Lesson.objects.all()
+    authentication_classes = [JWTAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = LessonSerializer
+    queryset = Lesson.objects.all()
 
-    @action(detail=True, methods=['get'])
-    def lessons(self, request, pk=None):
-        level = self.get_object()
-        lessons = Lesson.objects.filter(level=level)
-        serializer = LessonSerializer(lessons, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        user = self.request.user
+        return Lesson.objects.filter(level__level_order__lte=user.level)
+
+    @action(detail=True, methods=['POST'])
+    def submit_quiz(self, request, pk=None):
+        quiz = Quiz.objects.get(lesson_id=pk)
+        answers = request.data.get('answers', [])
+        
+        total_questions = quiz.questions.count()
+        correct_answers = 0
+
+        for answer_data in answers:
+            question = QuizQuestion.objects.get(id=answer_data['question_id'])
+            if answer_data['answer'] == question.correct_answer:
+                correct_answers += 1
+
+        score = (correct_answers / total_questions) * 100
+
+        # Update user progress
+        user_progress, created = UserProgress.objects.get_or_create(
+            user=request.user, 
+            lesson_id=pk
+        )
+        user_progress.score = score
+        user_progress.total_questions = total_questions
+        user_progress.completed = score >= quiz.passing_score
+        user_progress.completed_at = timezone.now()
+        user_progress.save()
+
+        return Response({
+            'score': score,
+            'passed': user_progress.completed,
+            'total_questions': total_questions,
+            'correct_answers': correct_answers
+        })
 
 class FlashcardViewSet(viewsets.ModelViewSet):
-    queryset = Flashcard.objects.all().order_by('id')
+    authentication_classes = [JWTAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = Flashcard.objects.all()
     serializer_class = FlashcardSerializer
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        lesson_id = self.request.query_params.get('lesson')
-        if lesson_id and lesson_id.lower() != 'undefined':
-            queryset = queryset.filter(lesson_id=lesson_id)
-        return queryset
+        lesson_id = self.request.query_params.get('lesson_id')
+        if lesson_id:
+            return Flashcard.objects.filter(lesson_id=lesson_id)
+        return super().get_queryset()
 
-class QuizViewSet(viewsets.ModelViewSet):
-    queryset = Quiz.objects.all().order_by('id')
-    serializer_class = QuizSerializer
+    @action(detail=True, methods=['POST'])
+    def check_answer(self, request, pk=None):
+        flashcard = self.get_object()
+        user_answer = request.data.get('answer', '').strip()
+        correct_answer = flashcard.word
 
-class QuizQuestionViewSet(viewsets.ModelViewSet):
-    queryset = QuizQuestion.objects.all()
-    serializer_class = QuizQuestionSerializer
+        is_correct = user_answer.lower() == correct_answer.lower()
 
-class LevelTestViewSet(viewsets.ModelViewSet):
-    queryset = LevelTest.objects.all()
-    serializer_class = LevelTestSerializer
+    # Update user progress
+        user_progress, created = UserProgress.objects.get_or_create(
+            user=request.user, 
+            lesson=flashcard.lesson
+        )
+    
+        if is_correct:
+            request.user.points += 5
+            request.user.save()
 
-class LevelTestQuestionViewSet(viewsets.ModelViewSet):
-    queryset = LevelTestQuestion.objects.all()
-    serializer_class = LevelTestQuestionSerializer
-
-class UserProgressViewSet(viewsets.ModelViewSet):
-    queryset = UserProgress.objects.all()
-    serializer_class = UserProgressSerializer
-
-class UserFlashcardProgressViewSet(viewsets.ModelViewSet):
-    queryset = UserFlashcardProgress.objects.all()
-    serializer_class = UserFlashcardProgressSerializer
-
-class UserQuizAttemptViewSet(viewsets.ModelViewSet):
-    queryset = UserQuizAttempt.objects.all()
-    serializer_class = UserQuizAttemptSerializer
-
-class UserLevelProgressViewSet(viewsets.ModelViewSet):
-    queryset = UserLevelProgress.objects.all()
-    serializer_class = UserLevelProgressSerializer
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def recommend_next_lesson(request):
-    recommended_lessons = get_recommended_lessons(request.user)
-    serializer = LessonSerializer(recommended_lessons, many=True)
-    return Response(serializer.data)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def quiz_submit(request, pk):
-    quiz = get_object_or_404(Quiz, pk=pk)
-    answers = request.data.get('answers', [])
-    score = 0
-    total_questions = QuizQuestion.objects.filter(quiz=quiz).count()
-
-    for answer in answers:
-        question = get_object_or_404(QuizQuestion, pk=answer['question_id'], quiz=quiz)
-        if answer['answer'] == question.correct_answer:
-            score += 1
-
-    percentage = (score / total_questions) * 100 if total_questions > 0 else 0
-
-    UserQuizAttempt.objects.create(
-        user=request.user,
-        quiz=quiz,
-        score=score
-    )
-
-    return Response({
-        'score': score,
-        'total_questions': total_questions,
-        'percentage': percentage
-    })
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def flashcard_submit(request, pk):
-    flashcard = get_object_or_404(Flashcard, pk=pk)
-    user_answer = request.data.get('answer')
-    is_correct = user_answer.lower() == flashcard.word.lower()
-
-    progress, created = UserFlashcardProgress.objects.get_or_create(
-        user=request.user, flashcard=flashcard)
-
-    if is_correct:
-        progress.completed = True
-        progress.save()
-        request.user.points += 5
-        request.user.save()
-
-    lesson_progress, created = UserProgress.objects.get_or_create(
-        user=request.user, lesson=flashcard.lesson)
-    lesson_progress.correct_answers += 1 if is_correct else 0
-    lesson_progress.total_questions += 1
-    lesson_progress.save()
-
-    return Response({
-        'is_correct': is_correct,
-        'points_earned': 5 if is_correct else 0,
-        'lesson_completed': lesson_progress.completed
-    })
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def level_test_submit(request, pk):
-    level_test = get_object_or_404(LevelTest, pk=pk)
-    score = request.data.get('score')
-
-    if score is None:
-        return Response({'error': 'Score is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        score = int(score)
-    except ValueError:
-        return Response({'error': 'Invalid score format'}, status=status.HTTP_400_BAD_REQUEST)
-
-    user = request.user
-    level_progress, created = UserLevelProgress.objects.get_or_create(user=user, level=level_test.level)
-
-    if score >= 80:
-        user.level += 1
-        user.points += 100
-        user.save()
-        level_progress.completed = True
-        level_progress.save()
-
-    return Response({'status': 'level up', 'points_earned': 100, 'score': score})
+        return Response({
+            'is_correct': is_correct,
+            'correct_answer': correct_answer,
+            'points_earned': 5 if is_correct else 0
+        })

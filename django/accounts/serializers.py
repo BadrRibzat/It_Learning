@@ -1,11 +1,94 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from .models import User, Note
 from lessons.models import UserProgress, Flashcard
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from .models import (
+    User, 
+    Note, 
+    ProfilePicture, 
+    EmailVerificationToken, 
+    PasswordResetToken
+)
+from .utils import send_verification_email, send_password_reset_email
 
 User = get_user_model()
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=True, 
+        required=True, 
+        validators=[validate_password],
+        style={'input_type': 'password'}
+    )
+    password_confirmation = serializers.CharField(
+        write_only=True, 
+        required=True,
+        style={'input_type': 'password'}
+    )
+    
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username', 
+            'email', 
+            'password', 
+            'password_confirmation', 
+            'language',
+            'date_of_birth'
+        ]
+        extra_kwargs = {
+            'email': {'required': True},
+            'username': {'required': True}
+        }
+
+    def validate(self, attrs):
+        # Password confirmation validation
+        if attrs['password'] != attrs.pop('password_confirmation'):
+            raise serializers.ValidationError({
+                "password": _("Password fields didn't match.")
+            })
+        
+        # Email uniqueness validation
+        if User.objects.filter(email=attrs['email']).exists():
+            raise serializers.ValidationError({
+                "email": _("A user with this email already exists.")
+            })
+        
+        # Username uniqueness validation
+        if User.objects.filter(username=attrs['username']).exists():
+            raise serializers.ValidationError({
+                "username": _("A user with this username already exists.")
+            })
+        
+        return attrs
+
+    def create(self, validated_data):
+        # Remove password confirmation before creating user
+        validated_data.pop('password_confirmation', None)
+        
+        # Create user with provided data
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+            language=validated_data.get('language', 'en'),
+            date_of_birth=validated_data.get('date_of_birth')
+        )
+        return user
+
+    def to_representation(self, instance):
+        return {
+            'id': instance.id,
+            'username': instance.username,
+            'email': instance.email,
+            'language': instance.language
+        }
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,30 +104,59 @@ class UserSerializer(serializers.ModelSerializer):
         )
         return user
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password_confirmation = serializers.CharField(write_only=True, required=True)
-
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'password', 'password_confirmation')
-
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password_confirmation']:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
-        return attrs
-
-    def create(self, validated_data):
-        validated_data.pop('password_confirmation')
-        user = User.objects.create_user(**validated_data)
-        return user
-
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        try:
+            email = attrs.get('email')
+            password = attrs.get('password')
+
+            if not email or not password:
+                raise serializers.ValidationError({
+                    'error': 'Email and password are required.'
+                })
+
+            # Find user by email
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                raise serializers.ValidationError({
+                    'error': 'No account found with this email.'
+                })
+
+            # Authenticate
+            if not user.check_password(password):
+                raise serializers.ValidationError({
+                    'error': 'Invalid credentials.'
+                })
+
+            # Generate tokens
+            refresh = self.get_token(user)
+            
+            return {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email
+                }
+            }
+        
+        except Exception as e:
+            # Comprehensive logging
+            print(f"Login Error: {str(e)}")
+            raise serializers.ValidationError({
+                'error': 'Authentication failed. Please try again.'
+            })
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
+        
+        
         token['username'] = user.username
         token['email'] = user.email
+        
         return token
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -59,6 +171,64 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'profilepicture'):
             return obj.profilepicture.image.url
         return None
+
+class EmailVerificationSerializer(serializers.Serializer):
+    token = serializers.UUIDField()
+
+    def validate_token(self, token):
+        try:
+            verification = EmailVerificationToken.objects.get(
+                token=token, 
+                expires_at__gt=timezone.now()
+            )
+            return verification
+        except EmailVerificationToken.DoesNotExist:
+            raise serializers.ValidationError("Invalid or expired verification token")
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, email):
+        try:
+            user = User.objects.get(email=email)
+            return user
+        except User.DoesNotExist:
+            raise serializers.ValidationError("No user found with this email")
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(
+        write_only=True, 
+        validators=[validate_password]
+    )
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        if data['new_password'] != data['confirm_password']:
+            raise serializers.ValidationError({
+                "confirm_password": "Passwords do not match"
+            })
+        return data
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'username', 
+            'email', 
+            'bio', 
+            'date_of_birth', 
+            'language'
+        ]
+        read_only_fields = ['email']
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get('username', instance.username)
+        instance.bio = validated_data.get('bio', instance.bio)
+        instance.date_of_birth = validated_data.get('date_of_birth', instance.date_of_birth)
+        instance.language = validated_data.get('language', instance.language)
+        instance.save()
+        return instance
 
 class UserStatisticsSerializer(serializers.ModelSerializer):
     completed_lessons = serializers.SerializerMethodField()

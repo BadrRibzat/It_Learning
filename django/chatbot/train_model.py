@@ -1,5 +1,11 @@
 import os
 import sys
+import numpy as np
+import joblib
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import LabelEncoder
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.svm import LinearSVC
 
 # Add the project root directory to Python path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -10,45 +16,68 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 import django
 django.setup()
 
-import spacy
-from spacy.training import Example
 from chatbot.prepare_data import prepare_training_data
 
+def download_resources():
+    """
+    Download necessary resources
+    """
+    try:
+        import nltk
+        nltk.download('punkt', quiet=True)
+        nltk.download('wordnet', quiet=True)
+        nltk.download('averaged_perceptron_tagger', quiet=True)
+        print("Resources downloaded successfully.")
+    except Exception as e:
+        print(f"Error downloading resources: {e}")
+
 def train_model():
-    # Use a more recent spaCy model
-    nlp = spacy.load("en_core_web_sm")
-    
-    # Add text categorization pipeline
-    if 'textcat' not in nlp.pipe_names:
-        textcat = nlp.add_pipe("textcat")
-    else:
-        textcat = nlp.get_pipe("textcat")
+    try:
+        # Download resources first
+        download_resources()
+        
+        # Prepare training data
+        training_data = prepare_training_data()
+        
+        # Separate texts and labels
+        texts = [text for text, _ in training_data]
+        labels = [label for _, label in training_data]
+        
+        # Create vectorizer
+        vectorizer = TfidfVectorizer(
+            stop_words='english', 
+            max_features=5000
+        )
+        
+        # Transform texts to feature vectors
+        X = vectorizer.fit_transform(texts)
+        
+        # Encode labels
+        label_encoder = LabelEncoder()
+        y = label_encoder.fit_transform(labels)
+        
+        # Create and train classifier
+        classifier = OneVsRestClassifier(LinearSVC(random_state=42))
+        classifier.fit(X, y)
+        
+        # Ensure model directory exists
+        model_dir = os.path.join(os.path.dirname(__file__), 'model')
+        os.makedirs(model_dir, exist_ok=True)
+        
+        # Save the model and vectorizer
+        joblib.dump(classifier, os.path.join(model_dir, 'classifier.pkl'))
+        joblib.dump(vectorizer, os.path.join(model_dir, 'vectorizer.pkl'))
+        joblib.dump(label_encoder, os.path.join(model_dir, 'label_encoder.pkl'))
+        
+        print("Model training completed and saved.")
+        
+        return classifier, vectorizer, label_encoder
 
-    # Prepare training data
-    training_data = prepare_training_data()
-    
-    # Add labels
-    for _, label in training_data:
-        if label not in textcat.labels:
-            textcat.add_label(label)
-
-    # Convert training data to spaCy format
-    train_examples = []
-    for text, label in training_data:
-        doc = nlp.make_doc(text)
-        example = Example.from_dict(doc, {"cats": {label: 1.0}})
-        train_examples.append(example)
-
-    # Training
-    optimizer = nlp.begin_training()
-    for i in range(20):  # Increased epochs
-        losses = {}
-        nlp.update(train_examples, sgd=optimizer, losses=losses)
-        print(f"Losses after epoch {i+1}: {losses}")
-
-    # Save the trained model
-    nlp.to_disk("chatbot/model")
-    print("Model training completed and saved.")
+    except Exception as e:
+        print(f"Error during model training: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
 
 if __name__ == "__main__":
     train_model()

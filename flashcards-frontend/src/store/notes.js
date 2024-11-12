@@ -84,9 +84,9 @@ export default {
         },
         
         async updateNote({ commit, dispatch }, { id, noteData }) {
-	    commit('SET_LOADING', true);
+            commit('SET_LOADING', true);
             commit('SET_ERROR', null);
-        
+            
             try {
                 const response = await notesService.updateNote(id, noteData);
                 commit('UPDATE_NOTE', response.data);
@@ -110,36 +110,37 @@ export default {
         },
         
         async deleteNote({ commit, dispatch }, id) {
-	    commit('SET_LOADING', true);
-	    commit('SET_ERROR', null);
-    
-	    try {
-	        await notesService.deleteNote(id);
-	        commit('REMOVE_NOTE', id);
-	        dispatch('app/showNotification', {
-	            message: 'Note deleted successfully',
-	            type: 'success'
-	        }, { root: true });
-	    } catch (error) {
-	        const errorMessage = error.response?.data?.details || error.message;
-	        commit('SET_ERROR', errorMessage);
-	        dispatch('app/showNotification', {
-	            message: errorMessage,
-	            type: 'error'
-	        }, { root: true });
-	        throw error;
-	    } finally {
-	        commit('SET_LOADING', false);
-	    }
-	},
-
-	startEditing({ commit }, note) {
-	    // Create a deep copy of the note to prevent direct mutation
-	    commit('SET_EDITING_NOTE', { ...note });
-	    commit('SET_EDITING', true);
-	},
-
-	cancelEditing({ commit }) {
-	    commit('SET_EDITING_NOTE', null);
-	    commit('SET_EDITING', false);
-	}
+            commit('SET_LOADING', true);
+            commit('SET_ERROR', null);
+            
+            try {
+                await notesService.deleteNote(id);
+                commit('REMOVE_NOTE', id);
+                dispatch('app/showNotification', {
+                    message: 'Note deleted successfully',
+                    type: 'success'
+                }, { root: true });
+            } catch (error) {
+                const errorMessage = error.response?.data?.details || error.message;
+                commit('SET_ERROR', errorMessage);
+                dispatch('app/showNotification', {
+                    message: errorMessage,
+                    type: 'error'
+                }, { root: true });
+                throw error;
+            } finally {
+                commit('SET_LOADING', false);
+            }
+        },
+        
+        startEditing({ commit }, note) {
+            commit('SET_EDITING_NOTE', { ...note });
+            commit('SET_EDITING', true);
+        },
+        
+        cancelEditing({ commit }) {
+            commit('SET_EDITING_NOTE', null);
+            commit('SET_EDITING', false);
+        }
+    }
+};

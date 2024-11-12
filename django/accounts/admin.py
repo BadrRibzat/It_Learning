@@ -1,44 +1,33 @@
 from django.contrib import admin
-from .models import User, Badge, UserBadge, ProfilePicture, Note
-from lessons.models import UserFlashcardProgress, UserLevelProgress
+from django.utils.html import format_html
+from .models import User, ProfilePicture, Note
 
+@admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'email', 'points', 'level', 'language')
     list_filter = ('level', 'language')
     search_fields = ('username', 'email')
+    readonly_fields = ('points', 'level')
 
-class BadgeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
-    search_fields = ('name',)
-
-class UserBadgeAdmin(admin.ModelAdmin):
-    list_display = ('user', 'badge', 'date_earned')
-    list_filter = ('user', 'badge')
-    search_fields = ('user__username', 'badge__name')
-
+@admin.register(ProfilePicture)
 class ProfilePictureAdmin(admin.ModelAdmin):
-    list_display = ('user', 'image')
+    list_display = ('user', 'image_preview')
     search_fields = ('user__username',)
 
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html(f'<img src="{obj.image.url}" style="max-height: 100px; max-width: 100px;" />')
+        return 'No Image'
+    image_preview.short_description = 'Profile Picture'
+
+@admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
-    list_display = ('user', 'content', 'created_at', 'note_type')
-    list_filter = ('note_type',)
-    search_fields = ('user__username', 'content')
+    list_display = ('user', 'title', 'note_type', 'created_at', 'updated_at')
+    list_filter = ('note_type', 'created_at')
+    search_fields = ('user__username', 'title', 'content')
+    readonly_fields = ('created_at', 'updated_at')
 
-class UserFlashcardProgressAdmin(admin.ModelAdmin):
-    list_display = ('user', 'flashcard', 'completed', 'date_completed')  # Corrected field name
-    list_filter = ('completed',)
-    search_fields = ('user__username', 'flashcard__word')
-
-class UserLevelProgressAdmin(admin.ModelAdmin):
-    list_display = ('user', 'level', 'completed', 'date_completed')
-    list_filter = ('completed',)
-    search_fields = ('user__username', 'level__name')
-
-admin.site.register(User, UserAdmin)
-admin.site.register(Badge, BadgeAdmin)
-admin.site.register(UserBadge, UserBadgeAdmin)
-admin.site.register(ProfilePicture, ProfilePictureAdmin)
-admin.site.register(Note, NoteAdmin)
-admin.site.register(UserFlashcardProgress, UserFlashcardProgressAdmin)
-admin.site.register(UserLevelProgress, UserLevelProgressAdmin)
+# Customize the admin site
+admin.site.site_header = 'Learn English Admin'
+admin.site.site_title = 'Learn English Platform'
+admin.site.index_title = 'Welcome to Learn English Admin Dashboard'

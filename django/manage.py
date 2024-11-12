@@ -2,18 +2,15 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-from dotenv import load_dotenv
 
 def main():
     """Run administrative tasks."""
-    # Load environment variables from .env file
-    load_dotenv()
-
+    # Check if we're in a test environment
     if 'test' in sys.argv:
         os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.test_settings')
     else:
         os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
-
+    
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

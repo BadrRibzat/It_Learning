@@ -3,7 +3,7 @@ from accounts.models import User
 
 class Level(models.Model):
     name = models.CharField(max_length=255)
-    level_order = models.PositiveIntegerField()
+    level_order = models.PositiveIntegerField(unique=True)
 
     def __str__(self):
         return self.name
@@ -11,32 +11,39 @@ class Level(models.Model):
 class Lesson(models.Model):
     title = models.CharField(max_length=255)
     level = models.ForeignKey(Level, on_delete=models.CASCADE, related_name='lessons')
-    level_order = models.PositiveIntegerField()
     content = models.TextField()
-    difficulty = models.CharField(max_length=50)
+    difficulty = models.CharField(max_length=50, choices=[
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced')
+    ])
+    is_unlocked = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
 
 class Flashcard(models.Model):
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='flashcards')
     word = models.CharField(max_length=255)
-    definition = models.TextField(default="No definition available")
-    question = models.TextField(default="What is the meaning of this word?")
+    definition = models.TextField()
+    example = models.TextField(null=True, blank=True)
+    translation = models.CharField(max_length=255, blank=True, null=True)
+    question = models.TextField(default='No question provided')
 
     def __str__(self):
         return self.word
 
 class Quiz(models.Model):
-    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='quizzes')
     title = models.CharField(max_length=255)
+    passing_score = models.PositiveIntegerField(default=80)
 
     def __str__(self):
         return self.title
 
 class QuizQuestion(models.Model):
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
-    question_text = models.TextField(default="Default Question Text")
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField()
     correct_answer = models.CharField(max_length=255)
     options = models.JSONField(default=list)
 
@@ -45,14 +52,15 @@ class QuizQuestion(models.Model):
 
 class LevelTest(models.Model):
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255, default="Default Level Test Title")
+    title = models.CharField(max_length=255)
+    passing_score = models.PositiveIntegerField(default=80)
 
     def __str__(self):
-        return self.title
+        return f"{self.level.name} Level Test"
 
 class LevelTestQuestion(models.Model):
-    level_test = models.ForeignKey(LevelTest, on_delete=models.CASCADE)
-    question_text = models.TextField(default="Default Question Text")  # Add default value
+    level_test = models.ForeignKey(LevelTest, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField()
     correct_answer = models.CharField(max_length=255)
     options = models.JSONField(default=list)
 
@@ -63,38 +71,27 @@ class UserProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
-    date_completed = models.DateTimeField(null=True, blank=True)
-    correct_answers = models.PositiveIntegerField(default=0)
+    score = models.PositiveIntegerField(default=0)
     total_questions = models.PositiveIntegerField(default=0)
+    correct_answers = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ['user', 'lesson']
 
     def __str__(self):
         return f"{self.user.username} - {self.lesson.title}"
-
-class UserFlashcardProgress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    flashcard = models.ForeignKey(Flashcard, on_delete=models.CASCADE)
-    completed = models.BooleanField(default=False)
-    date_completed = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.flashcard.word}"
-
-class UserQuizAttempt(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
-    score = models.PositiveIntegerField()
-    date_attempted = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.quiz.title}"
 
 class UserLevelProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
-    date_completed = models.DateTimeField(null=True, blank=True)
-    correct_answers = models.PositiveIntegerField(default=0)
+    score = models.PositiveIntegerField(default=0)
     total_questions = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ['user', 'level']
 
     def __str__(self):
         return f"{self.user.username} - {self.level.name}"

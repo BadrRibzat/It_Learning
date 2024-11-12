@@ -1,6 +1,52 @@
 from django.db import connection
 from django.db.utils import ProgrammingError
 from django.apps import apps
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
+def send_verification_email(user, verification_token):
+    verification_link = f"{settings.FRONTEND_URL}/verify-email/{verification_token}"
+    
+    # Render HTML email template
+    html_message = render_to_string('emails/verification.html', {
+        'user': user,
+        'verification_link': verification_link
+    })
+    
+    # Plain text version
+    plain_message = strip_tags(html_message)
+    
+    send_mail(
+        'Verify Your Email - Learn English Platform',
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        html_message=html_message,
+        fail_silently=False,
+    )
+
+def send_password_reset_email(user, reset_token):
+    reset_link = f"{settings.FRONTEND_URL}/reset-password/{reset_token}"
+    
+    # Render HTML email template
+    html_message = render_to_string('emails/password_reset.html', {
+        'user': user,
+        'reset_link': reset_link
+    })
+    
+    # Plain text version
+    plain_message = strip_tags(html_message)
+    
+    send_mail(
+        'Password Reset - Learn English Platform',
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        html_message=html_message,
+        fail_silently=False,
+    )
 
 def ensure_schema():
     try:
