@@ -245,12 +245,23 @@ class NoteSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'content', 'note_type', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+    def validate_note_type(self, value):
+        # Ensure note_type is one of the allowed choices
+        allowed_types = [choice[0] for choice in Note.NOTE_TYPES]
+        if value not in allowed_types:
+            raise serializers.ValidationError(f"Note type must be one of {allowed_types}")
+        return value
+
     def validate(self, data):
-        # Additional validation can be added here
+        # Additional custom validations
+        if len(data.get('title', '')) < 3:
+            raise serializers.ValidationError({"title": "Title must be at least 3 characters long"})
+        if len(data.get('content', '')) < 10:
+            raise serializers.ValidationError({"content": "Content must be at least 10 characters long"})
         return data
 
     def create(self, validated_data):
-        # Ensure user is set from the request context
+        
         user = self.context['request'].user
         note = Note.objects.create(user=user, **validated_data)
         return note

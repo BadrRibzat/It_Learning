@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Advanced Endpoint Testing Script for Learn English Platform
+# Comprehensive Endpoint Testing Script for Learn English Platform
 
 # Color Codes
 GREEN='\033[0;32m'
@@ -14,6 +14,9 @@ BASE_URL="http://localhost:8000/api"
 TEST_USERNAME="testuser_$(date +%s)"
 TEST_EMAIL="test_${TEST_USERNAME}@example.com"
 TEST_PASSWORD="StrongPass123!@$(date +%s)"
+TEST_BIO="Test user bio"
+TEST_NOTE_TITLE="Test Note"
+TEST_NOTE_CONTENT="This is a test note content"
 
 # Logging and Error Handling
 log_success() {
@@ -22,7 +25,6 @@ log_success() {
 
 log_error() {
     echo -e "${RED}[ERROR] $1${NC}" >&2
-    # Optional: Log to a file for further investigation
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" >> endpoint_test_errors.log
 }
 
@@ -69,42 +71,24 @@ test_user_registration() {
             \"language\": \"en\"
         }")
     
-    # Print full response for debugging
-    echo "Full Registration Response: $response"
-    
-    # Check for validation errors
-    local validation_errors=$(echo "$response" | jq -r '.errors // empty')
-    if [ -n "$validation_errors" ]; then
-        log_error "Registration Validation Errors:"
-        echo "$validation_errors"
-        return 1
-    fi
-
-    # Validate JSON response
     if ! validate_json "$response"; then
         log_error "Invalid JSON response for registration"
         echo "$response"
         return 1
     fi
 
-    # Extract user details
     local user_id=$(echo "$response" | jq -r '.id // empty')
     local username=$(echo "$response" | jq -r '.username // empty')
     local email=$(echo "$response" | jq -r '.email // empty')
 
-    # Validate extracted details
     if [ -z "$user_id" ] || [ -z "$username" ] || [ -z "$email" ]; then
         log_error "User registration failed - missing critical fields"
-        log_error "User ID: $user_id"
-        log_error "Username: $username"
-        log_error "Email: $email"
+        echo "$response"
         return 1
     fi
 
     log_success "User Registration Successful"
     export TEST_USER_ID="$user_id"
-    export TEST_USERNAME="$username"
-    export TEST_EMAIL="$email"
     return 0
 }
 
@@ -142,23 +126,82 @@ test_user_login() {
 # Profile Picture Upload Test
 test_profile_picture_upload() {
     log_info "Testing Profile Picture Upload..."
-    # Create a test image if not exists
-    local test_image="$HOME/test_avatar.jpg"
-    if [ ! -f "$test_image" ]; then
-        convert -size 100x100 xc:white "$test_image"
-    fi
+    local test_image="/tmp/test_avatar.jpg"
+    
+    # Create a test image
+    convert -size 100x100 xc:white "$test_image"
 
     local response=$(curl -s -X POST "$BASE_URL/upload-profile-picture/" \
         -H "Authorization: Bearer $ACCESS_TOKEN" \
         -F "profile_picture=@$test_image")
     
-    if ! echo "$response" | grep -q "Profile picture uploaded successfully"; then
+    if [[ "$response" != *"Profile picture uploaded successfully"* ]]; then
         log_error "Profile picture upload failed"
         echo "$response"
         return 1
     fi
 
     log_success "Profile Picture Upload Successful"
+    return 0
+}
+
+# Profile Update Test
+test_profile_update() {
+    log_info "Testing Profile Update..."
+    local response=$(curl -s -X PUT "$BASE_URL/profile/" \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "{
+            \"username\": \"$TEST_USERNAME\",
+            \"bio\": \"$TEST_BIO\"
+        }")
+    
+    if ! validate_json "$response"; then
+        log_error "Invalid JSON response for profile update"
+        echo "$response"
+        return 1
+    fi
+
+    local bio=$(echo "$response" | jq -r '.bio // empty')
+    if [ "$bio" != "$TEST_BIO" ]; then
+        log_error "Profile update failed"
+        echo "$response"
+        return 1
+    fi
+
+    log_success "Profile Update Successful"
+    return 0
+}
+
+# Notes Creation Test
+test_notes_creation() {
+    log_info "Testing Notes Creation..."
+    local response=$(curl -s -X POST "$BASE_URL/notes/" \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "{
+            \"title\": \"$TEST_NOTE_TITLE\",
+            \"content\": \"$TEST_NOTE_CONTENT\",
+            \"note_type\": \"general\"
+        }")
+    
+    if ! validate_json "$response"; then
+        log_error "Invalid JSON response for note creation"
+        echo "$response"
+        return 1
+    fi
+
+    local note_id=$(echo "$response" | jq -r '.id // empty')
+    local note_title=$(echo "$response" | jq -r '.title // empty')
+
+    if [ -z "$note_id" ] || [ "$note_title" != "$TEST_NOTE_TITLE" ]; then
+        log_error "Note creation failed"
+        echo "$response"
+        return 1
+    fi
+
+    log_success "Note Creation Successful"
+    export TEST_NOTE_ID="$note_id"
     return 0
 }
 
@@ -170,19 +213,37 @@ test_lessons_endpoints() {
     local lessons_response=$(curl -s -X GET "$BASE_URL/lessons/" \
         -H "Authorization: Bearer $ACCESS_TOKEN")
     
+    # Debug: Print full response
+    echo "Lessons Response: $lessons_response"
+    
     if ! validate_json "$lessons_response"; then
         log_error "Invalid JSON response for lessons"
         echo "$lessons_response"
         return 1
     fi
 
-    local lesson_count=$(echo "$lessons_response" | jq '. | length')
+    # Improved lesson count and ID extraction
+    local lesson_count=$(echo "$lessons_response" | jq '.results | length')
     if [ "$lesson_count" -eq 0 ]; then
         log_error "No lessons found"
         return 1
     fi
 
+    # Get First Lesson Details
+    local first_lesson_id=$(echo "$lessons_response" | jq -r '.results[0].id')
+    
+    # Correct URL for lesson detail
+    local lesson_details=$(curl -s -X GET "$BASE_URL/lessons/$first_lesson_id/" \
+        -H "Authorization: Bearer $ACCESS_TOKEN")
+
+    if ! validate_json "$lesson_details"; then
+        log_error "Invalid JSON response for lesson details"
+        echo "$lesson_details"
+        return 1
+    fi
+
     log_success "Lessons Endpoint Test Successful (Found $lesson_count lessons)"
+    export TEST_LESSON_ID="$first_lesson_id"
     return 0
 }
 
@@ -190,18 +251,28 @@ test_lessons_endpoints() {
 test_flashcards_endpoint() {
     log_info "Testing Flashcards Endpoint..."
     
-    # Get First Lesson ID to fetch flashcards
-    local lessons_response=$(curl -s -X GET "$BASE_URL/lessons/" \
-        -H "Authorization: Bearer $ACCESS_TOKEN")
-    
-    local first_lesson_id=$(echo "$lessons_response" | jq -r '.[0].id // empty')
-    if [ -z "$first_lesson_id" ]; then
-        log_error "Could not find a lesson ID for flashcards test"
-        return 1
+    if [ -z "$TEST_LESSON_ID" ]; then
+        log_error "No lesson ID available. Fetching lesson ID first."
+        # Attempt to get lesson ID if not set
+        local lessons_response=$(curl -s -X GET "$BASE_URL/lessons/" \
+            -H "Authorization: Bearer $ACCESS_TOKEN")
+        
+        local first_lesson_id=$(echo "$lessons_response" | jq -r '.results[0].id')
+        
+        if [ -z "$first_lesson_id" ]; then
+            log_error "Failed to retrieve lesson ID"
+            return 1
+        fi
+        
+        export TEST_LESSON_ID="$first_lesson_id"
     fi
 
-    local flashcards_response=$(curl -s -X GET "$BASE_URL/flashcards/?lesson_id=$first_lesson_id" \
+    # Fetch flashcards for the lesson
+    local flashcards_response=$(curl -s -X GET "$BASE_URL/flashcards/?lesson_id=$TEST_LESSON_ID" \
         -H "Authorization: Bearer $ACCESS_TOKEN")
+    
+    # Debug: Print full flashcards response
+    echo "Flashcards Response: $flashcards_response"
     
     if ! validate_json "$flashcards_response"; then
         log_error "Invalid JSON response for flashcards"
@@ -209,9 +280,45 @@ test_flashcards_endpoint() {
         return 1
     fi
 
+    # Check if flashcards exist
     local flashcard_count=$(echo "$flashcards_response" | jq '. | length')
     if [ "$flashcard_count" -eq 0 ]; then
-        log_error "No flashcards found for lesson $first_lesson_id"
+        log_error "No flashcards found for lesson $TEST_LESSON_ID"
+        return 1
+    fi
+
+    # Select first flashcard for testing
+    local first_flashcard=$(echo "$flashcards_response" | jq -r '.[0]')
+    local first_flashcard_id=$(echo "$first_flashcard" | jq -r '.id')
+    local first_flashcard_word=$(echo "$first_flashcard" | jq -r '.word')
+
+    # Debug: Print flashcard details
+    log_info "Testing Flashcard ID: $first_flashcard_id, Word: $first_flashcard_word"
+
+    # Check answer for the flashcard
+    local flashcard_answer_response=$(curl -s -X POST "$BASE_URL/flashcards/$first_flashcard_id/check-answer/" \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "{\"answer\": \"$first_flashcard_word\"}")
+
+    # Debug: Print full response
+    echo "Flashcard Answer Response: $flashcard_answer_response"
+
+    # Validate JSON response
+    if ! validate_json "$flashcard_answer_response"; then
+        log_error "Invalid JSON response for flashcard answer"
+        echo "$flashcard_answer_response"
+        return 1
+    fi
+
+    # Check response structure
+    local is_correct=$(echo "$flashcard_answer_response" | jq -r '.is_correct // "null"')
+    local correct_answer=$(echo "$flashcard_answer_response" | jq -r '.correct_answer // "null"')
+    local points_earned=$(echo "$flashcard_answer_response" | jq -r '.points_earned // "null"')
+    
+    if [ "$is_correct" == "null" ] || [ "$correct_answer" == "null" ] || [ "$points_earned" == "null" ]; then
+        log_error "Incomplete response for flashcard answer"
+        echo "$flashcard_answer_response"
         return 1
     fi
 
@@ -239,7 +346,7 @@ test_chatbot_endpoint() {
         return 1
     fi
 
-    log_success "Chatbot Endpoint Test Successful (Received: $response_text)"
+    log_success "Chatbot Endpoint Test Successful"
     return 0
 }
 
@@ -252,6 +359,8 @@ run_comprehensive_tests() {
         test_user_registration
         test_user_login
         test_profile_picture_upload
+        test_profile_update
+        test_notes_creation
         test_lessons_endpoints
         test_flashcards_endpoint
         test_chatbot_endpoint

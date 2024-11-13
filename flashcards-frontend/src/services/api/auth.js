@@ -47,7 +47,26 @@ const authService = {
     }
     
     return response;
-  }
+  },
+  checkUserAuthentication: async () => {
+    try {
+      const response = await axiosInstance.get(API_ENDPOINTS.AUTH.CHECK_USER);
+      return response.data;
+    } catch (error) {
+      console.error('User authentication check failed:', error);
+      throw error;
+    }
+  },
+
+  getUserDetails: async () => {
+    try {
+      const response = await axiosInstance.get('/profile/');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch user details:', error);
+      throw error;
+    }
+  },
 };
 
 export default authService;

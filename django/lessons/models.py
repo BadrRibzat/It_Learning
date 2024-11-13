@@ -1,9 +1,12 @@
 from django.db import models
+from django.utils import timezone
 from accounts.models import User
+from django.db.models import Sum
 
 class Level(models.Model):
     name = models.CharField(max_length=255)
     level_order = models.PositiveIntegerField(unique=True)
+    points_to_advance = models.PositiveIntegerField(default=100)
 
     def __str__(self):
         return self.name
@@ -18,6 +21,7 @@ class Lesson(models.Model):
         ('advanced', 'Advanced')
     ])
     is_unlocked = models.BooleanField(default=True)
+    points_to_complete = models.PositiveIntegerField(default=50)
 
     def __str__(self):
         return self.title
@@ -37,6 +41,7 @@ class Quiz(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='quizzes')
     title = models.CharField(max_length=255)
     passing_score = models.PositiveIntegerField(default=80)
+    max_attempts = models.PositiveIntegerField(default=3)
 
     def __str__(self):
         return self.title
@@ -95,3 +100,25 @@ class UserLevelProgress(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.level.name}"
+
+class UserFlashcardProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    flashcard = models.ForeignKey('Flashcard', on_delete=models.CASCADE)
+    is_completed = models.BooleanField(default=False)
+    attempts = models.PositiveIntegerField(default=0)
+    last_attempt = models.DateTimeField(null=True, blank=True)
+    points_earned = models.FloatField(default=0)
+
+    class Meta:
+        unique_together = ['user', 'flashcard']
+
+class UserQuizAttempt(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    quiz = models.ForeignKey('Quiz', on_delete=models.CASCADE)
+    total_score = models.FloatField(default=0)
+    is_passed = models.BooleanField(default=False)
+    attempts = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ['user', 'quiz']

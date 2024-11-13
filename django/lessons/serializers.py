@@ -12,7 +12,7 @@ class LevelSerializer(serializers.ModelSerializer):
 class FlashcardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flashcard
-        fields = ['id', 'word', 'definition', 'example', 'translation']
+        fields = ['id', 'word', 'definition', 'example', 'translation', 'lesson']
 
 class QuizQuestionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,10 +29,14 @@ class QuizSerializer(serializers.ModelSerializer):
 class LessonSerializer(serializers.ModelSerializer):
     flashcards = FlashcardSerializer(many=True, read_only=True)
     quizzes = QuizSerializer(many=True, read_only=True)
+    level_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Lesson
-        fields = ['id', 'title', 'level', 'content', 'difficulty', 'is_unlocked', 'flashcards', 'quizzes']
+        fields = ['id', 'title', 'level', 'level_name', 'content', 'difficulty', 'is_unlocked', 'flashcards', 'quizzes']
+
+    def get_level_name(self, obj):
+        return obj.level.name if obj.level else None
 
 class LevelTestQuestionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -52,3 +56,28 @@ class UserProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProgress
         fields = ['id', 'user', 'lesson', 'completed', 'score', 'total_questions', 'completed_at']
+
+class UserFlashcardProgressSerializer(serializers.ModelSerializer):
+    flashcard = FlashcardSerializer(read_only=True)
+    
+    class Meta:
+        model = UserFlashcardProgress
+        fields = [
+            'flashcard', 
+            'is_completed', 
+            'attempts', 
+            'points_earned'
+        ]
+
+class UserQuizAttemptSerializer(serializers.ModelSerializer):
+    quiz = QuizSerializer(read_only=True)
+    
+    class Meta:
+        model = UserQuizAttempt
+        fields = [
+            'quiz', 
+            'total_score', 
+            'is_passed', 
+            'attempts', 
+            'completed_at'
+        ]

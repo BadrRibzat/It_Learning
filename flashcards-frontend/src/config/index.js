@@ -7,6 +7,10 @@ export const API_ENDPOINTS = {
         LOGOUT: '/logout/',
         REFRESH_TOKEN: '/token/refresh/',
         CHECK_USER: '/check-user/',
+        VERIFY_EMAIL: '/email-verification/',
+        RESEND_VERIFICATION: '/resend-verification/',
+        PASSWORD_RESET_REQUEST: '/password-reset-request/',
+        PASSWORD_RESET_CONFIRM: '/password-reset-confirm/',
     },
     PROFILE: {
         DETAIL: '/profile/',

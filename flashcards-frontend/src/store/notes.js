@@ -1,15 +1,15 @@
 import notesService from '@/services/api/notes';
 
 export default {
-    namespaced: true,
-    state: () => ({
-        notes: [],
-        currentNote: null,
-        isEditing: false,
-        editingNote: null,
-        loading: false,
-        error: null
-    }),
+  namespaced: true,
+  state: () => ({
+    notes: [],
+    currentNote: null,
+    isEditing: false,
+    editingNote: null,
+    loading: false,
+    error: null
+  }),
     
     mutations: {
         SET_NOTES(state, notes) {

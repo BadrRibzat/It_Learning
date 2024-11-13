@@ -96,9 +96,15 @@ class User(AbstractUser):
 
     def reset_progress(self):
         """Reset user's learning progress"""
-        from lessons.models import UserProgress, UserQuizAttempt
+        from django.apps import apps
+
+        UserProgress = apps.get_model('lessons', 'UserProgress')
+        UserQuizAttempt = apps.get_model('lessons', 'UserQuizAttempt')
+        UserFlashcardProgress = apps.get_model('lessons', 'UserFlashcardProgress')
+
         UserProgress.objects.filter(user=self).delete()
         UserQuizAttempt.objects.filter(user=self).delete()
+        UserFlashcardProgress.objects.filter(user=self).delete()
         self.points = 0
         self.level = 1
         self.save()
@@ -115,6 +121,48 @@ class User(AbstractUser):
         verbose_name = _('User')
         verbose_name_plural = _('Users')
         ordering = ['-date_joined']
+
+    def calculate_level_progress(self):
+        """
+        Calculate user's progress towards next level
+        """
+        from django.apps import apps
+
+        Level = apps.get_model('lessons', 'Level')
+        UserFlashcardProgress = apps.get_model('lessons', 'UserFlashcardProgress')
+        UserQuizAttempt = apps.get_model('lessons', 'UserQuizAttempt')
+
+        # Get current level
+        try:
+            current_level = Level.objects.get(level_order=self.level)
+        except Level.DoesNotExist:
+            # Default to first level if not found
+            current_level = Level.objects.first()
+
+        # Calculate total points from completed flashcards and quizzes
+        flashcard_points = UserFlashcardProgress.objects.filter(
+            user=self,
+            is_completed=True
+        ).aggregate(total_points=models.Sum('points_earned'))['total_points'] or 0
+
+        quiz_points = UserQuizAttempt.objects.filter(
+            user=self,
+            is_passed=True
+        ).aggregate(total_points=models.Sum('total_score'))['total_points'] or 0
+
+        total_points = flashcard_points + quiz_points
+
+        return {
+            'current_level': current_level.name,
+            'total_points': total_points,
+            'progress_percentage': (total_points / (current_level.points_to_advance or 1)) * 100
+        }
+
+    def can_take_level_test(self):
+        """
+        Determine if user can take the next level test
+        """
+        return self.calculate_level_progress()['progress_percentage'] >= 80
 
 class EmailVerificationToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

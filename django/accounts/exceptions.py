@@ -1,33 +1,24 @@
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status, serializers
+import logging
+
+logger = logging.getLogger(__name__)
 
 def custom_exception_handler(exc, context):
-    """
-    Custom exception handler for more detailed error responses
-    """
-    # Call the default exception handler first
+    # Call REST framework's default exception handler first
     response = exception_handler(exc, context)
 
-    # If response is None, it means the exception wasn't handled by DRF
+    # Log the error
+    logger.error(f"Unhandled Exception: {exc}")
+    logger.error(f"Context: {context}")
+
+    # If response is None, handle generic exceptions
     if response is None:
-        return response
-
-    # Custom error handling
-    error_details = {
-        'error': 'An unexpected error occurred',
-        'details': str(exc)
-    }
-
-    # Customize based on exception type
-    if isinstance(exc, serializers.ValidationError):
-        error_details = {
-            'error': 'Validation failed',
-            'details': exc.detail
-        }
-        response.status_code = status.HTTP_400_BAD_REQUEST
-
-    # Update the response data
-    response.data = error_details
+        return Response({
+            'error': 'An unexpected error occurred',
+            'detail': str(exc)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return response
+
