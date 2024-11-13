@@ -41,7 +41,6 @@ class Quiz(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='quizzes')
     title = models.CharField(max_length=255)
     passing_score = models.PositiveIntegerField(default=80)
-    max_attempts = models.PositiveIntegerField(default=3)
 
     def __str__(self):
         return self.title
@@ -116,8 +115,8 @@ class UserQuizAttempt(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     quiz = models.ForeignKey('Quiz', on_delete=models.CASCADE)
     total_score = models.FloatField(default=0)
-    is_passed = models.BooleanField(default=False)
-    attempts = models.PositiveIntegerField(default=0)
+    is_passed = models.BooleanField(default=False, null=True)
+    attempts = models.PositiveIntegerField(default=1)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:

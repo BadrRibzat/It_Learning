@@ -14,6 +14,13 @@ from .models import (
     EmailVerificationToken, 
     PasswordResetToken
 )
+from lessons.models import (
+    UserProgress,
+    Flashcard,
+    UserFlashcardProgress,
+    UserQuizAttempt
+)
+
 from .utils import send_verification_email, send_password_reset_email
 
 User = get_user_model()
@@ -224,7 +231,7 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
 
     def get_correct_flashcards(self, obj):
         from lessons.models import UserFlashcardProgress
-        return UserFlashcardProgress.objects.filter(user=obj, completed=True).count()
+        return UserFlashcardProgress.objects.filter(user=obj, is_completed=True).count()
 
     def get_total_flashcards(self, obj):
         return Flashcard.objects.count()

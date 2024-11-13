@@ -178,9 +178,14 @@ LOGGING = {
     'loggers': {
         'lessons': {
             'handlers': ['console', 'file'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': True,
         },
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'ERROR',
+            'propagate': False,
+        }
     },
 }
 

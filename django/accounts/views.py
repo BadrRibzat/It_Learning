@@ -41,8 +41,8 @@ from .models import (
     EmailVerificationToken,
     PasswordResetToken
 )
-from lessons.models import UserProgress, Lesson
-from lessons.serializers import LessonSerializer
+from lessons.models import UserProgress, Lesson, UserFlashcardProgress, UserQuizAttempt
+from lessons.serializers import LessonSerializer, UserFlashcardProgressSerializer, UserQuizAttemptSerializer
 
 from .utils import send_verification_email, send_password_reset_email
 

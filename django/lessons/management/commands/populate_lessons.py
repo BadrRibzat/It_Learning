@@ -1,27 +1,70 @@
 from django.core.management.base import BaseCommand
-from django.db import connection, migrations
+from django.db import connection, transaction
 from django.db.utils import ProgrammingError
-from django.db import transaction
 from django.db.models import F, Q
 from lessons.models import Level, Lesson, Flashcard, Quiz, QuizQuestion, LevelTest, LevelTestQuestion
 from accounts.models import User
 import random
 import string
 import re
+import logging
 import nltk
 from nltk.corpus import wordnet
-import logging
+from django.core.exceptions import ValidationError
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-# Download NLTK resources
-try:
-    nltk.download('wordnet', quiet=True)
-    nltk.download('averaged_perceptron_tagger', quiet=True)
-except Exception as e:
-    logger.warning(f"NLTK resource download failed: {e}")
+# Enhanced word generation and validation
+class WordGenerator:
+    @staticmethod
+    def get_synonyms(word, max_synonyms=5):
+        try:
+            synsets = wordnet.synsets(word)
+            synonyms = []
+            for synset in synsets:
+                synonyms.extend([lemma.name().replace('_', ' ') for lemma in synset.lemmas()])
+            return list(set(synonyms) - {word})[:max_synonyms]
+        except Exception as e:
+            logger.warning(f"Synonym generation error for {word}: {e}")
+            return []
+
+    @staticmethod
+    def generate_phonetic_variant(word):
+        """Generate a phonetically similar word"""
+        if len(word) < 3:
+            return word + 'x'
+        
+        try:
+            # More sophisticated phonetic variation
+            chars = list(word)
+            idx = random.randint(0, len(chars) - 1)
+            
+            # Replace with a similar-sounding character
+            phonetic_map = {
+                'b': ['p', 'd'], 
+                'p': ['b', 'd'], 
+                'd': ['b', 'p'],
+                'k': ['g', 'c'],
+                'g': ['k', 'c'],
+                'a': ['e', 'o'],
+                'e': ['a', 'i'],
+                'i': ['e', 'y']
+            }
+            
+            if chars[idx] in phonetic_map:
+                chars[idx] = random.choice(phonetic_map[chars[idx]])
+            else:
+                chars[idx] = random.choice(string.ascii_lowercase)
+            
+            return ''.join(chars)
+        except Exception as e:
+            logger.error(f"Phonetic variant generation error: {e}")
+            return word + 'x'
 
 class Command(BaseCommand):
     help = 'Populate the database with comprehensive lesson data'
@@ -54,8 +97,8 @@ class Command(BaseCommand):
         Ensure all necessary columns and tables exist
         """
         try:
-            # Add is_unlocked column to Lesson model if it doesn't exist
             with connection.cursor() as cursor:
+                # Check and add points_to_complete column to Lesson model
                 cursor.execute("""
                     DO $$
                     BEGIN
@@ -63,15 +106,31 @@ class Command(BaseCommand):
                             SELECT 1 
                             FROM information_schema.columns 
                             WHERE table_name = 'lessons_lesson' 
-                            AND column_name = 'is_unlocked'
+                            AND column_name = 'points_to_complete'
                         ) THEN
                             ALTER TABLE lessons_lesson 
-                            ADD COLUMN is_unlocked BOOLEAN DEFAULT TRUE;
+                            ADD COLUMN points_to_complete INTEGER DEFAULT 50;
+                        END IF;
+                    END $$;
+                """)
+
+                # Check and add points_to_advance column to Level model
+                cursor.execute("""
+                    DO $$
+                    BEGIN
+                        IF NOT EXISTS (
+                            SELECT 1 
+                            FROM information_schema.columns 
+                            WHERE table_name = 'lessons_level' 
+                            AND column_name = 'points_to_advance'
+                        ) THEN
+                            ALTER TABLE lessons_level 
+                            ADD COLUMN points_to_advance INTEGER DEFAULT 100;
                         END IF;
                     END $$;
                 """)
             
-            self.stdout.write(self.style.SUCCESS('Database schema verified successfully.'))
+                self.stdout.write(self.style.SUCCESS('Database schema verified and updated successfully.'))
         
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Migration error: {str(e)}'))
@@ -95,6 +154,7 @@ class Command(BaseCommand):
             with connection.cursor() as cursor:
                 for table in tables:
                     cursor.execute(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE;")
+                    logger.info(f"Cleared table: {table}")
             
             self.stdout.write(self.style.SUCCESS('Existing content cleared.'))
         
@@ -104,18 +164,35 @@ class Command(BaseCommand):
 
     def create_levels(self):
         """
-        Create predefined levels
+        Create predefined levels with points_to_advance
         """
         levels = [
-            {'name': 'Beginner', 'level_order': 1},
-            {'name': 'Intermediate', 'level_order': 2},
-            {'name': 'Advanced', 'level_order': 3},
+            {'name': 'Beginner', 'level_order': 1, 'points_to_advance': 100},
+            {'name': 'Intermediate', 'level_order': 2, 'points_to_advance': 250},
+            {'name': 'Advanced', 'level_order': 3, 'points_to_advance': 500},
         ]
-        
+
         for level_data in levels:
-            Level.objects.create(**level_data)
+            try:
+                # Use get_or_create to avoid duplicates
+                level, created = Level.objects.get_or_create(
+                    name=level_data['name'],
+                    defaults={
+                        'level_order': level_data['level_order'],
+                        'points_to_advance': level_data['points_to_advance']
+                    }
+                )
+            
+                # Update existing level if needed
+                if not created:
+                    level.level_order = level_data['level_order']
+                    level.points_to_advance = level_data['points_to_advance']
+                    level.save()
+            
+                logger.info(f"{'Created' if created else 'Updated'} level: {level_data['name']}")
         
-        self.stdout.write(self.style.SUCCESS('Levels created successfully.'))
+            except Exception as e:
+                logger.error(f"Error creating/updating level {level_data['name']}: {e}")
 
     def create_lessons(self):
         """
@@ -1158,105 +1235,78 @@ class Command(BaseCommand):
 
     def create_lessons_with_flashcards(self, level, lessons_data):
         for lesson_data in lessons_data:
-            lesson = Lesson.objects.create(
-                title=lesson_data['title'],
-                content=lesson_data['content'],
-                difficulty=lesson_data['difficulty'],
-                level=level,
-                is_unlocked=True
-            )
-
-            # Create Flashcards
-            flashcards = []
-            for fc_data in lesson_data['flashcards']:
-                flashcard = Flashcard.objects.create(
-                    lesson=lesson,
-                    word=fc_data['word'],
-                    definition=fc_data['definition'],
-                    example=fc_data['example'],
-                    translation=fc_data.get('translation', ''),
-                    question=fc_data.get('question', fc_data['definition'])
+            try:
+                lesson = Lesson.objects.create(
+                    title=lesson_data['title'],
+                    content=lesson_data['content'],
+                    difficulty=lesson_data['difficulty'],
+                    level=level,
+                    is_unlocked=True,
+                    points_to_complete=50  # Ensure this is set
                 )
-                flashcards.append(flashcard)
+                logger.info(f"Created lesson: {lesson.title}")
 
-            # Create Quiz
-            quiz = Quiz.objects.create(
-                lesson=lesson,
-                title=f"Quiz for {lesson.title}",
-                passing_score=80
-            )
+                # Create Flashcards
+                flashcards = []
+                for fc_data in lesson_data['flashcards']:
+                    flashcard = Flashcard.objects.create(
+                        lesson=lesson,
+                        word=fc_data['word'],
+                        definition=fc_data['definition'],
+                        example=fc_data['example'],
+                        translation=fc_data.get('translation', ''),
+                        question=fc_data.get('question', fc_data['definition'])
+                    )
+                    flashcards.append(flashcard)
 
-            # Generate Quiz Questions
-            self.generate_quiz_questions(quiz, flashcards)
+                # Create Quiz
+                quiz = Quiz.objects.create(
+                    lesson=lesson,
+                    title=f"Quiz for {lesson.title}",
+                    passing_score=80
+                )
 
-        # Create Level Test
-        self.create_level_test(level, flashcards)
+                # Generate Quiz Questions
+                self.generate_quiz_questions(quiz, flashcards)
+
+                # Create Level Test
+                self.create_level_test(level, flashcards)
+
+            except Exception as e:
+                logger.error(f"Error creating lesson {lesson_data['title']}: {e}")
 
     def generate_quiz_questions(self, quiz, flashcards):
+        """
+        Enhanced quiz question generation with more diverse strategies
+        """
         for flashcard in flashcards:
-            QuizQuestion.objects.create(
-                quiz=quiz,
-                question_text=flashcard.example,
-                correct_answer=flashcard.word,
-                options=self.generate_answer_options(flashcard)
-            )
+            try:
+                # Multiple question generation strategies
+                question_strategies = [
+                    flashcard.example,  # Original example
+                    f"What word means: {flashcard.definition}?",  # Definition-based
+                    f"Choose the correct translation for: {flashcard.translation}"  # Translation-based
+                ]
 
-    def generate_answer_options(self, flashcard):
-        options = [flashcard.word]
-        
-        # Generate wrong answers based on various strategies
-        wrong_answers = [
-            self.generate_phonetically_similar_word(flashcard.word),
-            self.generate_synonym(flashcard.word),
-            self.generate_random_word(),
-            self.generate_definition_based_distractor(flashcard)
-        ]
+                # Generate wrong options with more variety
+                wrong_options = [
+                    WordGenerator.generate_phonetic_variant(flashcard.word),
+                    random.choice(WordGenerator.get_synonyms(flashcard.word) or [flashcard.word + 'x']),
+                    ''.join(random.choices(string.ascii_lowercase, k=len(flashcard.word)))
+                ]
 
-        # Remove duplicates and limit to 3 additional options
-        wrong_answers = list(set(wrong_answers) - set(options))[:3]
-        options.extend(wrong_answers)
+                # Ensure unique options
+                options = list(set([flashcard.word] + wrong_options))[:4]
+                random.shuffle(options)
 
-        # Shuffle options
-        random.shuffle(options)
-        return options
-
-    def generate_phonetically_similar_word(self, word):
-        # Simple phonetic distraction strategy
-        vowels = 'aeiou'
-        consonants = 'bcdfghjklmnpqrstvwxyz'
-        
-        if len(word) > 3:
-            modified_word = list(word)
-            # Randomly modify a character
-            idx = random.randint(0, len(word)-1)
-            if modified_word[idx] in vowels:
-                modified_word[idx] = random.choice(vowels)
-            else:
-                modified_word[idx] = random.choice(consonants)
-            
-            return ''.join(modified_word)
-        return word + 'x'
-
-    def generate_synonym(self, word):
-        try:
-            synsets = wordnet.synsets(word)
-            if synsets:
-                synonyms = [lemma.name() for synset in synsets for lemma in synset.lemmas()]
-                synonyms = list(set(synonyms) - {word})
-                return synonyms[0] if synonyms else word + 'syn'
-        except:
-            pass
-        return word + 'syn'
-
-    def generate_random_word(self, length=5):
-        return ''.join(random.choices(string.ascii_lowercase, k=length))
-
-    def generate_definition_based_distractor(self, flashcard):
-        # Generate a wrong answer based on definition keywords
-        definition_words = re.findall(r'\b\w+\b', flashcard.definition.lower())
-        relevant_words = [w for w in definition_words if len(w) > 3]
-        
-        return relevant_words[0] if relevant_words else self.generate_random_word()
+                QuizQuestion.objects.create(
+                    quiz=quiz,
+                    question_text=random.choice(question_strategies),
+                    correct_answer=flashcard.word,
+                    options=options
+                )
+            except Exception as e:
+                logger.error(f"Error generating quiz question for {flashcard.word}: {e}")
 
     def create_level_test(self, level, flashcards):
         level_test = LevelTest.objects.create(
@@ -1277,3 +1327,32 @@ class Command(BaseCommand):
                 correct_answer=flashcard.word,
                 options=self.generate_answer_options(flashcard)
             )
+
+    def generate_answer_options(self, flashcard):
+        options = [flashcard.word]
+        
+        # Generate wrong answers based on various strategies
+        wrong_answers = [
+            WordGenerator.generate_phonetic_variant(flashcard.word),
+            random.choice(WordGenerator.get_synonyms(flashcard.word) or [flashcard.word + 'x']),
+            ''.join(random.choices(string.ascii_lowercase, k=len(flashcard.word))),
+            self.generate_definition_based_distractor(flashcard)
+        ]
+
+        # Remove duplicates and limit to 3 additional options
+        wrong_answers = list(set(wrong_answers) - set(options))[:3]
+        options.extend(wrong_answers)
+
+        # Shuffle options
+        random.shuffle(options)
+        return options
+
+    def generate_definition_based_distractor(self, flashcard):
+        # Generate a wrong answer based on definition keywords
+        definition_words = re.findall(r'\b\w+\b', flashcard.definition.lower())
+        relevant_words = [w for w in definition_words if len(w) > 3]
+        
+        return relevant_words[0] if relevant_words else self.generate_random_word()
+
+    def generate_random_word(self, length=5):
+        return ''.join(random.choices(string.ascii_lowercase, k=length))

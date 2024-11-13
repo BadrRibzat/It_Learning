@@ -68,7 +68,7 @@ class User(AbstractUser):
 
     # Learning progress tracking
     points = models.PositiveIntegerField(default=0)
-    level = models.PositiveIntegerField(default=1)
+    level = models.ForeignKey('lessons.Level', on_delete=models.SET_NULL, null=True, default=None)
     
     # Account verification
     is_verified = models.BooleanField(default=False)

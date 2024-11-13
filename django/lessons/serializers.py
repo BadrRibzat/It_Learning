@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from .models import (
     Level, Lesson, Flashcard, Quiz, QuizQuestion, 
-    UserProgress, LevelTest, LevelTestQuestion
+    UserProgress, LevelTest, LevelTestQuestion,
+    UserFlashcardProgress,
+    UserQuizAttempt
 )
 
 class LevelSerializer(serializers.ModelSerializer):
@@ -17,7 +19,7 @@ class FlashcardSerializer(serializers.ModelSerializer):
 class QuizQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizQuestion
-        fields = ['id', 'question_text', 'correct_answer', 'options']
+        fields = ['id', 'question_text', 'correct_answer']
 
 class QuizSerializer(serializers.ModelSerializer):
     questions = QuizQuestionSerializer(many=True, read_only=True)
@@ -30,10 +32,14 @@ class LessonSerializer(serializers.ModelSerializer):
     flashcards = FlashcardSerializer(many=True, read_only=True)
     quizzes = QuizSerializer(many=True, read_only=True)
     level_name = serializers.SerializerMethodField()
-
+    
     class Meta:
         model = Lesson
-        fields = ['id', 'title', 'level', 'level_name', 'content', 'difficulty', 'is_unlocked', 'flashcards', 'quizzes']
+        fields = [
+            'id', 'title', 'level', 'level_name', 
+            'content', 'difficulty', 'is_unlocked', 
+            'flashcards', 'quizzes', 'points_to_complete'
+        ]
 
     def get_level_name(self, obj):
         return obj.level.name if obj.level else None
@@ -41,7 +47,7 @@ class LessonSerializer(serializers.ModelSerializer):
 class LevelTestQuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = LevelTestQuestion
-        fields = ['id', 'question_text', 'correct_answer', 'options']
+        fields = ['id', 'question_text', 'correct_answer']
 
 class LevelTestSerializer(serializers.ModelSerializer):
     questions = LevelTestQuestionSerializer(many=True, read_only=True)
