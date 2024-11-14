@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import (
-    User, ProfilePicture, Note, 
+    User, ProfilePicture, Note,
     EmailVerificationToken, PasswordResetToken
 )
 from django.contrib.auth import get_user_model
@@ -12,24 +12,29 @@ User = get_user_model()
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    actions = ['delete_test_users']
+    actions = ['delete_test_users', 'reset_user_progress']
 
     def delete_test_users(self, request, queryset):
-        
         test_users = queryset.filter(
-            Q(email__startswith='testuser') | 
+            Q(email__startswith='testuser') |
             Q(username__startswith='testuser') |
             Q(email__contains='@example.com')
         ).exclude(is_superuser=True)
-        
+
         count = test_users.count()
         test_users.delete()
         self.message_user(request, f'{count} test users were deleted.')
     delete_test_users.short_description = "Delete test users"
 
+    def reset_user_progress(self, request, queryset):
+        for user in queryset:
+            user.reset_progress()
+        self.message_user(request, f'{queryset.count()} users\' progress reset.')
+    reset_user_progress.short_description = "Reset selected users' learning progress"
+
     # Extend the base UserAdmin with your custom fields and display
     list_display = BaseUserAdmin.list_display + (
-        'points', 'level', 'language', 'date_joined'
+        'points', 'level_display', 'language', 'date_joined'
     )
     list_filter = BaseUserAdmin.list_filter + (
         'level', 'language'
@@ -40,15 +45,14 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('points', 'level', 'language')
         }),
     )
-    
-    def reset_user_progress(self, request, queryset):
-        for user in queryset:
-            user.reset_progress()
-    reset_user_progress.short_description = "Reset selected users' learning progress"
+
+    def level_display(self, obj):
+        return obj.level.name if obj.level else 'No Level'
+    level_display.short_description = 'Level'
 
 @admin.register(ProfilePicture)
 class ProfilePictureAdmin(admin.ModelAdmin):
-    list_display = ('user', 'image_preview', 'uploaded_at')
+    list_display = ('user', 'image_preview')
     search_fields = ('user__username',)
     list_filter = ('user__level',)
 

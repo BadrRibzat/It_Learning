@@ -32,7 +32,6 @@ test_registration() {
             \"language\": \"en\"
         }")
     
-    # Check for both id and username in the response
     if echo "$register_response" | jq -e '(.id or .username)' > /dev/null; then
         log_success "Registration successful"
         return 0
@@ -40,6 +39,7 @@ test_registration() {
         log_error "Registration failed"
         echo "Response: $register_response"
         return 1
+    fi
 }
 
 # Login function
@@ -53,8 +53,7 @@ test_login() {
             \"password\": \"$PASSWORD\"
         }")
     
-    # Extract access token with more robust checking
-    ACCESS_TOKEN=$(echo "$login_response" | jq -r 'if .access then .access else "" end')
+    ACCESS_TOKEN=$(echo "$login_response" | jq -r '.access')
     
     if [ ! -z "$ACCESS_TOKEN" ] && [ "$ACCESS_TOKEN" != "null" ]; then
         log_success "Login successful"
@@ -64,8 +63,8 @@ test_login() {
         log_error "Login failed"
         echo "Response: $login_response"
         return 1
+    fi
 }
-
 
 # Test server availability
 test_server() {
@@ -73,8 +72,8 @@ test_server() {
     
     local server_response=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/")
     
-    if [ "$server_response" -eq 200 ] || [ "$server_response" -eq 404 ]; then
-        log_success "Server is running"
+    if [ "$server_response" -eq 200 ] || [ "$server_response" -eq 404 ] || [ "$server_response" -eq 401 ]; then
+        log_success "Server is running (HTTP $server_response)"
         return 0
     else
         log_error "Server not responding (HTTP $server_response)"
@@ -93,7 +92,9 @@ test_lessons() {
         log_success "Lessons endpoint test passed"
         # Store first lesson ID for further tests
         FIRST_LESSON_ID=$(echo "$lessons_response" | jq -r '.results[0].id')
+        FIRST_LESSON_FLASHCARDS=$(echo "$lessons_response" | jq -r '.results[0].flashcards')
         export FIRST_LESSON_ID
+        export FIRST_LESSON_FLASHCARDS
         return 0
     else
         log_error "Lessons endpoint test failed"
@@ -106,16 +107,20 @@ test_lessons() {
 test_flashcards() {
     log_info "Testing flashcards endpoint..."
     
-    # Use the first lesson ID from previous test
-    local flashcards_response=$(curl -s "$BASE_URL/flashcards/?lesson_id=$FIRST_LESSON_ID" \
-        -H "Authorization: Bearer $ACCESS_TOKEN")
+    # Simulate completing flashcards
+    local first_flashcard_id=$(echo "$FIRST_LESSON_FLASHCARDS" | jq -r '.[0].id')
     
-    if echo "$flashcards_response" | jq -e '.results' > /dev/null; then
+    local flashcard_answer_response=$(curl -s -X POST "$BASE_URL/flashcards/$first_flashcard_id/check-answer/" \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "{\"answer\": \"$(echo "$FIRST_LESSON_FLASHCARDS" | jq -r '.[0].word')\"}")
+    
+    if echo "$flashcard_answer_response" | jq -e '.is_correct' > /dev/null; then
         log_success "Flashcards endpoint test passed"
         return 0
     else
         log_error "Flashcards endpoint test failed"
-        echo "Response: $flashcards_response"
+        echo "Response: $flashcard_answer_response"
         return 1
     fi
 }
@@ -124,41 +129,30 @@ test_flashcards() {
 test_quiz() {
     log_info "Testing quiz endpoints..."
     
-    if [ -z "$FIRST_LESSON_ID" ]; then
-        log_error "No lesson ID available. Run lessons test first."
-        return 1
-    fi
-    
-    # Get quiz for lesson
+    # Get quiz for first lesson
     local quiz_response=$(curl -s "$BASE_URL/lessons/$FIRST_LESSON_ID/quizzes/" \
         -H "Authorization: Bearer $ACCESS_TOKEN")
     
-    if ! echo "$quiz_response" | jq -e '.id' > /dev/null; then
-        log_error "Failed to retrieve quiz"
-        echo "Response: $quiz_response"
-        return 1
-    fi
-    
-    local quiz_id=$(echo "$quiz_response" | jq -r '.id')
-    local first_question_id=$(echo "$quiz_response" | jq -r '.questions[0].id')
+    local first_quiz_question_id=$(echo "$quiz_response" | jq -r '.[0].questions[0].id')
+    local first_quiz_id=$(echo "$quiz_response" | jq -r '.[0].id')
     
     # Submit quiz answers
-    local submit_response=$(curl -s -X POST "$BASE_URL/lessons/$FIRST_LESSON_ID/submit-quiz/" \
+    local submit_quiz_response=$(curl -s -X POST "$BASE_URL/quizzes/$first_quiz_id/submit/" \
         -H "Authorization: Bearer $ACCESS_TOKEN" \
         -H "Content-Type: application/json" \
         -d "{
             \"answers\": [{
-                \"question_id\": $first_question_id,
-                \"answer\": \"test answer\"
+                \"question_id\": $first_quiz_question_id,
+                \"answer\": \"$(echo "$quiz_response" | jq -r '.[0].questions[0].correct_answer')\"
             }]
         }")
     
-    if echo "$submit_response" | jq -e '.score' > /dev/null; then
+    if echo "$submit_quiz_response" | jq -e '.is_passed' > /dev/null; then
         log_success "Quiz endpoints test passed"
         return 0
     else
         log_error "Quiz submission failed"
-        echo "Response: $submit_response"
+        echo "Response: $submit_quiz_response"
         return 1
     fi
 }
@@ -173,21 +167,40 @@ test_level_test() {
     
     local first_level_id=$(echo "$level_response" | jq -r '.results[0].id')
     
-    if [ -z "$first_level_id" ] || [ "$first_level_id" == "null" ]; then
-        log_error "Could not retrieve level ID"
-        return 1
-    fi
-    
     # Get level test
     local test_response=$(curl -s "$BASE_URL/levels/$first_level_id/test/" \
         -H "Authorization: Bearer $ACCESS_TOKEN")
     
-    if echo "$test_response" | jq -e '.id' > /dev/null; then
+    # Prepare answers for all questions
+    local questions=$(echo "$test_response" | jq -c '.questions[]')
+    local answers_payload="["
+    local first_iteration=true
+    
+    echo "$questions" | while read -r question; do
+        local question_id=$(echo "$question" | jq -r '.id')
+        local correct_answer=$(echo "$question" | jq -r '.correct_answer')
+        
+        if [ "$first_iteration" = true ]; then
+            answers_payload+="{\"question_id\": $question_id, \"answer\": \"$correct_answer\"}"
+            first_iteration=false
+        else
+            answers_payload+=",{\"question_id\": $question_id, \"answer\": \"$correct_answer\"}"
+        fi
+    done
+    answers_payload+="]"
+    
+    # Submit level test
+    local submit_test_response=$(curl -s -X POST "$BASE_URL/levels/$first_level_id/test/submit/" \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$answers_payload")
+    
+    if echo "$submit_test_response" | jq -e '.is_passed' > /dev/null; then
         log_success "Level test endpoints test passed"
         return 0
     else
-        log_error "Level test endpoint failed"
-        echo "Response: $test_response"
+        log_error "Level test submission failed"
+        echo "Response: $submit_test_response"
         return 1
     fi
 }
@@ -197,25 +210,106 @@ test_user_progress() {
     log_info "Testing user progress endpoints..."
     
     # Test progress endpoint
-    local progress_response=$(curl -s "$BASE_URL/user/progress/" \
+    local progress_response=$(curl -s "$BASE_URL/progress/learning/" \
         -H "Authorization: Bearer $ACCESS_TOKEN")
     
-    if ! echo "$progress_response" | jq -e '.level' > /dev/null; then
+    if echo "$progress_response" | jq -e '.level_name' > /dev/null; then
+        log_success "Progress endpoint test passed"
+        return 0
+    else
         log_error "Progress endpoint test failed"
         echo "Response: $progress_response"
         return 1
     fi
+}
+
+# Test profile endpoints
+test_profile() {
+    log_info "Testing profile endpoints..."
     
-    # Test statistics endpoint
-    local stats_response=$(curl -s "$BASE_URL/user/statistics/" \
+    # Get profile
+    local profile_response=$(curl -s "$BASE_URL/profile/" \
         -H "Authorization: Bearer $ACCESS_TOKEN")
     
-    if echo "$stats_response" | jq -e '.completed_lessons' > /dev/null; then
-        log_success "User progress endpoints test passed"
+    if echo "$profile_response" | jq -e '.username' > /dev/null; then
+        log_success "Profile endpoint test passed"
+        return 0
+    else
+        log_error "Profile endpoint test failed"
+        echo "Response: $profile_response"
+        return 1
+    fi
+}
+
+# Test statistics endpoints
+test_statistics() {
+    log_info "Testing statistics endpoints..."
+    
+    # Get statistics
+    local statistics_response=$(curl -s "$BASE_URL/statistics/" \
+        -H "Authorization: Bearer $ACCESS_TOKEN")
+    
+    if echo "$statistics_response" | jq -e '.points' > /dev/null; then
+        log_success "Statistics endpoint test passed"
         return 0
     else
         log_error "Statistics endpoint test failed"
-        echo "Response: $stats_response"
+        echo "Response: $statistics_response"
+        return 1
+    fi
+}
+
+# Test recommended lessons endpoints
+test_recommended_lessons() {
+    log_info "Testing recommended lessons endpoints..."
+    
+    # Get recommended lessons
+    local recommended_lessons_response=$(curl -s "$BASE_URL/recommended-lessons/" \
+        -H "Authorization: Bearer $ACCESS_TOKEN")
+    
+    if echo "$recommended_lessons_response" | jq -e '.[]' > /dev/null; then
+        log_success "Recommended lessons endpoint test passed"
+        return 0
+    else
+        log_error "Recommended lessons endpoint test failed"
+        echo "Response: $recommended_lessons_response"
+        return 1
+    fi
+}
+
+# Test email verification endpoints
+test_email_verification() {
+    log_info "Testing email verification endpoints..."
+    
+    # Resend verification email
+    local resend_verification_response=$(curl -s -X POST "$BASE_URL/resend-verification/" \
+        -H "Authorization: Bearer $ACCESS_TOKEN")
+    
+    if echo "$resend_verification_response" | jq -e '.detail' > /dev/null; then
+        log_success "Resend verification email endpoint test passed"
+        return 0
+    else
+        log_error "Resend verification email endpoint test failed"
+        echo "Response: $resend_verification_response"
+        return 1
+    fi
+}
+
+# Test password reset endpoints
+test_password_reset() {
+    log_info "Testing password reset endpoints..."
+    
+    # Request password reset
+    local password_reset_request_response=$(curl -s -X POST "$BASE_URL/password-reset/" \
+        -H "Content-Type: application/json" \
+        -d "{\"email\": \"$USERNAME\"}")
+    
+    if echo "$password_reset_request_response" | jq -e '.detail' > /dev/null; then
+        log_success "Password reset request endpoint test passed"
+        return 0
+    else
+        log_error "Password reset request endpoint test failed"
+        echo "Response: $password_reset_request_response"
         return 1
     fi
 }
@@ -241,6 +335,11 @@ main() {
         test_quiz || ((failed++))
         test_level_test || ((failed++))
         test_user_progress || ((failed++))
+        test_profile || ((failed++))
+        test_statistics || ((failed++))
+        test_recommended_lessons || ((failed++))
+        test_email_verification || ((failed++))
+        test_password_reset || ((failed++))
     else
         log_error "Skipping authenticated endpoints due to login failure"
         ((failed++))

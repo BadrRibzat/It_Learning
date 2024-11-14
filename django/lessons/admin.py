@@ -1,20 +1,16 @@
 from django.contrib import admin
-from django.utils.html import format_html
 from .models import (
-    Level, Lesson, Flashcard, Quiz, QuizQuestion, 
-    LevelTest, LevelTestQuestion, 
-    UserProgress, UserLevelProgress,
-    UserFlashcardProgress, UserQuizAttempt
+    Level, Lesson, Flashcard, Quiz, QuizQuestion,
+    LevelTest, LevelTestQuestion,
+    UserProgress, UserFlashcardProgress,
+    UserQuizAttempt, UserLevelTestProgress
 )
-from django.contrib.auth import get_user_model
-from django.db.models import Q
 
-User = get_user_model()
-
+@admin.register(Level)
 class LevelAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'level_order', 'lesson_count', 
-        'points_to_advance', 'difficulty_range'
+        'name', 'level_order', 'lesson_count',
+        'points_to_advance', 'difficulty'
     )
     search_fields = ('name',)
     ordering = ('level_order',)
@@ -23,15 +19,11 @@ class LevelAdmin(admin.ModelAdmin):
         return obj.lessons.count()
     lesson_count.short_description = 'Number of Lessons'
 
-    def difficulty_range(self, obj):
-        difficulties = set(obj.lessons.values_list('difficulty', flat=True))
-        return ', '.join(sorted(difficulties))
-    difficulty_range.short_description = 'Difficulties'
-
+@admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
     list_display = (
-        'title', 'level', 'difficulty', 
-        'flashcard_count', 'quiz_count', 
+        'title', 'level', 'difficulty',
+        'flashcard_count', 'quiz_count',
         'is_unlocked', 'points_to_complete'
     )
     list_filter = ('level', 'difficulty', 'is_unlocked')
@@ -46,37 +38,78 @@ class LessonAdmin(admin.ModelAdmin):
         return obj.quizzes.count()
     quiz_count.short_description = 'Quizzes'
 
+@admin.register(Flashcard)
+class FlashcardAdmin(admin.ModelAdmin):
+    list_display = ('word', 'lesson', 'definition', 'translation')
+    list_filter = ('lesson__level', 'lesson')
+    search_fields = ('word', 'definition', 'translation')
+
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    list_display = ('title', 'lesson', 'passing_score', 'question_count')
+    list_filter = ('lesson__level',)
+    search_fields = ('title',)
+
+    def question_count(self, obj):
+        return obj.questions.count()
+    question_count.short_description = 'Number of Questions'
+
+@admin.register(QuizQuestion)
+class QuizQuestionAdmin(admin.ModelAdmin):
+    list_display = ('question_text', 'quiz', 'correct_answer')
+    list_filter = ('quiz__lesson__level',)
+    search_fields = ('question_text',)
+
+@admin.register(LevelTest)
+class LevelTestAdmin(admin.ModelAdmin):
+    list_display = ('title', 'level', 'passing_score', 'question_count')
+    list_filter = ('level',)
+    search_fields = ('title',)
+
+    def question_count(self, obj):
+        return obj.questions.count()
+    question_count.short_description = 'Number of Questions'
+
+@admin.register(LevelTestQuestion)
+class LevelTestQuestionAdmin(admin.ModelAdmin):
+    list_display = ('question_text', 'level_test', 'correct_answer')
+    list_filter = ('level_test__level',)
+    search_fields = ('question_text',)
+
+@admin.register(UserProgress)
+class UserProgressAdmin(admin.ModelAdmin):
+    list_display = ('user', 'lesson', 'completed', 'score', 'completed_at')
+    list_filter = ('completed', 'lesson__level')
+    search_fields = ('user__username', 'lesson__title')
+
+@admin.register(UserFlashcardProgress)
 class UserFlashcardProgressAdmin(admin.ModelAdmin):
     list_display = (
-        'user', 'flashcard', 'is_completed', 
+        'user', 'flashcard', 'completed',
         'attempts', 'points_earned', 'last_attempt'
     )
-    list_filter = ('is_completed', 'flashcard__lesson__level')
+    list_filter = ('completed', 'flashcard__lesson__level')
     search_fields = ('user__username', 'flashcard__word')
 
+@admin.register(UserQuizAttempt)
 class UserQuizAttemptAdmin(admin.ModelAdmin):
     list_display = (
-        'user', 'quiz', 'total_score', 
+        'user', 'quiz', 'total_score',
         'is_passed', 'attempts', 'completed_at'
     )
     list_filter = ('is_passed', 'quiz__lesson__level')
     search_fields = ('user__username', 'quiz__title')
 
-class UserAdmin(admin.ModelAdmin):
-    actions = ['delete_test_users']
-
-    def delete_test_users(self, request, queryset):
-        # Filter and delete test users based on specific criteria
-        test_users = queryset.filter(
-            Q(email__startswith='testuser') | 
-            Q(username__startswith='testuser')
-        )
-        count = test_users.count()
-        test_users.delete()
-        self.message_user(request, f'{count} test users were deleted.')
-    delete_test_users.short_description = "Delete test users"
+@admin.register(UserLevelTestProgress)
+class UserLevelTestProgressAdmin(admin.ModelAdmin):
+    list_display = (
+        'user', 'level_test', 'is_passed',
+        'score', 'total_questions', 'completed_at'
+    )
+    list_filter = ('is_passed', 'level_test__level')
+    search_fields = ('user__username', 'level_test__level__name')
 
 # Custom Admin Site Configuration
-admin.site.site_header = 'Learn English Admin'
+admin.site.site_header = 'Learn English Platform Admin'
 admin.site.site_title = 'Learn English Platform'
 admin.site.index_title = 'Welcome to Learn English Admin Dashboard'

@@ -1,25 +1,27 @@
-from rest_framework.authentication import SessionAuthentication
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from django.utils import timezone
-import logging
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from django.db import transaction
+from django.utils import timezone
+from django.db.models import Q, Count
 
 from .models import (
     Level, Lesson, Flashcard, Quiz, QuizQuestion, 
-    UserProgress, LevelTest, LevelTestQuestion,
-    UserFlashcardProgress, UserQuizAttempt
+    LevelTest, LevelTestQuestion,
+    UserProgress, UserFlashcardProgress, 
+    UserQuizAttempt, UserLevelTestProgress
 )
 from .serializers import (
     LevelSerializer, LessonSerializer, FlashcardSerializer, 
-    QuizSerializer, UserProgressSerializer,
-    LevelTestSerializer
+    QuizSerializer, LevelTestSerializer,
+    UserProgressSerializer, UserFlashcardProgressSerializer,
+    QuizSubmissionSerializer, LevelTestSubmissionSerializer,
+    UserLearningProgressSerializer
 )
 
+import logging
 logger = logging.getLogger(__name__)
 
 class CustomPagination(PageNumberPagination):
@@ -27,348 +29,292 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 
-class LessonViewSet(viewsets.ModelViewSet):
-    authentication_classes = [JWTAuthentication, SessionAuthentication]
+class LevelViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Level.objects.all()
+    serializer_class = LevelSerializer
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Level.objects.all().order_by('level_order')
+
+    @action(detail=True, methods=['GET'])
+    def lessons(self, request, pk=None):
+        level = self.get_object()
+        lessons = Lesson.objects.filter(level=level)
+        serializer = LessonSerializer(lessons, many=True, context={'request': request})
+        return Response(serializer.data)
+
+class LessonViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        try:
-            user = self.request.user
-            # Ensure user has a valid level
-            current_level = max(1, getattr(user, 'level', 1))
-    
-            # Error logging and fallback
-            try:
-                # Explicitly select related to reduce database queries
-                queryset = Lesson.objects.filter(level__level_order__lte=current_level).select_related('level')
-            except Exception as db_error:
-                logger.error(f"Database query error: {db_error}")
-                # Fallback to all lessons if there's a database error
-                queryset = Lesson.objects.all()
-    
-            return queryset.order_by('id')
-        except Exception as e:
-            logger.error(f"Error retrieving lessons: {e}")
-            return Lesson.objects.none()
+        user = self.request.user
+        # Filter lessons based on user's current level and accessibility
+        return Lesson.objects.filter(
+            level__level_order__lte=user.level.level_order if user.level else 1
+        ).order_by('id')
 
-    def list(self, request, *args, **kwargs):
-        try:
-            queryset = self.filter_queryset(self.get_queryset())
-        
-            # Check if queryset is empty
-            if not queryset.exists():
-                return Response({
-                    'error': 'No lessons found',
-                    'details': 'Unable to retrieve lessons for the current user level'
-                }, status=status.HTTP_404_NOT_FOUND)
-        
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
+    @action(detail=True, methods=['GET'])
+    def flashcards(self, request, pk=None):
+        lesson = self.get_object()
+        flashcards = Flashcard.objects.filter(lesson=lesson).order_by('order')
+        serializer = FlashcardSerializer(flashcards, many=True)
+        return Response(serializer.data)
 
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        except Exception as e:
-            logger.error(f"Error in lesson list: {e}")
-            return Response({
-                'error': 'Unable to retrieve lessons',
-                'details': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    @action(detail=True, methods=['GET'])
+    def quizzes(self, request, pk=None):
+        lesson = self.get_object()
+        quizzes = Quiz.objects.filter(lesson=lesson)
+        serializer = QuizSerializer(quizzes, many=True)
+        return Response(serializer.data)
 
-    @action(detail=True, methods=['POST'])
-    def submit_quiz(self, request, pk=None):
-        try:
-            quiz = Quiz.objects.get(lesson_id=pk)
-            answers = request.data.get('answers', [])
-            
-            total_questions = quiz.questions.count()
-            correct_answers = 0
-
-            for answer_data in answers:
-                question = QuizQuestion.objects.get(id=answer_data['question_id'])
-                if answer_data['answer'] == question.correct_answer:
-                    correct_answers += 1
-
-            score = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
-
-            # Update user progress
-            user_progress, created = UserProgress.objects.get_or_create(
-                user=request.user, 
-                lesson_id=pk
-            )
-            user_progress.score = score
-            user_progress.total_questions = total_questions
-            user_progress.completed = score >= quiz.passing_score
-            user_progress.completed_at = timezone.now()
-            user_progress.save()
-
-            return Response({
-                'score': score,
-                'passed': user_progress.completed,
-                'total_questions': total_questions,
-                'correct_answers': correct_answers
-            })
-        except Quiz.DoesNotExist:
-            logger.error(f"Quiz not found for lesson {pk}")
-            return Response({
-                'error': 'Quiz not found'
-            }, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            logger.error(f"Error submitting quiz: {e}")
-            return Response({
-                'error': 'An unexpected error occurred while submitting the quiz'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-class FlashcardViewSet(viewsets.ModelViewSet):
-    authentication_classes = [JWTAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+class FlashcardViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Flashcard.objects.all()
     serializer_class = FlashcardSerializer
-    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        lesson_id = self.request.query_params.get('lesson_id', '')
-        if lesson_id:
-            try:
-                lesson_id = int(lesson_id)
-                return Flashcard.objects.filter(lesson_id=lesson_id)
-            except (ValueError, TypeError):
-                logger.warning(f"Invalid lesson_id provided: {lesson_id}")
-                return Flashcard.objects.none()
-    
-        # If no lesson_id, limit to current user's level
-        try:
-            user = self.request.user
-            current_level = max(1, getattr(user, 'level', 1))
-            return Flashcard.objects.filter(lesson__level__level_order__lte=current_level)
-        except Exception as e:
-            logger.error(f"Error retrieving flashcards: {e}")
-            return Flashcard.objects.none()
-
-    @action(detail=True, methods=['POST'], url_path='check-answer')
+    @action(detail=True, methods=['POST'])
     def check_answer(self, request, pk=None):
         try:
             flashcard = self.get_object()
-            if not flashcard:
-                return Response({
-                    'error': 'Flashcard not found'
-                }, status=status.HTTP_404_NOT_FOUND)
+            user = request.user
+            answer = request.data.get('answer', '').strip()
 
-            user_answer = request.data.get('answer', '').strip()
-            if not user_answer:
-                return Response({
-                    'error': 'Answer cannot be empty'
-                }, status=status.HTTP_400_BAD_REQUEST)
+            # Check if answer is correct
+            is_correct = answer.lower() == flashcard.word.lower()
 
-            is_correct = user_answer.lower() == flashcard.word.lower()
-            
+            # Create or update user flashcard progress
+            with transaction.atomic():
+                progress, created = UserFlashcardProgress.objects.get_or_create(
+                    user=user,
+                    flashcard=flashcard
+                )
+
+                # Update progress
+                progress.attempts += 1
+                progress.last_attempt = timezone.now()
+                
+                if is_correct:
+                    progress.completed = True
+                    progress.points_earned += 10  # Configurable points
+                
+                progress.save()
+
+                # Update lesson progress if all flashcards are completed
+                lesson_flashcards = Flashcard.objects.filter(lesson=flashcard.lesson)
+                completed_flashcards = UserFlashcardProgress.objects.filter(
+                    user=user,
+                    flashcard__in=lesson_flashcards,
+                    completed=True
+                )
+
+                if completed_flashcards.count() == lesson_flashcards.count():
+                    UserProgress.objects.update_or_create(
+                        user=user,
+                        lesson=flashcard.lesson,
+                        defaults={
+                            'completed': True,
+                            'completed_at': timezone.now()
+                        }
+                    )
+
             return Response({
                 'is_correct': is_correct,
-                'correct_answer': flashcard.word
+                'correct_answer': flashcard.word,
+                'points_earned': progress.points_earned
             })
+
         except Exception as e:
+            logger.error(f"Flashcard answer check error: {e}")
             return Response({
-                'error': str(e)
+                'error': 'An error occurred while processing your answer'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class QuizViewSet(viewsets.ModelViewSet):
-    authentication_classes = [JWTAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+class QuizViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
-    
-    def get_queryset(self):
-        lesson_id = self.kwargs.get('pk')
-        return Quiz.objects.filter(lesson_id=lesson_id)
+    permission_classes = [IsAuthenticated]
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-    @action(detail=True, methods=['POST'], url_path='submit')
-    def submit_quiz(self, request, pk=None):
+    @action(detail=True, methods=['POST'])
+    def submit(self, request, pk=None):
         try:
             quiz = self.get_object()
             user = request.user
-            answers = request.data.get('answers', [])
             
-            total_questions = quiz.questions.count()
+            # Validate submission
+            serializer = QuizSubmissionSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            # Process quiz submission
+            answers = serializer.validated_data['answers']
+            total_questions = quiz.total_questions
             correct_answers = 0
-            detailed_results = []
 
             with transaction.atomic():
-                # Track quiz attempt
-                quiz_attempt, created = UserQuizAttempt.objects.get_or_create(
+                # Validate all flashcards are completed
+                lesson_flashcards = Flashcard.objects.filter(lesson=quiz.lesson)
+                completed_flashcards = UserFlashcardProgress.objects.filter(
                     user=user,
-                    quiz=quiz
+                    flashcard__in=lesson_flashcards,
+                    completed=True
                 )
-                quiz_attempt.attempts += 1
-                
-                # Process each question
+
+                if completed_flashcards.count() != lesson_flashcards.count():
+                    return Response({
+                        'error': 'Complete all flashcards before taking the quiz'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                # Check answers
                 for answer_data in answers:
-                    question_id = answer_data.get('question_id')
-                    user_answer = answer_data.get('answer')
-                    
-                    try:
-                        question = QuizQuestion.objects.get(id=question_id, quiz=quiz)
-                        is_correct = user_answer == question.correct_answer
-                        
-                        if is_correct:
-                            correct_answers += 1
-                        
-                        detailed_results.append({
-                            'question_id': question_id,
-                            'is_correct': is_correct,
-                            'correct_answer': question.correct_answer
-                        })
-                    except QuizQuestion.DoesNotExist:
-                        logger.warning(f"Question {question_id} not found")
-                
+                    question = QuizQuestion.objects.get(id=answer_data['flashcard_id'])
+                    if answer_data['answer'].lower() == question.correct_answer.lower():
+                        correct_answers += 1
+
                 # Calculate score
                 score = (correct_answers / total_questions) * 100
                 is_passed = score >= quiz.passing_score
-                
+
                 # Update quiz attempt
+                quiz_attempt, _ = UserQuizAttempt.objects.get_or_create(
+                    user=user,
+                    quiz=quiz
+                )
                 quiz_attempt.total_score = score
                 quiz_attempt.is_passed = is_passed
+                quiz_attempt.attempts += 1
                 quiz_attempt.completed_at = timezone.now()
                 quiz_attempt.save()
-                
-                # Update user points if quiz is passed
-                if is_passed:
-                    user.points += quiz.lesson.points_to_complete
-                    user.save()
+
+                # Update lesson progress
+                UserProgress.objects.update_or_create(
+                    user=user,
+                    lesson=quiz.lesson,
+                    defaults={
+                        'completed': is_passed,
+                        'score': score,
+                        'total_questions': total_questions,
+                        'correct_answers': correct_answers,
+                        'completed_at': timezone.now() if is_passed else None
+                    }
+                )
 
             return Response({
                 'score': score,
                 'is_passed': is_passed,
                 'total_questions': total_questions,
-                'correct_answers': correct_answers,
-                'detailed_results': detailed_results,
-                'attempts_left': max(0, quiz.max_attempts - quiz_attempt.attempts),
-                'total_points': user.points
+                'correct_answers': correct_answers
             })
 
         except Exception as e:
             logger.error(f"Quiz submission error: {e}")
             return Response({
-                'error': 'An unexpected error occurred during quiz submission',
-                'details': str(e)
+                'error': 'An error occurred while submitting the quiz'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class LevelTestViewSet(viewsets.ModelViewSet):
-    authentication_classes = [JWTAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+class LevelTestViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = LevelTest.objects.all()
     serializer_class = LevelTestSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        try:
-            user = self.request.user
-            current_level = max(1, getattr(user, 'level', 1))
-            return LevelTest.objects.filter(level__level_order__lte=current_level)
-        except Exception as e:
-            logger.error(f"Error retrieving level tests: {e}")
-            return LevelTest.objects.none()
+        user = self.request.user
+        # Filter level tests based on user's current level
+        return LevelTest.objects.filter(
+            level__level_order__lte=user.level.level_order if user.level else 1
+        )
 
-    @action(detail=True, methods=['GET'], url_path='get-test')
-    def get_test(self, request, pk=None):
-        try:
-            level_test = self.get_object()
-            serializer = self.get_serializer(level_test)
-            return Response(serializer.data)
-        except Exception as e:
-            logger.error(f"Error getting level test: {e}")
-            return Response({
-                'error': 'Unable to retrieve level test',
-                'details': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    @action(detail=True, methods=['GET'])
+    def questions(self, request, pk=None):
+        level_test = self.get_object()
+        questions = LevelTestQuestion.objects.filter(level_test=level_test).order_by('order')
+        serializer = LevelTestQuestionSerializer(questions, many=True)
+        return Response(serializer.data)
 
-    @action(detail=True, methods=['POST'], url_path='submit')
-    def submit_test(self, request, pk=None):
+    @action(detail=True, methods=['POST'])
+    def submit(self, request, pk=None):
         try:
             level_test = self.get_object()
             user = request.user
-            answers = request.data.get('answers', [])
 
-            total_questions = level_test.questions.count()
+            # Validate submission
+            serializer = LevelTestSubmissionSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            # Process level test submission
+            answers = serializer.validated_data['answers']
+            total_questions = level_test.total_questions
             correct_answers = 0
-            detailed_results = []
 
             with transaction.atomic():
-                # Process each question
+                # Check answers
                 for answer_data in answers:
-                    question_id = answer_data.get('question_id')
-                    user_answer = answer_data.get('answer')
-
-                    try:
-                        question = LevelTestQuestion.objects.get(id=question_id, level_test=level_test)
-                        is_correct = user_answer == question.correct_answer
-
-                        if is_correct:
-                            correct_answers += 1
-
-                        detailed_results.append({
-                            'question_id': question_id,
-                            'is_correct': is_correct,
-                            'correct_answer': question.correct_answer
-                        })
-                    except LevelTestQuestion.DoesNotExist:
-                        logger.warning(f"Question {question_id} not found")
+                    question = LevelTestQuestion.objects.get(id=answer_data['question_id'])
+                    if answer_data['answer'].lower() == question.correct_answer.lower():
+                        correct_answers += 1
 
                 # Calculate score
-                score = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
+                score = (correct_answers / total_questions) * 100
                 is_passed = score >= level_test.passing_score
 
-                # Update user level if test is passed
-                if is_passed:
-                    next_level = Level.objects.filter(level_order=level_test.level.level_order + 1).first()
-                    if next_level:
-                        user.level = next_level
-                        user.save()
+                # Update level test progress
+                level_test_progress, _ = UserLevelTestProgress.objects.get_or_create(
+                    user=user,
+                    level_test=level_test
+                )
+                level_test_progress.is_passed = is_passed
+                level_test_progress.score = score
+                level_test_progress.total_questions = total_questions
+                level_test_progress.completed_at = timezone.now()
+                level_test_progress.save()
+
+                # If test is passed, potentially unlock next level
+                if is_passed and level_test.level.next_level:
+                    user.level = level_test.level.next_level
+                    user.save()
 
                 return Response({
                     'score': score,
                     'is_passed': is_passed,
                     'total_questions': total_questions,
                     'correct_answers': correct_answers,
-                    'detailed_results': detailed_results,
-                    'next_level': next_level.name if next_level else None
+                    'next_level': level_test.level.next_level.name if is_passed and level_test.level.next_level else None
                 })
 
         except Exception as e:
-            logger.error(f"Level test submission error: {e}")
+            logger.error(f"Level Test submission error: {e}")
             return Response({
-                'error': 'An unexpected error occurred during level test submission',
-                'details': str(e)
+                'error': 'An error occurred while submitting the level test'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class UserProgressViewSet(viewsets.ViewSet):
-    authentication_classes = [JWTAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['GET'])
-    def progress(self, request):
+    def learning_progress(self, request):
         try:
             user = request.user
 
-            # Aggregate user progress
+            # Aggregate learning progress
             completed_lessons = UserProgress.objects.filter(user=user, completed=True).count()
             total_lessons = Lesson.objects.count()
 
-            # Calculate quiz performance
-            # Use safe method to avoid potential None errors
-            quiz_attempts = UserQuizAttempt.objects.filter(user=user)
-            passed_quizzes = quiz_attempts.filter(is_passed=True).count() if quiz_attempts.exists() else 0
-            total_quizzes = quiz_attempts.count() if quiz_attempts.exists() else 0
+            # Quiz performance
+            passed_quizzes = UserQuizAttempt.objects.filter(user=user, is_passed=True).count()
+            total_quizzes = UserQuizAttempt.objects.filter(user=user).count()
 
             # Flashcard progress
-            completed_flashcards = UserFlashcardProgress.objects.filter(user=user, is_completed=True).count()
+            completed_flashcards = UserFlashcardProgress.objects.filter(user=user, completed=True).count()
             total_flashcards = Flashcard.objects.count()
 
-            return Response({
+            progress_data = {
                 'level': user.level.id if user.level else None,
                 'level_name': user.level.name if user.level else 'Beginner',
                 'points': user.points,
@@ -381,10 +327,144 @@ class UserProgressViewSet(viewsets.ViewSet):
                 'completed_flashcards': completed_flashcards,
                 'total_flashcards': total_flashcards,
                 'flashcard_progress_percentage': (completed_flashcards / total_flashcards * 100) if total_flashcards > 0 else 0
-            })
+            }
+
+            serializer = UserLearningProgressSerializer(data=progress_data)
+            serializer.is_valid(raise_exception=True)
+
+            return Response(serializer.data)
+
         except Exception as e:
-            logger.error(f"Error retrieving user progress: {e}")
+            logger.error(f"Learning progress error: {e}")
             return Response({
-                'error': 'Unable to retrieve user progress',
-                'details': str(e)
+                'error': 'An error occurred while retrieving learning progress'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['GET'])
+    def detailed_progress(self, request):
+        # Provide more comprehensive progress details
+        # Similar to learning_progress, but with more granular information
+        pass
+
+    @action(detail=False, methods=['GET'])
+    def completed_lessons(self, request):
+        completed = UserProgress.objects.filter(
+            user=request.user, 
+            completed=True
+        ).select_related('lesson')
+        serializer = UserProgressSerializer(completed, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def current_level_details(self, request):
+        user = request.user
+        if not user.level:
+            return Response({
+                'error': 'No current level found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = LevelSerializer(user.level, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def recommended_lessons(self, request):
+        user = request.user
+        
+        # Find lessons in the user's current level that are not completed
+        recommended = Lesson.objects.filter(
+            level=user.level
+        ).exclude(
+            userprogress__user=user,
+            userprogress__completed=True
+        )
+        
+        serializer = LessonSerializer(
+            recommended, 
+            many=True, 
+            context={'request': request}
+        )
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def learning_metrics(self, request):
+        # Provide advanced learning metrics
+        # Could include things like:
+        # - Time spent learning
+        # - Streak information
+        # - Comparative progress
+        pass
+
+    @action(detail=False, methods=['GET'])
+    def level_test_history(self, request):
+        """
+        Retrieve user's level test history
+        """
+        try:
+            user = request.user
+            level_test_history = UserLevelTestProgress.objects.filter(user=user).select_related('level_test__level')
+            
+            history_data = []
+            for attempt in level_test_history:
+                history_data.append({
+                    'level_name': attempt.level_test.level.name,
+                    'score': attempt.score,
+                    'is_passed': attempt.is_passed,
+                    'completed_at': attempt.completed_at,
+                    'total_questions': attempt.total_questions
+                })
+
+            return Response(history_data)
+
+        except Exception as e:
+            logger.error(f"Level test history retrieval error: {e}")
+            return Response({
+                'error': 'An error occurred while retrieving level test history'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['GET'])
+    def comprehensive_learning_report(self, request):
+        """
+        Generate a comprehensive learning report
+        """
+        try:
+            user = request.user
+
+            # Detailed learning metrics
+            report = {
+                'overall_progress': self.learning_progress(request).data,
+                'lessons': {
+                    'completed': self.completed_lessons(request).data,
+                    'recommended': self.recommended_lessons(request).data
+                },
+                'level_tests': {
+                    'history': self.level_test_history(request).data,
+                    'current_level': self.current_level_details(request).data
+                },
+                'performance_metrics': {
+                    'total_time_spent': self.calculate_learning_time(user),
+                    'learning_streak': self.calculate_learning_streak(user)
+                }
+            }
+
+            return Response(report)
+
+        except Exception as e:
+            logger.error(f"Comprehensive learning report error: {e}")
+            return Response({
+                'error': 'An error occurred while generating learning report'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def calculate_learning_time(self, user):
+        """
+        Calculate total learning time
+        """
+        # Implement logic to track and calculate learning time
+        # This could involve creating a separate model to track learning sessions
+        return 0  # Placeholder
+
+    def calculate_learning_streak(self, user):
+        """
+        Calculate user's learning streak
+        """
+        # Implement logic to calculate consecutive learning days
+        return 0  # Placeholder

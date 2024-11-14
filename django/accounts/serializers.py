@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from lessons.models import UserProgress, Flashcard
+from lessons.models import UserProgress, Flashcard, UserFlashcardProgress, UserQuizAttempt
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
