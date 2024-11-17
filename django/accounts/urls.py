@@ -2,9 +2,9 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
-    UserRegistrationView, 
-    LoginView, 
-    LogoutView, 
+    UserRegistrationView,
+    LoginView,
+    LogoutView,
     ProfileView,
     UserStatisticsView,
     UploadProfilePictureView,
@@ -15,7 +15,8 @@ from .views import (
     EmailVerificationView,
     ResendVerificationEmailView,
     PasswordResetRequestView,
-    PasswordResetConfirmView
+    PasswordResetConfirmView,
+    MultiFactorAuthView
 )
 
 router = DefaultRouter()
@@ -23,6 +24,7 @@ router.register(r'notes', NoteViewSet, basename='note')
 
 urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='register'),
+    path('mfa/setup/', MultiFactorAuthView.as_view(), name='mfa-setup'),
     path('login/', LoginView.as_view(), name='token_obtain_pair'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

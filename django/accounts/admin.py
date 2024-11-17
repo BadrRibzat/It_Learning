@@ -24,15 +24,16 @@ class UserAdmin(BaseUserAdmin):
         count = test_users.count()
         test_users.delete()
         self.message_user(request, f'{count} test users were deleted.')
+
     delete_test_users.short_description = "Delete test users"
 
     def reset_user_progress(self, request, queryset):
         for user in queryset:
             user.reset_progress()
         self.message_user(request, f'{queryset.count()} users\' progress reset.')
+
     reset_user_progress.short_description = "Reset selected users' learning progress"
 
-    # Extend the base UserAdmin with your custom fields and display
     list_display = BaseUserAdmin.list_display + (
         'points', 'level_display', 'language', 'date_joined'
     )
@@ -59,15 +60,10 @@ class ProfilePictureAdmin(admin.ModelAdmin):
     def image_preview(self, obj):
         if obj.image:
             return format_html(
-                f'<img src="{obj.image.url}" '
-                'style="max-height: 100px; max-width: 100px; border-radius: 50%;" />'
+                f'<img src="{obj.image.url}" style="max-height: 100px; max-width: 100px; border-radius: 50%;" />'
             )
         return 'No Image'
     image_preview.short_description = 'Profile Picture'
-
-    def uploaded_at(self, obj):
-        return obj.uploaded_at.strftime('%Y-%m-%d %H:%M') if obj.uploaded_at else 'N/A'
-    uploaded_at.short_description = 'Uploaded Date'
 
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
@@ -105,7 +101,7 @@ class PasswordResetTokenAdmin(admin.ModelAdmin):
     is_valid.boolean = True
     is_valid.short_description = 'Valid'
 
-# Customize the admin site
-admin.site.site_header = 'Learn English Admin'
+# Custom Admin Site Configuration
+admin.site.site_header = 'Learn English Platform Admin'
 admin.site.site_title = 'Learn English Platform'
 admin.site.index_title = 'Welcome to Learn English Admin Dashboard'

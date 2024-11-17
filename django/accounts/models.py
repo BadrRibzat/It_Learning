@@ -5,8 +5,9 @@ from django.utils.translation import gettext_lazy as _
 import uuid
 from django.utils import timezone
 from datetime import timedelta
+import pyotp
+from django.conf import settings
 
-# Define language choices
 LANGUAGE_CHOICES = [
     ('en', _('English')),
     ('ar', _('Arabic')),
@@ -15,11 +16,28 @@ LANGUAGE_CHOICES = [
     ('de', _('German')),
 ]
 
+class MultiFactorAuthentication(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    secret_key = models.CharField(max_length=32, unique=True)
+    is_enabled = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def generate_secret(self):
+        self.secret_key = pyotp.random_base32()
+        self.save()
+        return self.secret_key
+
+    def verify_token(self, token):
+        totp = pyotp.TOTP(self.secret_key)
+        return totp.verify(token)
+
+    def get_provisioning_uri(self, username=None):
+        totp = pyotp.TOTP(self.secret_key)
+        return totp.provisioning_uri(name=username or self.user.email, issuer_name='LearnEnglishPlatform')
+
 class User(AbstractUser):
-    # Custom username validator
     username_validator = UnicodeUsernameValidator()
 
-    # Override username field to use custom validator
     username = models.CharField(
         _('username'),
         max_length=150,
@@ -31,7 +49,6 @@ class User(AbstractUser):
         },
     )
 
-    # Email field with uniqueness constraint
     email = models.EmailField(
         _('email address'),
         unique=True,
@@ -40,62 +57,54 @@ class User(AbstractUser):
         }
     )
 
-    # Enhanced profile fields
     bio = models.TextField(
         _('bio'),
-        blank=True, 
-        null=True, 
+        blank=True,
+        null=True,
         max_length=500,
         validators=[
             MaxLengthValidator(500, message=_("Bio cannot exceed 500 characters")),
         ]
     )
 
-    # Date of Birth
-    date_of_birth = models.DateField(
-        _('date of birth'),
-        null=True, 
-        blank=True
-    )
+    date_of_birth = models.DateField(_('date of birth'), null=True, blank=True)
 
-    # Language preference
-    language = models.CharField(
-        _('language'),
-        max_length=10, 
-        choices=LANGUAGE_CHOICES, 
-        default='en'
-    )
+    language = models.CharField(_('language'), max_length=10, choices=LANGUAGE_CHOICES, default='en')
 
-    # Learning progress tracking
     points = models.PositiveIntegerField(default=0)
     level = models.ForeignKey('lessons.Level', on_delete=models.SET_NULL, null=True, default=None)
-    
-    # Account verification
+
     is_verified = models.BooleanField(default=False)
 
-    # Social authentication fields
-    google_id = models.CharField(max_length=255, blank=True, null=True)
-    facebook_id = models.CharField(max_length=255, blank=True, null=True)
-
-    # Set email as the unique identifier for authentication
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+
+    def calculate_language_proficiency(self):
+        total_lessons = Lesson.objects.count()
+        completed_lessons = UserProgress.objects.filter(user=self, completed=True).count()
+        quiz_performance = UserQuizAttempt.objects.filter(user=self, is_passed=True).aggregate(avg_score=models.Avg('total_score'))['avg_score'] or 0
+        flashcard_performance = UserFlashcardProgress.objects.filter(user=self, is_completed=True).count() / Flashcard.objects.count()
+
+        proficiency = (
+            0.4 * (completed_lessons / total_lessons) +
+            0.3 * (quiz_performance / 100) +
+            0.3 * flashcard_performance
+        )
+
+        return min(1.0, max(0.1, proficiency))
 
     def __str__(self):
         return f"{self.username} - Level {self.level}"
 
     def update_points(self, points):
-        """Update user's total points"""
         self.points += points
         self.save()
 
     def update_level(self, new_level):
-        """Update user's current learning level"""
         self.level = new_level
         self.save()
 
     def reset_progress(self):
-        """Reset user's learning progress"""
         from django.apps import apps
 
         UserProgress = apps.get_model('lessons', 'UserProgress')
@@ -110,7 +119,6 @@ class User(AbstractUser):
         self.save()
 
     def get_recommended_lessons(self):
-        """Get recommended lessons based on user's current level"""
         from lessons.models import Lesson, Level, UserProgress
         completed_lessons = UserProgress.objects.filter(user=self, completed=True).values_list('lesson_id', flat=True)
         current_level = Level.objects.get(level_order=self.level)
@@ -122,34 +130,41 @@ class User(AbstractUser):
         verbose_name_plural = _('Users')
         ordering = ['-date_joined']
 
+    def can_access_level(self, level):
+        """
+        Check if user can access a specific level based on level test progress
+        """
+        if level.level_order == 1:
+            return True
+
+        previous_level = Level.objects.filter(level_order=level.level_order - 1).first()
+
+        if previous_level:
+            level_test_progress = UserLevelTestProgress.objects.filter(
+                user=self,
+                level_test__level=previous_level,
+                is_passed=True,
+                score__gte=80
+            ).exists()
+
+            return level_test_progress
+
+        return False
+
     def calculate_level_progress(self):
-        """
-        Calculate user's progress towards next level
-        """
         from django.apps import apps
 
         Level = apps.get_model('lessons', 'Level')
         UserFlashcardProgress = apps.get_model('lessons', 'UserFlashcardProgress')
         UserQuizAttempt = apps.get_model('lessons', 'UserQuizAttempt')
 
-        # Get current level
         try:
             current_level = Level.objects.get(level_order=self.level)
         except Level.DoesNotExist:
-            # Default to first level if not found
             current_level = Level.objects.first()
 
-        # Calculate total points from completed flashcards and quizzes
-        flashcard_points = UserFlashcardProgress.objects.filter(
-            user=self,
-            is_completed=True
-        ).aggregate(total_points=models.Sum('points_earned'))['total_points'] or 0
-
-        quiz_points = UserQuizAttempt.objects.filter(
-            user=self,
-            is_passed=True
-        ).aggregate(total_points=models.Sum('total_score'))['total_points'] or 0
-
+        flashcard_points = UserFlashcardProgress.objects.filter(user=self, is_completed=True).aggregate(total_points=models.Sum('points_earned'))['total_points'] or 0
+        quiz_points = UserQuizAttempt.objects.filter(user=self, is_passed=True).aggregate(total_points=models.Sum('total_score'))['total_points'] or 0
         total_points = flashcard_points + quiz_points
 
         return {
@@ -159,9 +174,6 @@ class User(AbstractUser):
         }
 
     def can_take_level_test(self):
-        """
-        Determine if user can take the next level test
-        """
         return self.calculate_level_progress()['progress_percentage'] >= 80
 
 class EmailVerificationToken(models.Model):
@@ -174,7 +186,6 @@ class EmailVerificationToken(models.Model):
         return timezone.now() <= self.expires_at
 
     def save(self, *args, **kwargs):
-        # Set expiration to 24 hours from creation
         if not self.expires_at:
             self.expires_at = timezone.now() + timedelta(hours=24)
         super().save(*args, **kwargs)
@@ -208,10 +219,11 @@ class Note(models.Model):
         ('vocabulary', 'Vocabulary'),
         ('grammar', 'Grammar')
     ]
+    note_type = models.CharField(max_length=20, choices=NOTE_TYPES)
 
     user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='notes')
     title = models.CharField(
-        max_length=100, 
+        max_length=100,
         validators=[
             MinLengthValidator(3, message="Title must be at least 3 characters long"),
             MaxLengthValidator(100, message="Title cannot exceed 100 characters")
@@ -224,8 +236,8 @@ class Note(models.Model):
         ]
     )
     note_type = models.CharField(
-        max_length=50, 
-        choices=NOTE_TYPES, 
+        max_length=50,
+        choices=NOTE_TYPES,
         default='general'
     )
     created_at = models.DateTimeField(auto_now_add=True)
