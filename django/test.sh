@@ -61,6 +61,10 @@ test_endpoint() {
         echo -e "${GREEN}Success (Status $http_status):${NC}"
         echo "$response" | python3 -m json.tool
         log "Success: $description - Status $http_status"
+    elif [[ "$http_status" == "302" ]]; then
+        echo -e "${GREEN}Redirect (Status $http_status):${NC}"
+        echo "$response"
+        log "Redirect: $description - Status $http_status"
     else
         echo -e "${RED}Failed (Status $http_status):${NC}"
         echo "$response"
@@ -281,72 +285,102 @@ test_endpoint "GET" "/accounts/reset-progress-details/" "" "Reset Progress Detai
 echo -e "\n${BLUE}13. Testing Delete Profile Picture${NC}"
 test_endpoint "DELETE" "/accounts/delete-profile-picture/" "" "Delete Profile Picture" "$ACCESS_TOKEN"
 
-# 16. Test Intermediate Level Test Submission
-echo -e "\n${BLUE}16. Testing Intermediate Level Test Submission${NC}"
-intermediate_level_test_data='{
-    "answers": [
-        {"question_id": 51, "answer": "Correct Answer 1"},
-        {"question_id": 52, "answer": "Correct Answer 2"},
-        {"question_id": 53, "answer": "Correct Answer 3"},
-        {"question_id": 54, "answer": "Correct Answer 4"},
-        {"question_id": 55, "answer": "Correct Answer 5"},
-        {"question_id": 56, "answer": "Correct Answer 6"},
-        {"question_id": 57, "answer": "Correct Answer 7"},
-        {"question_id": 58, "answer": "Correct Answer 8"},
-        {"question_id": 59, "answer": "Correct Answer 9"},
-        {"question_id": 60, "answer": "Correct Answer 10"}
-    ]
-}'
-test_endpoint "POST" "/lessons/levels/2/submit-test/" "$intermediate_level_test_data" "Intermediate Level Test Submission" "$ACCESS_TOKEN"
+# 17. Test Levels
+echo -e "\n${BLUE}14. Testing Levels${NC}"
+test_endpoint "GET" "/lessons/levels/" "" "Levels" "$ACCESS_TOKEN"
 
-# 17. Test Advanced Level Test Submission
-echo -e "\n${BLUE}17. Testing Advanced Level Test Submission${NC}"
-advanced_level_test_data='{
-    "answers": [
-        {"question_id": 61, "answer": "Correct Answer 1"},
-        {"question_id": 62, "answer": "Correct Answer 2"},
-        {"question_id": 63, "answer": "Correct Answer 3"},
-        {"question_id": 64, "answer": "Correct Answer 4"},
-        {"question_id": 65, "answer": "Correct Answer 5"},
-        {"question_id": 66, "answer": "Correct Answer 6"},
-        {"question_id": 67, "answer": "Correct Answer 7"},
-        {"question_id": 68, "answer": "Correct Answer 8"},
-        {"question_id": 69, "answer": "Correct Answer 9"},
-        {"question_id": 70, "answer": "Correct Answer 10"}
-    ]
-}'
-test_endpoint "POST" "/lessons/levels/3/submit-test/" "$advanced_level_test_data" "Advanced Level Test Submission" "$ACCESS_TOKEN"
+# 18. Test Access to Beginner Level
+echo -e "\n${BLUE}15. Testing Access to Beginner Level${NC}"
+test_endpoint "GET" "/lessons/levels/1/access/" "" "Access to Beginner Level" "$ACCESS_TOKEN"
 
-# 18. Test Lessons Accessibility After Level Tests
-echo -e "\n${BLUE}18. Testing Lessons Accessibility${NC}"
-test_endpoint "GET" "/lessons/lessons/" "" "Lessons Accessibility After Level Tests" "$ACCESS_TOKEN"
+# 19. Test Access to Intermediate Level (should redirect to level test)
+echo -e "\n${BLUE}16. Testing Access to Intermediate Level${NC}"
+test_endpoint "GET" "/lessons/levels/2/access/" "" "Access to Intermediate Level" "$ACCESS_TOKEN"
 
-# 19. Test Lessons
-echo -e "\n${BLUE}15. Testing Lessons${NC}"
+# 20. Test Access to Advanced Level (should redirect to level test)
+echo -e "\n${BLUE}17. Testing Access to Advanced Level${NC}"
+test_endpoint "GET" "/lessons/levels/3/access/" "" "Access to Advanced Level" "$ACCESS_TOKEN"
+
+# 21. Test Lessons
+echo -e "\n${BLUE}18. Testing Lessons${NC}"
 test_endpoint "GET" "/lessons/lessons/" "" "Lessons" "$ACCESS_TOKEN"
 
-# 20. Test Flashcards
-echo -e "\n${BLUE}16. Testing Flashcards${NC}"
+# 22. Test Flashcards
+echo -e "\n${BLUE}19. Testing Flashcards${NC}"
 test_endpoint "GET" "/lessons/flashcards/" "" "Flashcards" "$ACCESS_TOKEN"
 
-# 21. Test Quizzes
-echo -e "\n${BLUE}17. Testing Quizzes${NC}"
+# 23. Test Quizzes
+echo -e "\n${BLUE}20. Testing Quizzes${NC}"
 test_endpoint "GET" "/lessons/quizzes/" "" "Quizzes" "$ACCESS_TOKEN"
 
-# 22. Test User Progress
-echo -e "\n${BLUE}18. Testing User Progress${NC}"
+# 24. Test User Progress
+echo -e "\n${BLUE}21. Testing User Progress${NC}"
 test_endpoint "GET" "/lessons/progress/learning_progress/" "" "User Progress" "$ACCESS_TOKEN"
 
-# 23. Test Learning Metrics
-echo -e "\n${BLUE}19. Testing Learning Metrics${NC}"
+# 25. Test Learning Metrics
+echo -e "\n${BLUE}22. Testing Learning Metrics${NC}"
 test_endpoint "GET" "/lessons/progress/learning-metrics/" "" "Learning Metrics" "$ACCESS_TOKEN"
 
-# 24. Test Comprehensive Learning Report
-echo -e "\n${BLUE}20. Testing Comprehensive Learning Report${NC}"
+# 26. Test Comprehensive Learning Report
+echo -e "\n${BLUE}23. Testing Comprehensive Learning Report${NC}"
 test_endpoint "GET" "/lessons/progress/comprehensive-learning-report/" "" "Comprehensive Learning Report" "$ACCESS_TOKEN"
 
-# 25. Test Logout
-echo -e "\n${BLUE}21. Testing Logout${NC}"
+# 27. Test Submit Intermediate Level Test
+echo -e "\n${BLUE}24. Testing Submit Intermediate Level Test${NC}"
+intermediate_level_test_id=$(curl -s -X GET \
+    -H "Authorization: Bearer $ACCESS_TOKEN" \
+    "${BASE_URL}/lessons/levels/2/tests/" | python3 -c "import sys, json; print(json.load(sys.stdin)[0]['id'])")
+
+if [ -n "$intermediate_level_test_id" ]; then
+    echo -e "${GREEN}Intermediate Level Test ID Found: $intermediate_level_test_id${NC}"
+    intermediate_test_answers=$(curl -s -X GET \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
+        "${BASE_URL}/lessons/tests/${intermediate_level_test_id}/questions/" | python3 -c "import sys, json; print(json.dumps([{ 'question_id': q['id'], 'answer': q['correct_answer'] } for q in json.load(sys.stdin)]))")
+
+    submit_intermediate_test_data="{
+        \"answers\": $intermediate_test_answers
+    }"
+    test_endpoint "POST" "/lessons/tests/${intermediate_level_test_id}/submit/" "$submit_intermediate_test_data" "Submit Intermediate Level Test" "$ACCESS_TOKEN"
+else
+    echo -e "${RED}Intermediate Level Test ID Not Found${NC}"
+    exit 1
+fi
+
+# 28. Test Access to Intermediate Level After Passing Test
+echo -e "\n${BLUE}25. Testing Access to Intermediate Level After Passing Test${NC}"
+test_endpoint "GET" "/lessons/levels/2/access/" "" "Access to Intermediate Level After Passing Test" "$ACCESS_TOKEN"
+
+# 29. Test Submit Advanced Level Test
+echo -e "\n${BLUE}26. Testing Submit Advanced Level Test${NC}"
+advanced_level_test_id=$(curl -s -X GET \
+    -H "Authorization: Bearer $ACCESS_TOKEN" \
+    "${BASE_URL}/lessons/levels/3/tests/" | python3 -c "import sys, json; print(json.load(sys.stdin)[0]['id'])")
+
+if [ -n "$advanced_level_test_id" ]; then
+    echo -e "${GREEN}Advanced Level Test ID Found: $advanced_level_test_id${NC}"
+    advanced_test_answers=$(curl -s -X GET \
+        -H "Authorization: Bearer $ACCESS_TOKEN" \
+        "${BASE_URL}/lessons/tests/${advanced_level_test_id}/questions/" | python3 -c "import sys, json; print(json.dumps([{ 'question_id': q['id'], 'answer': q['correct_answer'] } for q in json.load(sys.stdin)]))")
+
+    submit_advanced_test_data="{
+        \"answers\": $advanced_test_answers
+    }"
+    test_endpoint "POST" "/lessons/tests/${advanced_level_test_id}/submit/" "$submit_advanced_test_data" "Submit Advanced Level Test" "$ACCESS_TOKEN"
+else
+    echo -e "${RED}Advanced Level Test ID Not Found${NC}"
+    exit 1
+fi
+
+# 30. Test Access to Advanced Level After Passing Test
+echo -e "\n${BLUE}27. Testing Access to Advanced Level After Passing Test${NC}"
+test_endpoint "GET" "/lessons/levels/3/access/" "" "Access to Advanced Level After Passing Test" "$ACCESS_TOKEN"
+
+# 31. Test Lessons After Passing Advanced Test
+echo -e "\n${BLUE}28. Testing Lessons After Passing Advanced Test${NC}"
+test_endpoint "GET" "/lessons/lessons/" "" "Lessons After Passing Advanced Test" "$ACCESS_TOKEN"
+
+# 32. Test Logout
+echo -e "\n${BLUE}29. Testing Logout${NC}"
 logout_data="{\"refresh\":\"$REFRESH_TOKEN\"}"
 test_endpoint "POST" "/accounts/logout/" "$logout_data" "Logout" "$ACCESS_TOKEN"
 

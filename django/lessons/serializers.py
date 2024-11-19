@@ -101,17 +101,54 @@ class LessonSerializer(serializers.ModelSerializer):
     flashcards = FlashcardSerializer(many=True, read_only=True)
     quizzes = QuizSerializer(many=True, read_only=True)
     is_accessible = serializers.SerializerMethodField()
+    difficulty_rating = serializers.SerializerMethodField()
+    estimated_completion_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Lesson
         fields = [
-            'id', 'title', 'level', 'content', 'difficulty', 'is_unlocked',
-            'points_to_complete', 'flashcard_count', 'flashcards', 'quizzes', 'is_accessible'
+            'id', 'title', 'level', 'content', 'difficulty', 
+            'is_unlocked', 'points_to_complete', 'flashcard_count', 
+            'flashcards', 'quizzes', 'is_accessible', 
+            'difficulty_rating', 'estimated_completion_time'
         ]
 
     def get_is_accessible(self, obj):
+        """
+        Check if the lesson is accessible by the current user
+        """
         user = self.context.get('request').user
+        
         return obj.can_user_access(user)
+
+    def get_difficulty_rating(self, obj):
+        """
+        Provide a dynamic difficulty rating based on lesson complexity
+        """
+        flashcard_count = obj.flashcards.count()
+        quiz_count = obj.quizzes.count()
+        
+        complexity_score = (flashcard_count * 0.3) + (quiz_count * 0.7)
+        
+        if complexity_score < 3:
+            return 'Easy'
+        elif complexity_score < 6:
+            return 'Medium'
+        else:
+            return 'Hard'
+
+    def get_estimated_completion_time(self, obj):
+        """
+        Estimate lesson completion time
+        2 minutes per flashcard and 5 minutes per quiz
+        """
+        flashcard_time = obj.flashcards.count() * 2
+        quiz_time = obj.quizzes.count() * 5
+        
+        return {
+            'minutes': flashcard_time + quiz_time,
+            'description': f'Approximately {flashcard_time + quiz_time} minutes'
+        }
 
 class LevelTestQuestionSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,7 +1,18 @@
 from django.apps import apps
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+
+from rest_framework.authentication import (
+        SessionAuthentication, 
+        BasicAuthentication
+        )
+
+from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework import status, viewsets, permissions, serializers
+from rest_framework import (
+        status, 
+        viewsets, 
+        permissions, 
+        serializers
+        )
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -9,7 +20,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .utils import send_verification_email, send_password_reset_email
+from .utils import (
+        send_verification_email, 
+        send_password_reset_email
+        )
 
 from django.contrib.auth import get_user_model
 from django.utils.html import strip_tags
@@ -33,6 +47,7 @@ from .serializers import (
     PasswordResetConfirmSerializer,
     MultiFactorAuthSerializer
 )
+
 from .models import (
     User,
     Note,
@@ -41,9 +56,12 @@ from .models import (
     PasswordResetToken,
     MultiFactorAuthentication
 )
+
+from lessons.utils import get_recommended_lessons
 from lessons.models import (
-    UserProgress,
+    Level,
     Lesson,
+    UserProgress,
     UserFlashcardProgress,
     UserQuizAttempt
 )
@@ -54,7 +72,10 @@ from lessons.serializers import (
 )
 from .permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import action
-from django.db.models import Q
+from django.db.models import Q, Count
+import logging
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -227,9 +248,9 @@ class EmailVerificationView(APIView):
                 html_message=html_message,
                 fail_silently=False,
             )
-            log_info(f"Verification email sent to {user.email}")
+            logger.info(f"Verification email sent to {user.email}")
         except Exception as e:
-            log_error(f"Failed to send verification email: {e}")
+            logger.error(f"Failed to send verification email: {e}")
 
 class ResendVerificationEmailView(APIView):
     permission_classes = [IsAuthenticated]
@@ -251,22 +272,41 @@ class PasswordResetRequestView(APIView):
         serializer = PasswordResetRequestSerializer(data=request.data)
 
         if serializer.is_valid():
-            user = serializer.validated_data
+            email = serializer.validated_data['email']
+            try:
+                user, created = User.objects.get_or_create(
+                    email=email,
+                    defaults={
+                        'username': f'user_{email.split("@")[0]}',
+                        'is_active': True
+                    }
+                )
 
-            PasswordResetToken.objects.filter(user=user).delete()
+                if not created:
+                    PasswordResetToken.objects.filter(user=user).delete()
 
-            reset_token = PasswordResetToken.objects.create(user=user)
-            reset_token.generate_token()
-            reset_token.save()
+                    reset_token = PasswordResetToken.objects.create(user=user)
+                    reset_token.generate_token()
 
-            reset_link = f"{settings.FRONTEND_URL}/reset-password/{reset_token.token}"
+                    reset_link = f"{settings.FRONTEND_URL}/reset-password/{reset_token.token}"
 
-            self.send_password_reset_email(user, reset_link)
+                    self.send_password_reset_email(user, reset_link)
 
-            return Response({
-                'detail': 'Password reset link sent to your email',
-                'email': user.email
-            }, status=status.HTTP_200_OK)
+                    return Response({
+                        'detail': 'Password reset link sent to your email',
+                        'email': user.email
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({
+                        'detail': 'User account not fully set up. Please complete registration first.',
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            except Exception as e:
+                logger.error(f"Password reset request error: {e}")
+                return Response({
+                    'error': 'An error occurred while processing your request',
+                    'detail': str(e)
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -289,9 +329,9 @@ class PasswordResetRequestView(APIView):
                 html_message=html_message,
                 fail_silently=False,
             )
-            log_info(f"Password reset email sent to {user.email}")
+            logger.info(f"Password reset email sent to {user.email}")
         except Exception as e:
-            log_error(f"Failed to send password reset email: {e}")
+            logger.error(f"Failed to send password reset email: {e}")
 
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
@@ -357,20 +397,60 @@ class ResetProgressView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        user = request.user
-        user.reset_progress()
-        return Response({"detail": "Progress reset successfully"}, status=status.HTTP_200_OK)
+        try:
+            user = request.user
+            user.reset_progress()
+            
+            return Response({
+                "detail": "Progress reset successfully",
+                "level": {
+                    "id": user.level.id,
+                    "name": user.level.name,
+                    "difficulty": user.level.difficulty
+                }
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error resetting progress: {e}")
+            return Response({
+                "error": "An unexpected error occurred while resetting progress",
+                "detail": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ResetProgressDetailsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            reset_details = request.user.get_reset_progress_details()
+            return Response(reset_details, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error retrieving reset progress details: {e}")
+            return Response({
+                "error": "An error occurred while retrieving reset progress details",
+                "detail": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class NoteViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     serializer_class = NoteSerializer
-    queryset = Note.objects.all()
 
     def get_queryset(self):
         return Note.objects.filter(user=self.request.user)
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     @action(detail=False, methods=['GET'], url_path='search')
     def search_notes(self, request):
@@ -405,32 +485,64 @@ class RecommendedLessonsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
+        try:
+            user = request.user
 
-        if not user.level:
-            default_level, created = Level.objects.get_or_create(
-                level_order=1,
-                defaults={'name': 'Beginner', 'points_to_advance': 100, 'difficulty': 'beginner'}
+            if not user.level:
+                try:
+                    user.level, _ = Level.objects.update_or_create(
+                        name='Beginner', 
+                        defaults={
+                            'difficulty': 'beginner', 
+                            'level_order': 1, 
+                            'points_to_advance': 100
+                        }
+                    )
+                    user.save()
+                except Level.MultipleObjectsReturned:
+                    levels = Level.objects.filter(name='Beginner')
+                    first_level = levels.first()
+                    levels.exclude(id=first_level.id).delete()
+                    user.level = first_level
+                    user.save()
+
+            recommended_lessons = get_recommended_lessons(user)
+
+            try:
+                progress_data = user.calculate_level_progress()
+                progress_percentage = progress_data.get('progress_percentage', 0)
+            except Exception:
+                progress_percentage = 0
+
+            logger.info(f"Recommended Lessons for User {user.username}")
+            logger.info(f"Current Level: {user.level}")
+            logger.info(f"Progress Percentage: {progress_percentage}%")
+            logger.info(f"Number of Recommended Lessons: {len(recommended_lessons)}")
+
+            serializer = LessonSerializer(
+                recommended_lessons, 
+                many=True, 
+                context={'request': request}
             )
-            user.level = default_level
-            user.save()
 
-        completed_lesson_ids = UserProgress.objects.filter(
-            user=user,
-            completed=True,
-            lesson__level=user.level
-        ).values_list('lesson_id', flat=True)
+            response_data = {
+                'recommended_lessons': serializer.data,
+                'current_level': {
+                    'id': user.level.id,
+                    'name': user.level.name,
+                    'difficulty': user.level.difficulty
+                },
+                'progress_percentage': progress_percentage
+            }
 
-        recommended_lessons = Lesson.objects.filter(
-            level=user.level
-        ).exclude(
-            id__in=completed_lesson_ids
-        ).filter(
-            pk__in=[lesson.pk for lesson in Lesson.objects.filter(level=user.level) if lesson.can_user_access(user)]
-        )
+            return Response(response_data)
 
-        serializer = LessonSerializer(recommended_lessons, many=True, context={'request': request})
-        return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error in recommended lessons: {e}")
+            return Response({
+                'error': 'An error occurred while fetching recommended lessons',
+                'detail': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]

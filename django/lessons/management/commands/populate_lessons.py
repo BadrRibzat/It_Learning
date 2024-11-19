@@ -4,14 +4,14 @@ from django.db.utils import ProgrammingError
 from lessons.utils import ensure_schema_compatibility
 from django.db.models import F, Q
 from lessons.models import (
-        Level,
-        Lesson,
-        Flashcard,
-        Quiz,
-        QuizQuestion,
-        LevelTest,
-        LevelTestQuestion
-        )
+    Level,
+    Lesson,
+    Flashcard,
+    Quiz,
+    QuizQuestion,
+    LevelTest,
+    LevelTestQuestion
+)
 from accounts.models import User
 import random
 import string
@@ -147,7 +147,7 @@ class Command(BaseCommand):
 
     def create_levels(self):
         """
-        Create predefined levels with points_to_advance
+        Create predefined levels with points_to_advance and associated level tests
         """
         levels = [
             {'name': 'Beginner', 'level_order': 1, 'points_to_advance': 100, 'unlocked_by_test': False},
@@ -157,8 +157,8 @@ class Command(BaseCommand):
 
         for level_data in levels:
             try:
-                # Use get_or_create to avoid duplicates
-                level, created = Level.objects.get_or_create(
+                # Create or update the level
+                level, created = Level.objects.update_or_create(
                     name=level_data['name'],
                     defaults={
                         'level_order': level_data['level_order'],
@@ -167,17 +167,50 @@ class Command(BaseCommand):
                     }
                 )
 
-                # Update existing level if needed
-                if not created:
-                    level.level_order = level_data['level_order']
-                    level.points_to_advance = level_data['points_to_advance']
-                    level.unlocked_by_test = level_data['unlocked_by_test']
-                    level.save()
+                # Create a level test for this level if it doesn't exist
+                level_test, test_created = LevelTest.objects.get_or_create(
+                    level=level,
+                    defaults={
+                        'title': f'{level.name} Level Test',
+                        'passing_score': 80,
+                        'total_questions': 10
+                    }
+                )
+
+                # Generate questions for the level test if no questions exist
+                if test_created or level_test.questions.count() == 0:
+                    self.generate_level_test_questions(level_test, level)
 
                 logger.info(f"{'Created' if created else 'Updated'} level: {level_data['name']}")
 
             except Exception as e:
                 logger.error(f"Error creating/updating level {level_data['name']}: {e}")
+
+    def generate_level_test_questions(self, level_test, level):
+        """
+        Generate level test questions based on the lessons in the level
+        """
+        # Get all flashcards from lessons in this level
+        flashcards = Flashcard.objects.filter(lesson__level=level)
+
+        if not flashcards.exists():
+            logger.warning(f"No flashcards found for level {level.name}")
+            return
+
+        # Select 10 random unique flashcards for the level test
+        test_flashcards = flashcards.order_by('?')[:10]
+
+        # Create questions for each selected flashcard
+        for idx, flashcard in enumerate(test_flashcards, start=1):
+            LevelTestQuestion.objects.get_or_create(
+                level_test=level_test,
+                question_text=flashcard.example.replace(flashcard.word, '______'),
+                defaults={
+                    'correct_answer': flashcard.word,
+                    'order': idx,
+                    'blank_placeholder': '______'
+                }
+            )
 
     def create_lessons(self):
         """

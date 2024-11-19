@@ -106,17 +106,46 @@ class User(AbstractUser):
 
     def reset_progress(self):
         from django.apps import apps
+        from lessons.models import Level
 
         UserProgress = apps.get_model('lessons', 'UserProgress')
         UserQuizAttempt = apps.get_model('lessons', 'UserQuizAttempt')
         UserFlashcardProgress = apps.get_model('lessons', 'UserFlashcardProgress')
+        try:
+            beginner_level = Level.objects.get(name='Beginner', difficulty='beginner')
+        except Level.DoesNotExist:
+            beginner_level, _ = Level.objects.get_or_create(
+                name='Beginner',
+                defaults={
+                    'level_order': 1,
+                    'points_to_advance': 100,
+                    'difficulty': 'beginner',
+                    'unlocked_by_test': False
+                }
+            )
 
         UserProgress.objects.filter(user=self).delete()
         UserQuizAttempt.objects.filter(user=self).delete()
         UserFlashcardProgress.objects.filter(user=self).delete()
         self.points = 0
-        self.level = 1
+        self.level = beginner_level
         self.save()
+
+    def get_reset_progress_details(self):
+        """
+        Provides detailed information about the user's reset progress
+        """
+        return {
+            "user_id": self.id,
+            "username": self.username,
+            "reset_level": {
+                "id": self.level.id,
+                "name": self.level.name,
+                "difficulty": self.level.difficulty
+            },
+            "reset_points": self.points,
+            "reset_timestamp": timezone.now()
+        }
 
     def get_recommended_lessons(self):
         from lessons.models import Lesson, Level, UserProgress
@@ -197,14 +226,20 @@ class PasswordResetToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     token = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
+    expires_at = models.DateTimeField(null=False, blank=False)
 
     def generate_token(self):
         self.token = str(uuid.uuid4())
         self.expires_at = timezone.now() + timedelta(hours=1)
+        self.save()
 
     def is_valid(self):
         return timezone.now() <= self.expires_at
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(hours=1)
+        super().save(*args, **kwargs)
 
 class ProfilePicture(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -218,8 +253,7 @@ class Note(models.Model):
         ('general', 'General'),
         ('vocabulary', 'Vocabulary'),
         ('grammar', 'Grammar')
-    ]
-    note_type = models.CharField(max_length=20, choices=NOTE_TYPES)
+        ]
 
     user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='notes')
     title = models.CharField(

@@ -184,11 +184,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate_email(self, email):
-        try:
-            user = User.objects.get(email=email)
-            return user
-        except User.DoesNotExist:
-            raise serializers.ValidationError("No user found with this email")
+        return email
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     token = serializers.CharField()
@@ -320,8 +316,8 @@ class UserProgressSerializer(serializers.ModelSerializer):
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        fields = ['id', 'title', 'content', 'note_type']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'content', 'note_type', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
 
     def validate_note_type(self, value):
         valid_types = [choice[0] for choice in Note.NOTE_TYPES]

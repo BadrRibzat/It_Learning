@@ -16,7 +16,8 @@ from .views import (
     ResendVerificationEmailView,
     PasswordResetRequestView,
     PasswordResetConfirmView,
-    MultiFactorAuthView
+    MultiFactorAuthView,
+    ResetProgressDetailsView
 )
 
 router = DefaultRouter()
@@ -35,6 +36,7 @@ urlpatterns = [
     path('profile/', ProfileView.as_view(), name='user_profile'),
     path('statistics/', UserStatisticsView.as_view(), name='user_statistics'),
     path('reset-progress/', ResetProgressView.as_view(), name='reset_progress'),
+    path('reset-progress-details/', ResetProgressDetailsView.as_view(), name='reset_progress_details'),
     path('upload-profile-picture/', UploadProfilePictureView.as_view(), name='upload_profile_picture'),
     path('delete-profile-picture/', delete_profile_picture, name='delete_profile_picture'),
     path('recommended-lessons/', RecommendedLessonsView.as_view(), name='recommended_lessons'),

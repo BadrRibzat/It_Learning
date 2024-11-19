@@ -69,19 +69,90 @@ def ensure_schema_compatibility():
         print(f"Schema compatibility check failed: {e}")
 
 def get_recommended_lessons(user):
-    # Get completed lessons for the current level
-    completed_lessons = UserProgress.objects.filter(
+    """
+    Intelligently recommend lessons based on user's current level and progress    
+    Recommendation Strategy:
+    1. Ensure lessons are from the user's current level
+    2. Filter out already completed lessons
+    3. Consider user's progress percentage
+    4. Prioritize lessons based on adaptive difficulty
+    """
+    from django.db.models import Q, Count
+    from lessons.models import (
+            Level, 
+            Lesson, 
+            UserProgress, 
+            UserQuizAttempt, 
+            UserFlashcardProgress
+            )
+    
+    if not user.level:
+        try:
+            user.level, _ = Level.objects.update_or_create(
+                name='Beginner', 
+                defaults={
+                    'difficulty': 'beginner', 
+                    'level_order': 1, 
+                    'points_to_advance': 100
+                }
+            )
+            user.save()
+        except Level.MultipleObjectsReturned:
+            levels = Level.objects.filter(name='Beginner')
+            first_level = levels.first()
+            levels.exclude(id=first_level.id).delete()
+            user.level = first_level
+            user.save()
+
+    try:
+        progress_data = user.calculate_level_progress()
+        progress_percentage = progress_data.get('progress_percentage', 0)
+    except Exception:
+        progress_percentage = 0
+
+    completed_lesson_ids = UserProgress.objects.filter(
         user=user, 
         completed=True, 
         lesson__level=user.level
     ).values_list('lesson_id', flat=True)
 
-    # Recommend lessons for the current level that are accessible
-    current_level = Level.objects.filter(level_order=user.level.level_order).first()
     recommended_lessons = Lesson.objects.filter(
-        level=current_level
-    ).exclude(id__in=completed_lessons).filter(
-        pk__in=[lesson.pk for lesson in Lesson.objects.filter(level=current_level) if lesson.can_user_access(user)]
+        level=user.level
+    ).exclude(
+        id__in=completed_lesson_ids
     )
 
-    return recommended_lessons
+    if progress_percentage < 30:
+        recommended_lessons = recommended_lessons.filter(
+            Q(difficulty='beginner') | Q(difficulty=user.level.difficulty)
+        )
+    elif progress_percentage < 70:
+        recommended_lessons = recommended_lessons.filter(
+            Q(difficulty__in=['beginner', 'intermediate']) | 
+            Q(difficulty=user.level.difficulty)
+        )
+    else:
+        recommended_lessons = recommended_lessons.filter(
+            Q(difficulty__in=['intermediate', 'advanced']) | 
+            Q(difficulty=user.level.difficulty)
+        )
+
+    recommended_lessons = recommended_lessons.annotate(
+        total_flashcards=Count('flashcards'),
+        total_quizzes=Count('quizzes')
+    ).order_by(
+        '-total_flashcards', 
+        '-total_quizzes'
+    )
+
+    filtered_lessons = []
+    for lesson in recommended_lessons:
+        try:
+            if lesson.can_user_access(user):
+                filtered_lessons.append(lesson)
+                if len(filtered_lessons) == 5:
+                    break
+        except Exception:
+            continue
+
+    return filtered_lessons

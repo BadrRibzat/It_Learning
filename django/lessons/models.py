@@ -24,13 +24,19 @@ class Level(models.Model):
     def can_user_access(self, user):
         if self.level_order == 1:
             return True
+    
         previous_level = Level.objects.filter(level_order=self.level_order - 1).first()
+    
         if previous_level:
-            return UserLevelTestProgress.objects.filter(
+            level_test_progress = UserLevelTestProgress.objects.filter(
                 user=user,
                 level_test__level=previous_level,
-                is_passed=True
+                is_passed=True,
+                score__gte=80
             ).exists()
+        
+            return level_test_progress
+    
         return False
 
     class Meta:
@@ -69,10 +75,11 @@ class Lesson(models.Model):
                 level_test_progress = UserLevelTestProgress.objects.filter(
                     user=user,
                     level_test__level=previous_level,
-                    is_passed=True
+                    is_passed=True,
+                    score__gte=80
                 ).first()
 
-                if not (level_test_progress and level_test_progress.score >= 80):
+                if not level_test_progress:
                     return False
 
         return True
