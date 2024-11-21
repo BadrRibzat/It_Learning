@@ -16,7 +16,7 @@ class Command(BaseCommand):
             beginner_level, _ = Level.objects.get_or_create(
                 name='Beginner',
                 defaults={
-                    'level_order': 1,
+                    'position': 1,
                     'points_to_advance': 100,
                     'difficulty': 'beginner'
                 }

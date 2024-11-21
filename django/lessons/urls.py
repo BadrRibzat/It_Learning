@@ -1,13 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    LevelViewSet,
-    LessonViewSet,
-    FlashcardViewSet,
-    QuizViewSet,
-    UserProgressViewSet,
-    FlashcardSubmissionView,
-    IntermediateLevelTestSubmissionView
+    LevelViewSet, 
+    LessonViewSet, 
+    FlashcardViewSet, 
+    QuizViewSet, 
+    LevelTestViewSet
 )
 
 router = DefaultRouter()
@@ -15,12 +13,23 @@ router.register(r'levels', LevelViewSet, basename='level')
 router.register(r'lessons', LessonViewSet, basename='lesson')
 router.register(r'flashcards', FlashcardViewSet, basename='flashcard')
 router.register(r'quizzes', QuizViewSet, basename='quiz')
-router.register(r'progress', UserProgressViewSet, basename='user-progress')
+router.register(r'level-tests', LevelTestViewSet, basename='level-test')
 
 urlpatterns = [
-    path('lessons/<int:lesson_id>/submit-flashcards/', FlashcardSubmissionView.as_view(), name='lesson-submit-flashcards'),
-    path('levels/<int:level_id>/submit-test/', IntermediateLevelTestSubmissionView.as_view(), name='intermediate-level-test-submit'),
     path('', include(router.urls)),
-    path('progress/learning-metrics/', UserProgressViewSet.as_view({'get': 'learning_metrics'}), name='learning-metrics'),
-    path('progress/comprehensive-learning-report/', UserProgressViewSet.as_view({'get': 'comprehensive_learning_report'}), name='comprehensive-learning-report'),
+    
+    # Flashcard-specific endpoints
+    path('flashcards/submit/', FlashcardViewSet.as_view({
+        'post': 'submit_answer'
+        }), name='flashcard-submit'),
+    
+    # Quiz-specific endpoints
+    path('quizzes/submit/', QuizViewSet.as_view({
+        'post': 'submit_quiz'
+        }), name='quiz-submit'),
+    
+    # Level Test-specific endpoints
+    path('level-tests/submit/', LevelTestViewSet.as_view({
+        'post': 'submit_test'
+        }), name='level-test-submit'),
 ]

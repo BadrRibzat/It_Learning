@@ -162,26 +162,35 @@ LOGGING = {
             'class': 'logging.StreamHandler',
         },
         'file': {
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': 'django.log',
+            'filename': 'debug.log',
+            'formatter': 'verbose'
         },
     },
-    'root': {
-        'handlers': ['console', 'file'],
-        'level': 'INFO',
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
     },
     'loggers': {
-        'django': {
+        'lessons': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
+            'level': 'DEBUG',
+            'propagate': True,
         },
         'accounts': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': False,
+            'level': 'DEBUG',
+            'propagate': True,
         },
-    },
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        }
+    }
 }
 
 SWAGGER_SETTINGS = {

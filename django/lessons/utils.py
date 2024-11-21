@@ -1,158 +1,134 @@
-from django.db import connection
-from django.db.utils import ProgrammingError
-from django.apps import apps
+import logging
+from django.db.models import Q
+from .models import Level, Lesson, UserProgress
 
-def ensure_schema_compatibility():
-    try:
-        with connection.cursor() as cursor:
-            models_to_check = apps.get_models()
-
-            for model in models_to_check:
-                table_name = model._meta.db_table
-                
-                # Check if the table exists
-                cursor.execute(f"""
-                    SELECT EXISTS (
-                        SELECT FROM information_schema.tables 
-                        WHERE table_name = %s
-                    );
-                """, [table_name])
-                table_exists = cursor.fetchone()[0]
-
-                # If the table does not exist, create it
-                if not table_exists:
-                    create_table_sql = f"CREATE TABLE {table_name} (id SERIAL PRIMARY KEY"
-                    for field in model._meta.fields:
-                        if field.name != "id":
-                            column_name = field.column
-                            field_type = field.db_type(connection)
-                            
-                            # Special handling for order columns
-                            if column_name == 'order':
-                                field_type = 'INTEGER DEFAULT 0'
-                            
-                            create_table_sql += f", {column_name} {field_type}"
-                    create_table_sql += ");"
-                    try:
-                        cursor.execute(create_table_sql)
-                        print(f"Table {table_name} created successfully.")
-                    except ProgrammingError as e:
-                        print(f"Error creating table {table_name}: {e}")
-
-                # Check columns for existing tables
-                else:
-                    for field in model._meta.fields:
-                        column_name = field.column
-                        cursor.execute(f"""
-                            SELECT EXISTS (
-                                SELECT FROM information_schema.columns 
-                                WHERE table_name = %s AND column_name = %s
-                            );
-                        """, [table_name, column_name])
-                        column_exists = cursor.fetchone()[0]
-
-                        # If the column does not exist, add it
-                        if not column_exists:
-                            field_type = field.db_type(connection)
-                            
-                            # Special handling for order columns
-                            if column_name == 'order':
-                                field_type = 'INTEGER DEFAULT 0'
-                            
-                            try:
-                                cursor.execute(f'ALTER TABLE {table_name} ADD COLUMN {column_name} {field_type};')
-                                print(f"Added column {column_name} to table {table_name}.")
-                            except ProgrammingError as e:
-                                print(f"Error adding column {column_name}: {e}")
-
-    except Exception as e:
-        print(f"Schema compatibility check failed: {e}")
+logger = logging.getLogger(__name__)
 
 def get_recommended_lessons(user):
     """
-    Intelligently recommend lessons based on user's current level and progress    
-    Recommendation Strategy:
-    1. Ensure lessons are from the user's current level
-    2. Filter out already completed lessons
-    3. Consider user's progress percentage
-    4. Prioritize lessons based on adaptive difficulty
-    """
-    from django.db.models import Q, Count
-    from lessons.models import (
-            Level, 
-            Lesson, 
-            UserProgress, 
-            UserQuizAttempt, 
-            UserFlashcardProgress
-            )
+    Retrieve recommended lessons for a user based on their current progress
     
-    if not user.level:
-        try:
-            user.level, _ = Level.objects.update_or_create(
-                name='Beginner', 
-                defaults={
-                    'difficulty': 'beginner', 
-                    'level_order': 1, 
-                    'points_to_advance': 100
-                }
-            )
-            user.save()
-        except Level.MultipleObjectsReturned:
-            levels = Level.objects.filter(name='Beginner')
-            first_level = levels.first()
-            levels.exclude(id=first_level.id).delete()
-            user.level = first_level
-            user.save()
-
+    Args:
+        user (User): The current user
+    
+    Returns:
+        QuerySet: Recommended lessons for the user
+    """
+    logger.info(f"Fetching recommended lessons for user: {user.username}")
+    
+    # Determine user's current level
     try:
-        progress_data = user.calculate_level_progress()
-        progress_percentage = progress_data.get('progress_percentage', 0)
-    except Exception:
-        progress_percentage = 0
-
-    completed_lesson_ids = UserProgress.objects.filter(
-        user=user, 
-        completed=True, 
-        lesson__level=user.level
-    ).values_list('lesson_id', flat=True)
-
-    recommended_lessons = Lesson.objects.filter(
-        level=user.level
-    ).exclude(
-        id__in=completed_lesson_ids
-    )
-
-    if progress_percentage < 30:
-        recommended_lessons = recommended_lessons.filter(
-            Q(difficulty='beginner') | Q(difficulty=user.level.difficulty)
+        # Get the user's current progress or default to beginner
+        user_progress = UserProgress.objects.filter(user=user).order_by('-last_updated').first()
+        
+        if not user_progress:
+            # If no progress, start with beginner level
+            current_level = Level.objects.get(name='beginner')
+        else:
+            current_level = user_progress.level
+        
+        logger.info(f"Current User Level: {current_level.name}")
+        
+        # Get completed lesson IDs for this level
+        completed_lesson_ids = UserProgress.objects.filter(
+            user=user, 
+            level=current_level,
+            quiz_completed=True
+        ).values_list('lesson_id', flat=True)
+        
+        # Find recommended lessons
+        recommended_lessons = Lesson.objects.filter(
+            level=current_level
+        ).exclude(
+            id__in=completed_lesson_ids
         )
-    elif progress_percentage < 70:
-        recommended_lessons = recommended_lessons.filter(
-            Q(difficulty__in=['beginner', 'intermediate']) | 
-            Q(difficulty=user.level.difficulty)
+        
+        # Additional filtering for lesson accessibility
+        filtered_lessons = [
+            lesson for lesson in recommended_lessons 
+            if can_user_access_lesson(user, lesson)
+        ]
+        
+        # Limit to 5 recommended lessons
+        recommended_lessons = filtered_lessons[:5]
+        
+        logger.info(f"Number of Recommended Lessons: {len(recommended_lessons)}")
+        
+        return recommended_lessons
+    
+    except Exception as e:
+        logger.error(f"Error fetching recommended lessons: {str(e)}")
+        return []
+
+def can_user_access_lesson(user, lesson):
+    """
+    Check if a user can access a specific lesson
+    
+    Args:
+        user (User): The current user
+        lesson (Lesson): The lesson to check access for
+    
+    Returns:
+        bool: Whether the user can access the lesson
+    """
+    # If it's a beginner level lesson, always accessible
+    if lesson.level.name == 'beginner':
+        return True
+    
+    # Check if user has passed previous level
+    try:
+        # Find the previous level
+        previous_levels = Level.objects.filter(position__lt=lesson.level.position).order_by('-position')
+        
+        # Check progress for each previous level
+        for previous_level in previous_levels:
+            level_progress = UserProgress.objects.filter(
+                user=user, 
+                level=previous_level,
+                level_unlocked=True
+            ).exists()
+            
+            if not level_progress:
+                return False
+        
+        return True
+    
+    except Exception as e:
+        logger.error(f"Error checking lesson access: {str(e)}")
+        return False
+
+def track_user_progress(user, lesson, quiz_score=None, level_test_score=None):
+    """
+    Update or create user progress tracking
+    
+    Args:
+        user (User): The current user
+        lesson (Lesson): The lesson being tracked
+        quiz_score (float, optional): Score from lesson quiz
+        level_test_score (float, optional): Score from level test
+    
+    Returns:
+        UserProgress: Updated or created progress object
+    """
+    try:
+        progress, created = UserProgress.objects.get_or_create(
+            user=user,
+            lesson=lesson,
+            level=lesson.level
         )
-    else:
-        recommended_lessons = recommended_lessons.filter(
-            Q(difficulty__in=['intermediate', 'advanced']) | 
-            Q(difficulty=user.level.difficulty)
-        )
-
-    recommended_lessons = recommended_lessons.annotate(
-        total_flashcards=Count('flashcards'),
-        total_quizzes=Count('quizzes')
-    ).order_by(
-        '-total_flashcards', 
-        '-total_quizzes'
-    )
-
-    filtered_lessons = []
-    for lesson in recommended_lessons:
-        try:
-            if lesson.can_user_access(user):
-                filtered_lessons.append(lesson)
-                if len(filtered_lessons) == 5:
-                    break
-        except Exception:
-            continue
-
-    return filtered_lessons
+        
+        if quiz_score is not None:
+            progress.quiz_score = quiz_score
+            progress.quiz_completed = quiz_score >= lesson.quizzes.first().passing_score
+        
+        if level_test_score is not None:
+            progress.level_test_score = level_test_score
+            progress.level_unlocked = level_test_score >= progress.level.passing_score
+        
+        progress.save()
+        
+        return progress
+    
+    except Exception as e:
+        logger.error(f"Error tracking user progress: {str(e)}")
+        return None

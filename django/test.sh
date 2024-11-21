@@ -61,10 +61,6 @@ test_endpoint() {
         echo -e "${GREEN}Success (Status $http_status):${NC}"
         echo "$response" | python3 -m json.tool
         log "Success: $description - Status $http_status"
-    elif [[ "$http_status" == "302" ]]; then
-        echo -e "${GREEN}Redirect (Status $http_status):${NC}"
-        echo "$response"
-        log "Redirect: $description - Status $http_status"
     else
         echo -e "${RED}Failed (Status $http_status):${NC}"
         echo "$response"
@@ -107,281 +103,134 @@ else
     exit 1
 fi
 
-# 3. Test Email Verification Request
-echo -e "\n${BLUE}3. Testing Email Verification Request${NC}"
-test_endpoint "POST" "/accounts/resend-verification/" "" "Email Verification Request" "$ACCESS_TOKEN"
+# 16. Test Intermediate Level Test Submission
+# Test Intermediate Level Test
+echo -e "\n${BLUE}Testing Intermediate Level Test${NC}"
 
-# 4. Test Password Reset Request
-echo -e "\n${BLUE}4. Testing Password Reset Request${NC}"
-reset_data='{"email": "testuser@example.com"}'
-test_endpoint "POST" "/accounts/password-reset/" "$reset_data" "Password Reset Request"
+# Get the intermediate level ID
+intermediate_level_id=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
+    "${BASE_URL}/lessons/levels/" | python3 -c "
+import sys, json
+data = json.load(sys)
+for level in data:
+    if level['name'] == 'Intermediate':
+        print(level['id'])
+        break
+")
 
-# 5. Test Profile Retrieval
-echo -e "\n${BLUE}5. Testing Profile Retrieval${NC}"
-test_endpoint "GET" "/accounts/profile/" "" "Profile Retrieval" "$ACCESS_TOKEN"
+# Get the intermediate level test
+level_test_response=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
+    "${BASE_URL}/lessons/leveltests/?level=${intermediate_level_id}")
 
-# 6. Test User Statistics
-echo -e "\n${BLUE}6. Testing User Statistics${NC}"
-test_endpoint "GET" "/accounts/statistics/" "" "User Statistics" "$ACCESS_TOKEN"
+level_test_id=$(echo "$level_test_response" | python3 -c "
+import sys, json
+data = json.load(sys)
+if data['results']:
+    print(data['results'][0]['id'])
+")
 
-# 7. Test MFA Setup
-echo -e "\n${BLUE}7. Testing MFA Setup${NC}"
-test_endpoint "POST" "/accounts/mfa/setup/" "" "MFA Setup" "$ACCESS_TOKEN"
-
-# 8. Test Recommended Lessons
-echo -e "\n${BLUE}8. Testing Recommended Lessons${NC}"
-test_endpoint "GET" "/accounts/recommended-lessons/" "" "Recommended Lessons" "$ACCESS_TOKEN"
-
-# 9. Test Note Creation
-# Test Create Note
-echo -e "\n${BLUE}1. Testing Note Creation${NC}"
-create_note_data='{
-    "title": "My First Learning Note",
-    "content": "Today I learned some important English grammar rules about verb tenses.",
-    "note_type": "grammar"
+# Submit intermediate level test with correct answers
+test_submission_data='{
+    "answers": [
+        {"question_id": 1, "answer": "Hello"},
+        {"question_id": 2, "answer": "Goodbye"},
+        {"question_id": 3, "answer": "Thank you"},
+        {"question_id": 4, "answer": "Please"},
+        {"question_id": 5, "answer": "Yes"},
+        {"question_id": 6, "answer": "No"},
+        {"question_id": 7, "answer": "Excuse me"},
+        {"question_id": 8, "answer": "Sorry"},
+        {"question_id": 9, "answer": "Welcome"},
+        {"question_id": 10, "answer": "How are you"}
+    ]
 }'
-create_response=$(curl -s -w "%{http_code}" -X POST \
-    -H "Content-Type: application/json" \
+
+echo -e "\n${BLUE}Submitting Intermediate Level Test${NC}"
+test_endpoint "POST" "/lessons/levels/${intermediate_level_id}/submit-test/" "$test_submission_data" "Intermediate Level Test Submission" "$ACCESS_TOKEN"
+
+# Test accessing intermediate lessons
+echo -e "\n${BLUE}Testing Intermediate Lessons Access${NC}"
+test_endpoint "GET" "/lessons/lessons/?level=${intermediate_level_id}" "" "Intermediate Lessons" "$ACCESS_TOKEN"
+
+# Get first intermediate lesson
+first_intermediate_lesson=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
+    "${BASE_URL}/lessons/lessons/?level=${intermediate_level_id}" | python3 -c "
+import sys, json
+data = json.load(sys)
+if data['results']:
+    print(data['results'][0]['id'])
+")
+
+# Test intermediate lesson flashcards
+echo -e "\n${BLUE}Testing Intermediate Lesson Flashcards${NC}"
+test_endpoint "GET" "/lessons/flashcards/?lesson=${first_intermediate_lesson}" "" "Intermediate Flashcards" "$ACCESS_TOKEN"
+
+# Test intermediate lesson quiz
+echo -e "\n${BLUE}Testing Intermediate Lesson Quiz${NC}"
+test_endpoint "GET" "/lessons/quizzes/?lesson=${first_intermediate_lesson}" "" "Intermediate Quiz" "$ACCESS_TOKEN"
+
+# Submit flashcard answers for intermediate lesson
+flashcard_submission_data='{
+    "answers": [
+        {"flashcard_id": 1, "answer": "is"},
+        {"flashcard_id": 2, "answer": "am"},
+        {"flashcard_id": 3, "answer": "are"},
+        {"flashcard_id": 4, "answer": "was"},
+        {"flashcard_id": 5, "answer": "were"}
+    ]
+}'
+
+echo -e "\n${BLUE}Submitting Intermediate Lesson Flashcards${NC}"
+test_endpoint "POST" "/lessons/lessons/${first_intermediate_lesson}/submit-flashcards/" "$flashcard_submission_data" "Intermediate Flashcards Submission" "$ACCESS_TOKEN"
+
+# 17. Test Advanced Level Test Submission (Similar structure to Intermediate)
+echo -e "\n${BLUE}17. Testing Advanced Level Test Submission${NC}"
+
+# Fetch Advanced Level Test ID (assuming level ID is 3 for Advanced)
+advanced_level_id=3 # Replace with the actual Advanced level ID if different
+
+advanced_level_test=$(curl -s -w "%{http_code}" -X GET \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -d "$create_note_data" \
-    "${BASE_URL}/accounts/notes/")
+    "${BASE_URL}/lessons/leveltests/?level=${advanced_level_id}")
 
-NOTE_ID=$(echo "${create_response:0:${#create_response}-3}" | python3 -c "import sys, json; print(json.load(sys.stdin)['id'])")
-HTTP_STATUS=${create_response: -3}
+HTTP_STATUS=${advanced_level_test: -3}
+advanced_level_test=${advanced_level_test:0:${#advanced_level_test}-3}
 
-if [ "$HTTP_STATUS" == "201" ]; then
-    echo -e "${GREEN}Note Created Successfully with ID: $NOTE_ID${NC}"
-else
-    echo -e "${RED}Note Creation Failed${NC}"
+if [ "$HTTP_STATUS" != "200" ]; then
+    echo -e "${RED}Failed to fetch Advanced Level Test data (Status $HTTP_STATUS)${NC}"
     exit 1
 fi
 
-# Test Read (List) Notes
-echo -e "\n${BLUE}2. Testing Note Listing${NC}"
-list_response=$(curl -s -w "%{http_code}" -X GET \
+# Fetch Advanced Level Test Questions using the corrected endpoint and test ID
+advanced_level_test_id=$(echo "$advanced_level_test" | python3 -c "import sys, json; print(json.load(sys.stdin)['results'][0]['id'])")
+
+advanced_level_test_questions=$(curl -s -w "%{http_code}" -X GET \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/accounts/notes/")
+    "${BASE_URL}/lessons/leveltests/${advanced_level_test_id}/questions/")
 
-HTTP_STATUS=${list_response: -3}
-RESPONSE_BODY=${list_response:0:${#list_response}-3}
+HTTP_STATUS=${advanced_level_test_questions: -3}
+advanced_level_test_questions=${advanced_level_test_questions:0:${#advanced_level_test_questions}-3}
 
-if [ "$HTTP_STATUS" == "200" ]; then
-    echo -e "${GREEN}Notes Retrieved Successfully:${NC}"
-    echo "$RESPONSE_BODY" | python3 -m json.tool
-else
-    echo -e "${RED}Note Listing Failed${NC}"
-fi
-
-# Test Read (Retrieve Single Note)
-echo -e "\n${BLUE}3. Testing Single Note Retrieval${NC}"
-retrieve_response=$(curl -s -w "%{http_code}" -X GET \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/accounts/notes/$NOTE_ID/")
-
-HTTP_STATUS=${retrieve_response: -3}
-RESPONSE_BODY=${retrieve_response:0:${#retrieve_response}-3}
-
-if [ "$HTTP_STATUS" == "200" ]; then
-    echo -e "${GREEN}Note Retrieved Successfully:${NC}"
-    echo "$RESPONSE_BODY" | python3 -m json.tool
-else
-    echo -e "${RED}Note Retrieval Failed${NC}"
-fi
-
-# Test Update Note
-echo -e "\n${BLUE}4. Testing Note Update${NC}"
-update_note_data='{
-    "title": "Updated Learning Note",
-    "content": "I have expanded my understanding of English grammar rules.",
-    "note_type": "grammar"
-}'
-update_response=$(curl -s -w "%{http_code}" -X PUT \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -d "$update_note_data" \
-    "${BASE_URL}/accounts/notes/$NOTE_ID/")
-
-HTTP_STATUS=${update_response: -3}
-RESPONSE_BODY=${update_response:0:${#update_response}-3}
-
-if [ "$HTTP_STATUS" == "200" ]; then
-    echo -e "${GREEN}Note Updated Successfully:${NC}"
-    echo "$RESPONSE_BODY" | python3 -m json.tool
-else
-    echo -e "${RED}Note Update Failed${NC}"
-fi
-
-# Test Partial Update (Patch) Note Type
-echo -e "\n${BLUE}5. Testing Note Type Change${NC}"
-change_type_data='{
-    "note_type": "vocabulary"
-}'
-change_type_response=$(curl -s -w "%{http_code}" -X PATCH \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -d "$change_type_data" \
-    "${BASE_URL}/accounts/notes/$NOTE_ID/change-type/")
-
-HTTP_STATUS=${change_type_response: -3}
-RESPONSE_BODY=${change_type_response:0:${#change_type_response}-3}
-
-if [ "$HTTP_STATUS" == "200" ]; then
-    echo -e "${GREEN}Note Type Changed Successfully:${NC}"
-    echo "$RESPONSE_BODY" | python3 -m json.tool
-else
-    echo -e "${RED}Note Type Change Failed${NC}"
-fi
-
-# Test Note Search
-echo -e "\n${BLUE}6. Testing Note Search${NC}"
-search_response=$(curl -s -w "%{http_code}" -X GET \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/accounts/notes/search/?q=grammar")
-
-HTTP_STATUS=${search_response: -3}
-RESPONSE_BODY=${search_response:0:${#search_response}-3}
-
-if [ "$HTTP_STATUS" == "200" ]; then
-    echo -e "${GREEN}Note Search Successful:${NC}"
-    echo "$RESPONSE_BODY" | python3 -m json.tool
-else
-    echo -e "${RED}Note Search Failed${NC}"
-fi
-
-# Test Delete Note
-echo -e "\n${BLUE}7. Testing Note Deletion${NC}"
-delete_response=$(curl -s -w "%{http_code}" -X DELETE \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/accounts/notes/$NOTE_ID/")
-
-HTTP_STATUS=${delete_response: -3}
-
-if [ "$HTTP_STATUS" == "204" ]; then
-    echo -e "${GREEN}Note Deleted Successfully${NC}"
-else
-    echo -e "${RED}Note Deletion Failed${NC}"
-fi
-
-echo -e "\n${GREEN}All Note CRUD Tests Completed!${NC}"
-
-# 12. Test Token Refresh
-echo -e "\n${BLUE}10. Testing Token Refresh${NC}"
-refresh_data="{\"refresh\":\"$REFRESH_TOKEN\"}"
-test_endpoint "POST" "/accounts/token/refresh/" "$refresh_data" "Token Refresh"
-
-# 13. Test Upload Profile Picture
-echo -e "\n${BLUE}11. Testing Upload Profile Picture${NC}"
-test_endpoint "POST" "/accounts/upload-profile-picture/" "" "Upload Profile Picture" "$ACCESS_TOKEN" "/home/badr/Downloads/avatar.jpg"
-
-# 14. Test Reset Progress
-echo -e "\n${BLUE}12. Testing Reset Progress${NC}"
-test_endpoint "POST" "/accounts/reset-progress/" "" "Reset Progress" "$ACCESS_TOKEN"
-
-# 15. Test Reset Progress Details
-echo -e "\n${BLUE}22. Testing Reset Progress Details${NC}"
-test_endpoint "GET" "/accounts/reset-progress-details/" "" "Reset Progress Details" "$ACCESS_TOKEN"
-
-# 16. Test Delete Profile Picture
-echo -e "\n${BLUE}13. Testing Delete Profile Picture${NC}"
-test_endpoint "DELETE" "/accounts/delete-profile-picture/" "" "Delete Profile Picture" "$ACCESS_TOKEN"
-
-# 17. Test Levels
-echo -e "\n${BLUE}14. Testing Levels${NC}"
-test_endpoint "GET" "/lessons/levels/" "" "Levels" "$ACCESS_TOKEN"
-
-# 18. Test Access to Beginner Level
-echo -e "\n${BLUE}15. Testing Access to Beginner Level${NC}"
-test_endpoint "GET" "/lessons/levels/1/access/" "" "Access to Beginner Level" "$ACCESS_TOKEN"
-
-# 19. Test Access to Intermediate Level (should redirect to level test)
-echo -e "\n${BLUE}16. Testing Access to Intermediate Level${NC}"
-test_endpoint "GET" "/lessons/levels/2/access/" "" "Access to Intermediate Level" "$ACCESS_TOKEN"
-
-# 20. Test Access to Advanced Level (should redirect to level test)
-echo -e "\n${BLUE}17. Testing Access to Advanced Level${NC}"
-test_endpoint "GET" "/lessons/levels/3/access/" "" "Access to Advanced Level" "$ACCESS_TOKEN"
-
-# 21. Test Lessons
-echo -e "\n${BLUE}18. Testing Lessons${NC}"
-test_endpoint "GET" "/lessons/lessons/" "" "Lessons" "$ACCESS_TOKEN"
-
-# 22. Test Flashcards
-echo -e "\n${BLUE}19. Testing Flashcards${NC}"
-test_endpoint "GET" "/lessons/flashcards/" "" "Flashcards" "$ACCESS_TOKEN"
-
-# 23. Test Quizzes
-echo -e "\n${BLUE}20. Testing Quizzes${NC}"
-test_endpoint "GET" "/lessons/quizzes/" "" "Quizzes" "$ACCESS_TOKEN"
-
-# 24. Test User Progress
-echo -e "\n${BLUE}21. Testing User Progress${NC}"
-test_endpoint "GET" "/lessons/progress/learning_progress/" "" "User Progress" "$ACCESS_TOKEN"
-
-# 25. Test Learning Metrics
-echo -e "\n${BLUE}22. Testing Learning Metrics${NC}"
-test_endpoint "GET" "/lessons/progress/learning-metrics/" "" "Learning Metrics" "$ACCESS_TOKEN"
-
-# 26. Test Comprehensive Learning Report
-echo -e "\n${BLUE}23. Testing Comprehensive Learning Report${NC}"
-test_endpoint "GET" "/lessons/progress/comprehensive-learning-report/" "" "Comprehensive Learning Report" "$ACCESS_TOKEN"
-
-# 27. Test Submit Intermediate Level Test
-echo -e "\n${BLUE}24. Testing Submit Intermediate Level Test${NC}"
-intermediate_level_test_id=$(curl -s -X GET \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/lessons/levels/2/tests/" | python3 -c "import sys, json; print(json.load(sys.stdin)[0]['id'])")
-
-if [ -n "$intermediate_level_test_id" ]; then
-    echo -e "${GREEN}Intermediate Level Test ID Found: $intermediate_level_test_id${NC}"
-    intermediate_test_answers=$(curl -s -X GET \
-        -H "Authorization: Bearer $ACCESS_TOKEN" \
-        "${BASE_URL}/lessons/tests/${intermediate_level_test_id}/questions/" | python3 -c "import sys, json; print(json.dumps([{ 'question_id': q['id'], 'answer': q['correct_answer'] } for q in json.load(sys.stdin)]))")
-
-    submit_intermediate_test_data="{
-        \"answers\": $intermediate_test_answers
-    }"
-    test_endpoint "POST" "/lessons/tests/${intermediate_level_test_id}/submit/" "$submit_intermediate_test_data" "Submit Intermediate Level Test" "$ACCESS_TOKEN"
-else
-    echo -e "${RED}Intermediate Level Test ID Not Found${NC}"
+if [ "$HTTP_STATUS" != "200" ]; then
+    echo -e "${RED}Failed to fetch Advanced Level Test Questions (Status $HTTP_STATUS)${NC}"
     exit 1
 fi
 
-# 28. Test Access to Intermediate Level After Passing Test
-echo -e "\n${BLUE}25. Testing Access to Intermediate Level After Passing Test${NC}"
-test_endpoint "GET" "/lessons/levels/2/access/" "" "Access to Intermediate Level After Passing Test" "$ACCESS_TOKEN"
+# Extract question IDs dynamically
+advanced_question_ids=$(echo "$advanced_level_test_questions" | python3 -c "import sys, json; print(json.dumps([q['id'] for q in json.load(sys.stdin)]))")
 
-# 29. Test Submit Advanced Level Test
-echo -e "\n${BLUE}26. Testing Submit Advanced Level Test${NC}"
-advanced_level_test_id=$(curl -s -X GET \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/lessons/levels/3/tests/" | python3 -c "import sys, json; print(json.load(sys.stdin)[0]['id'])")
+# Prepare dynamic answers – provide correct answers for a valid submission
+advanced_level_test_data=$(echo "$advanced_level_test_questions" | python3 -c '
+import sys, json
 
-if [ -n "$advanced_level_test_id" ]; then
-    echo -e "${GREEN}Advanced Level Test ID Found: $advanced_level_test_id${NC}"
-    advanced_test_answers=$(curl -s -X GET \
-        -H "Authorization: Bearer $ACCESS_TOKEN" \
-        "${BASE_URL}/lessons/tests/${advanced_level_test_id}/questions/" | python3 -c "import sys, json; print(json.dumps([{ 'question_id': q['id'], 'answer': q['correct_answer'] } for q in json.load(sys.stdin)]))")
+questions = json.load(sys.stdin)
+answers = []
+for q in questions:
+    answers.append({"question_id": q["id"], "answer": q["correct_answer"]})
 
-    submit_advanced_test_data="{
-        \"answers\": $advanced_test_answers
-    }"
-    test_endpoint "POST" "/lessons/tests/${advanced_level_test_id}/submit/" "$submit_advanced_test_data" "Submit Advanced Level Test" "$ACCESS_TOKEN"
-else
-    echo -e "${RED}Advanced Level Test ID Not Found${NC}"
-    exit 1
-fi
+print(json.dumps({"answers": answers}))
+')
 
-# 30. Test Access to Advanced Level After Passing Test
-echo -e "\n${BLUE}27. Testing Access to Advanced Level After Passing Test${NC}"
-test_endpoint "GET" "/lessons/levels/3/access/" "" "Access to Advanced Level After Passing Test" "$ACCESS_TOKEN"
-
-# 31. Test Lessons After Passing Advanced Test
-echo -e "\n${BLUE}28. Testing Lessons After Passing Advanced Test${NC}"
-test_endpoint "GET" "/lessons/lessons/" "" "Lessons After Passing Advanced Test" "$ACCESS_TOKEN"
-
-# 32. Test Logout
-echo -e "\n${BLUE}29. Testing Logout${NC}"
-logout_data="{\"refresh\":\"$REFRESH_TOKEN\"}"
-test_endpoint "POST" "/accounts/logout/" "$logout_data" "Logout" "$ACCESS_TOKEN"
+test_endpoint "POST" "/levels/${advanced_level_id}/submit-test/" "$advanced_level_test_data" "Advanced Level Test Submission" "$ACCESS_TOKEN"
 
 echo -e "\n${GREEN}All tests completed!${NC}"

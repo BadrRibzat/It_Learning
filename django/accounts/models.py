@@ -1,6 +1,12 @@
-from django.contrib.auth.models import AbstractUser, UnicodeUsernameValidator
+from django.contrib.auth.models import (
+        AbstractUser, 
+        UnicodeUsernameValidator
+        )
 from django.db import models
-from django.core.validators import MaxLengthValidator, MinLengthValidator
+from django.core.validators import (
+        MaxLengthValidator, 
+        MinLengthValidator
+        )
 from django.utils.translation import gettext_lazy as _
 import uuid
 from django.utils import timezone
@@ -117,7 +123,7 @@ class User(AbstractUser):
             beginner_level, _ = Level.objects.get_or_create(
                 name='Beginner',
                 defaults={
-                    'level_order': 1,
+                    'position': 1,
                     'points_to_advance': 100,
                     'difficulty': 'beginner',
                     'unlocked_by_test': False
@@ -150,7 +156,7 @@ class User(AbstractUser):
     def get_recommended_lessons(self):
         from lessons.models import Lesson, Level, UserProgress
         completed_lessons = UserProgress.objects.filter(user=self, completed=True).values_list('lesson_id', flat=True)
-        current_level = Level.objects.get(level_order=self.level)
+        current_level = Level.objects.get(position=self.level)
         recommended_lessons = Lesson.objects.filter(level=current_level).exclude(id__in=completed_lessons)
         return recommended_lessons
 
@@ -163,10 +169,10 @@ class User(AbstractUser):
         """
         Check if user can access a specific level based on level test progress
         """
-        if level.level_order == 1:
+        if level.position == 1:
             return True
 
-        previous_level = Level.objects.filter(level_order=level.level_order - 1).first()
+        previous_level = Level.objects.filter(position=level.position - 1).first()
 
         if previous_level:
             level_test_progress = UserLevelTestProgress.objects.filter(
@@ -188,7 +194,7 @@ class User(AbstractUser):
         UserQuizAttempt = apps.get_model('lessons', 'UserQuizAttempt')
 
         try:
-            current_level = Level.objects.get(level_order=self.level)
+            current_level = Level.objects.get(position=self.level)
         except Level.DoesNotExist:
             current_level = Level.objects.first()
 
@@ -253,7 +259,7 @@ class Note(models.Model):
         ('general', 'General'),
         ('vocabulary', 'Vocabulary'),
         ('grammar', 'Grammar')
-        ]
+    ]
 
     user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='notes')
     title = models.CharField(

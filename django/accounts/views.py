@@ -13,8 +13,14 @@ from rest_framework import (
         permissions, 
         serializers
         )
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.decorators import (
+        api_view, 
+        permission_classes
+        )
+from rest_framework.permissions import (
+        AllowAny, 
+        IsAuthenticated
+        )
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -66,7 +72,9 @@ from lessons.models import (
     UserQuizAttempt
 )
 from lessons.serializers import (
+    LevelSerializer,
     LessonSerializer,
+    FlashcardSerializer,
     UserFlashcardProgressSerializer,
     UserQuizAttemptSerializer
 )
@@ -494,7 +502,7 @@ class RecommendedLessonsView(APIView):
                         name='Beginner', 
                         defaults={
                             'difficulty': 'beginner', 
-                            'level_order': 1, 
+                            'position': 1, 
                             'points_to_advance': 100
                         }
                     )

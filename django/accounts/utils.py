@@ -13,16 +13,12 @@ def ensure_schema_compatibility():
 
             for model in models_to_check:
                 table_name = model._meta.db_table
-
-                cursor.execute(f"""
-                    SELECT EXISTS (
-                        SELECT FROM information_schema.tables
-                        WHERE table_name = %s
-                    );
-                """, [table_name])
+                cursor.execute(f"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = %s);", [table_name])
                 table_exists = cursor.fetchone()[0]
 
                 if not table_exists:
+                    # Create table with all fields
+                    # (This approach is risky; consider using Django migrations instead)
                     create_table_sql = f"CREATE TABLE {table_name} (id SERIAL PRIMARY KEY"
                     for field in model._meta.fields:
                         if field.name != "id":
@@ -30,31 +26,23 @@ def ensure_schema_compatibility():
                             field_type = field.db_type(connection)
                             create_table_sql += f", {column_name} {field_type}"
                     create_table_sql += ");"
-                    try:
-                        cursor.execute(create_table_sql)
-                        print(f"Table {table_name} created successfully.")
-                    except ProgrammingError as e:
-                        print(f"Error creating table {table_name}: {e}")
-
+                    cursor.execute(create_table_sql)
+                    print(f"Table {table_name} created successfully.")
                 else:
                     for field in model._meta.fields:
                         column_name = field.column
-                        cursor.execute(f"""
-                            SELECT EXISTS (
-                                SELECT FROM information_schema.columns
-                                WHERE table_name = %s AND column_name = %s
-                            );
-                        """, [table_name, column_name])
+                        if column_name == "order":
+                            column_name = '"order"'  # Escape reserved keyword
+                        cursor.execute(f"SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = %s AND column_name = %s);", [table_name, column_name])
                         column_exists = cursor.fetchone()[0]
 
                         if not column_exists:
                             field_type = field.db_type(connection)
-                            try:
-                                cursor.execute(f'ALTER TABLE {table_name} ADD COLUMN {column_name} {field_type};')
-                                print(f"Added column {column_name} to table {table_name}.")
-                            except ProgrammingError as e:
-                                print(f"Error adding column {column_name}: {e}")
-
+                            alter_table_sql = f'ALTER TABLE {table_name} ADD COLUMN {column_name} {field_type};'
+                            cursor.execute(alter_table_sql)
+                            print(f"Added column {column_name} to table {table_name}.")
+                        else:
+                            print(f"Column {column_name} already exists in table {table_name}.")
     except Exception as e:
         print(f"Schema compatibility check failed: {e}")
 

@@ -1,7 +1,17 @@
 from django.apps import apps
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from lessons.models import UserProgress, Flashcard, UserFlashcardProgress, UserQuizAttempt
+from lessons.models import (
+        UserProgress,
+        Level,
+        LevelTest,
+        LevelTestQuestion,
+        Lesson,
+        Flashcard,
+        Quiz,
+        QuizQuestion,
+        )
+
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.translation import gettext_lazy as _
