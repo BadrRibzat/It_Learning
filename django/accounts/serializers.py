@@ -239,7 +239,7 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
         ]
 
     def get_completed_lessons(self, obj):
-        return UserProgress.objects.filter(user=obj, completed=True).count()
+        return UserProgress.objects.filter(user=obj, quiz_completed=True).count()
 
     def get_correct_flashcards(self, obj):
         return UserFlashcardProgress.objects.filter(user=obj, is_completed=True).count()

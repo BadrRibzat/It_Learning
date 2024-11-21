@@ -10,10 +10,11 @@ class Level(models.Model):
         ('advanced', 'Advanced')
     ]
 
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    difficulty = models.CharField(max_length=50, default='beginner')
+    points_to_advance = models.IntegerField(default=0)
     position = models.IntegerField(unique=True)
-    level_position = models.IntegerField(unique=True)
     passing_score = models.IntegerField(default=80)
 
     def __str__(self):

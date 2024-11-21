@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand
-from accounts.utils import ensure_schema_compatibility
 from django.contrib.auth import get_user_model
 from lessons.models import Level
 import time
@@ -11,8 +10,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         try:
-            ensure_schema_compatibility()
-
             beginner_level, _ = Level.objects.get_or_create(
                 name='Beginner',
                 defaults={

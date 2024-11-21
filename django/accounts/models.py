@@ -1,12 +1,12 @@
 from django.contrib.auth.models import (
-        AbstractUser, 
-        UnicodeUsernameValidator
-        )
+    AbstractUser, 
+    UnicodeUsernameValidator
+)
 from django.db import models
 from django.core.validators import (
-        MaxLengthValidator, 
-        MinLengthValidator
-        )
+    MaxLengthValidator, 
+    MinLengthValidator
+)
 from django.utils.translation import gettext_lazy as _
 import uuid
 from django.utils import timezone

@@ -14,13 +14,13 @@ class LevelTestQuestionInline(admin.TabularInline):
     extra = 1
 
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ['title', 'level', 'order', 'description']
+    list_display = ['title', 'level', 'position', 'description']
     list_filter = ['level']
     search_fields = ['title', 'description']
     inlines = [FlashcardInline]
 
 class LevelAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description', 'order', 'passing_score']
+    list_display = ['name', 'description', 'position', 'passing_score']
     list_filter = ['name']
     search_fields = ['name', 'description']
 

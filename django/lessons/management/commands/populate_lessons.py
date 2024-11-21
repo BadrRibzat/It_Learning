@@ -4,7 +4,12 @@ from django.db.utils import IntegrityError
 from lessons.models import Level, Lesson, Flashcard, Quiz, QuizQuestion, LevelTest, LevelTestQuestion
 import random
 import spacy
-from transformers import pipeline
+from transformers import pipeline, logging
+import time
+import warnings
+
+# Suppress warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 class Command(BaseCommand):
     help = 'Populate database with generated English learning content'
@@ -26,16 +31,22 @@ class Command(BaseCommand):
                 
                 # Generate lessons and flashcards
                 for level in levels:
+                    self.stdout.write(f"Generating lessons for level: {level.name}")
                     lessons = self.generate_lessons(level)
                     for lesson in lessons:
+                        self.stdout.write(f"Generating flashcards for lesson: {lesson.title}")
                         flashcards = self.generate_flashcards(lesson)
+                        self.stdout.write(f"Generating quiz for lesson: {lesson.title}")
                         quiz = self.generate_quiz(lesson, flashcards)
                 
                 # Generate level tests
+                self.stdout.write("Generating level tests")
                 self.generate_level_tests(levels)
                 
                 self.stdout.write(self.style.SUCCESS('Successfully populated database'))
         
+        except KeyboardInterrupt:
+            self.stdout.write(self.style.WARNING('Script interrupted by user'))
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Error populating database: {str(e)}'))
     
@@ -81,6 +92,7 @@ class Command(BaseCommand):
         """Generate a lesson description using text generation"""
         prompt = "Write a short description for an English language learning lesson:"
         description = self.generator(prompt, max_length=100)[0]['generated_text']
+        self.stdout.write(f"Generated description: {description}")  # Debugging statement
         return description.replace(prompt, '').strip()
     
     def generate_flashcards(self, lesson):
@@ -180,6 +192,7 @@ class Command(BaseCommand):
         """Generate a definition using text generation"""
         prompt = f"Define the word '{word}':"
         definition = self.generator(prompt, max_length=50)[0]['generated_text']
+        self.stdout.write(f"Generated definition: {definition}")  # Debugging statement
         return definition.replace(prompt, '').strip()
     
     def create_fill_in_blank(self, example, word):
@@ -190,4 +203,5 @@ class Command(BaseCommand):
         """Generate an example sentence"""
         prompt = f"Create an example sentence using the word '{word}':"
         example = self.generator(prompt, max_length=100)[0]['generated_text']
+        self.stdout.write(f"Generated example: {example}")  # Debugging statement
         return example.replace(prompt, '').strip()
