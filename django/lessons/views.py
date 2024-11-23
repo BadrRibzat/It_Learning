@@ -48,34 +48,34 @@ class FlashcardViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FlashcardSerializer
     permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=['POST'])
+    @action(detail=False, methods=['post'], url_path='submit-answer')
     def submit_answer(self, request):
         serializer = FlashcardSubmissionSerializer(data=request.data)
         if serializer.is_valid():
-            flashcard_id = serializer.validated_data['flashcard_id']
+            flashcard = get_object_or_404(
+                Flashcard, 
+                id=serializer.validated_data['flashcard_id']
+            )
             user_answer = serializer.validated_data['user_answer']
             
-            flashcard = get_object_or_404(Flashcard, id=flashcard_id)
+            is_correct = self._check_answer(flashcard, user_answer)
             
-            # Check answer logic
-            is_correct = self._check_flashcard_answer(flashcard, user_answer)
-            
-            # Update user progress
-            self._update_user_progress(request.user, flashcard, is_correct)
+            self._update_user_progress(request.user, flashcard, is_correct)  # Corrected method call
             
             return Response({
                 'is_correct': is_correct,
-                'message': 'Correct' if is_correct else 'Incorrect'
+                'correct_answer': flashcard.word,
+                'explanation': flashcard.definition if not is_correct else None
             })
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=400)
+
+    def _check_answer(self, flashcard, user_answer):
+        return user_answer.lower().strip() == flashcard.word.lower().strip()
 
     def _check_flashcard_answer(self, flashcard, user_answer):
-        # Basic answer checking logic
         return user_answer.lower().strip() == flashcard.word.lower().strip()
 
     def _update_user_progress(self, user, flashcard, is_correct):
-        # Update user progress for the specific lesson
         progress, created = UserProgress.objects.get_or_create(
             user=user,
             lesson=flashcard.lesson,
@@ -92,31 +92,27 @@ class QuizViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = QuizSerializer
     permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=['POST'])
+    @action(detail=False, methods=['post'], url_path='submit-quiz')
     def submit_quiz(self, request):
         serializer = QuizSubmissionSerializer(data=request.data)
-        if serializer.is_valid():
-            quiz_id = serializer.validated_data['quiz_id']
-            answers = serializer.validated_data['answers']
-            
-            quiz = get_object_or_404(Quiz, id=quiz_id)
-            
-            # Evaluate quiz
-            total_questions = len(answers)
-            correct_answers = self._evaluate_quiz_answers(quiz, answers)
-            score = (correct_answers / total_questions) * 100
-            
-            # Update user progress
-            self._update_quiz_progress(request.user, quiz, score)
-            
-            return Response({
-                'score': score,
-                'passed': score >= quiz.passing_score,
-                'correct_answers': correct_answers,
-                'total_questions': total_questions
-            })
+        serializer.is_valid(raise_exception=True)
+        quiz_id = serializer.validated_data['quiz_id']
+        answers = serializer.validated_data['answers']
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        quiz = get_object_or_404(Quiz, id=quiz_id)
+        
+        total_questions = len(answers)
+        correct_answers = self._evaluate_quiz_answers(quiz, answers)
+        score = (correct_answers / total_questions) * 100
+        
+        self._update_quiz_progress(request.user, quiz, score)
+        
+        return Response({
+            'score': score,
+            'passed': score >= quiz.passing_score,
+            'correct_answers': correct_answers,
+            'total_questions': total_questions
+        })
 
     def _evaluate_quiz_answers(self, quiz, answers):
         correct_answers = 0
@@ -149,32 +145,28 @@ class LevelTestViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LevelTestSerializer
     permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=['POST'])
+    @action(detail=False, methods=['post'], url_path='submit-test')
     def submit_test(self, request):
         serializer = LevelTestSubmissionSerializer(data=request.data)
-        if serializer.is_valid():
-            level_test_id = serializer.validated_data['level_test_id']
-            answers = serializer.validated_data['answers']
-            
-            level_test = get_object_or_404(LevelTest, id=level_test_id)
-            
-            # Evaluate level test
-            total_questions = len(answers)
-            correct_answers = self._evaluate_level_test_answers(level_test, answers)
-            score = (correct_answers / total_questions) * 100
-            
-            # Update user progress
-            level_unlocked = self._update_level_progress(request.user, level_test, score)
-            
-            return Response({
-                'score': score,
-                'passed': score >= level_test.passing_score,
-                'correct_answers': correct_answers,
-                'total_questions': total_questions,
-                'level_unlocked': level_unlocked
-            })
+        serializer.is_valid(raise_exception=True)
+        level_test_id = serializer.validated_data['level_test_id']
+        answers = serializer.validated_data['answers']
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        level_test = get_object_or_404(LevelTest, id=level_test_id)
+        
+        total_questions = len(answers)
+        correct_answers = self._evaluate_level_test_answers(level_test, answers)
+        score = (correct_answers / total_questions) * 100
+        
+        level_unlocked = self._update_level_progress(request.user, level_test, score)
+        
+        return Response({
+            'score': score,
+            'passed': score >= level_test.passing_score,
+            'correct_answers': correct_answers,
+            'total_questions': total_questions,
+            'level_unlocked': level_unlocked
+        })
 
     def _evaluate_level_test_answers(self, level_test, answers):
         correct_answers = 0
@@ -192,13 +184,24 @@ class LevelTestViewSet(viewsets.ReadOnlyModelViewSet):
         return correct_answers
 
     def _update_level_progress(self, user, level_test, score):
+
+        lesson = level_test.level.lessons.first()
+        if not lesson:
+
+            lesson = Lesson.objects.create(
+                title=f"Level {level_test.level.name} Introduction",
+                level=level_test.level,
+                position=1
+            )
+    
         progress, created = UserProgress.objects.get_or_create(
             user=user,
-            level=level_test.level
+            level=level_test.level,
+            lesson=lesson
         )
-        
+    
         progress.level_test_score = score
         progress.level_unlocked = score >= level_test.passing_score
         progress.save()
-        
+    
         return progress.level_unlocked

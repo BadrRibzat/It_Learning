@@ -112,27 +112,24 @@ class User(AbstractUser):
 
     def reset_progress(self):
         from django.apps import apps
-        from lessons.models import Level
-
         UserProgress = apps.get_model('lessons', 'UserProgress')
         UserQuizAttempt = apps.get_model('lessons', 'UserQuizAttempt')
         UserFlashcardProgress = apps.get_model('lessons', 'UserFlashcardProgress')
-        try:
-            beginner_level = Level.objects.get(name='Beginner', difficulty='beginner')
-        except Level.DoesNotExist:
-            beginner_level, _ = Level.objects.get_or_create(
-                name='Beginner',
-                defaults={
-                    'position': 1,
-                    'points_to_advance': 100,
-                    'difficulty': 'beginner',
-                    'unlocked_by_test': False
-                }
-            )
+        Level = apps.get_model('lessons', 'Level')
+
+        beginner_level, created = Level.objects.get_or_create(
+            name='Beginner',
+            defaults={
+                'position': 1,
+                'points_to_advance': 100,
+                'difficulty': 'beginner'
+            }
+        )
 
         UserProgress.objects.filter(user=self).delete()
         UserQuizAttempt.objects.filter(user=self).delete()
         UserFlashcardProgress.objects.filter(user=self).delete()
+    
         self.points = 0
         self.level = beginner_level
         self.save()

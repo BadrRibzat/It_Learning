@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 User = get_user_model()
 
@@ -12,10 +13,11 @@ class Level(models.Model):
 
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    difficulty = models.CharField(max_length=50, default='beginner')
+    difficulty = models.CharField(max_length=50, choices=DIFFICULTY_CHOICES, default='beginner')
     points_to_advance = models.IntegerField(default=0)
     position = models.IntegerField(unique=True)
     passing_score = models.IntegerField(default=80)
+    unlocked_by_test = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -39,9 +41,18 @@ class Flashcard(models.Model):
     definition = models.TextField()
     example = models.TextField()
     translation = models.CharField(max_length=100, blank=True)
-    fill_in_blank_template = models.TextField()
+    fill_in_blank_template = models.TextField(
+        help_text="Template with _____ for fill-in-blank exercises",
+        default="",
+        blank=True
+    )
     position = models.IntegerField()
     is_last_card = models.BooleanField(default=False)
+    blank_placeholder = models.CharField(
+        max_length=50,
+        default="_____",
+        help_text="Placeholder for fill-in-blank answers"
+    )
 
     class Meta:
         unique_together = ('lesson', 'position')
@@ -64,7 +75,16 @@ class QuizQuestion(models.Model):
     question_text = models.TextField()
     correct_answer = models.CharField(max_length=200)
     position = models.IntegerField()
-    blank_placeholder = models.CharField(max_length=50)
+    fill_in_blank_template = models.TextField(
+        help_text="Template with _____ for fill-in-blank exercises",
+        default="",
+        blank=True
+    )
+    blank_placeholder = models.CharField(
+        max_length=50,
+        default="_____",
+        help_text="Placeholder for fill-in-blank answers"
+    )
 
     class Meta:
         unique_together = ('quiz', 'position')
@@ -84,14 +104,23 @@ class LevelTestQuestion(models.Model):
     question_text = models.TextField()
     correct_answer = models.CharField(max_length=200)
     position = models.IntegerField()
-    blank_placeholder = models.CharField(max_length=50)
+    fill_in_blank_template = models.TextField(
+        help_text="Template with _____ for fill-in-blank exercises",
+        default="",
+        blank=True
+    )
+    blank_placeholder = models.CharField(
+        max_length=50,
+        default="_____",
+        help_text="Placeholder for fill-in-blank answers"
+    )
 
     class Meta:
         unique_together = ('level_test', 'position')
         ordering = ['level_test', 'position']
 
 class UserProgress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='progress')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='progress')
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     level = models.ForeignKey(Level, on_delete=models.CASCADE)
     completed_flashcards = models.IntegerField(default=0)
@@ -100,6 +129,8 @@ class UserProgress(models.Model):
     level_test_score = models.FloatField(default=0)
     level_unlocked = models.BooleanField(default=False)
     last_updated = models.DateTimeField(auto_now=True)
+    
+    time_spent = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ('user', 'lesson', 'level')

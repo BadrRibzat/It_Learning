@@ -1,7 +1,11 @@
 from django.urls import reverse
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.test import APITestCase
 from accounts.models import User, Note, ProfilePicture, EmailVerificationToken, PasswordResetToken, MultiFactorAuthentication
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
+from datetime import timedelta
 
 class AccountsEndpointsTestCase(APITestCase):
     def setUp(self):
@@ -13,8 +17,8 @@ class AccountsEndpointsTestCase(APITestCase):
         data = {
             'username': 'newuser',
             'email': 'newuser@example.com',
-            'password': 'newpassword',
-            'password_confirmation': 'newpassword'
+            'password': 'ComplexPassword123!',
+            'password_confirmation': 'ComplexPassword123!'
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -36,10 +40,13 @@ class AccountsEndpointsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_email_verification(self):
-        url = reverse('email_verification')
         token = EmailVerificationToken.objects.create(user=self.user)
+        token.expires_at = timezone.now() + timedelta(hours=24)
+        token.save()
+    
+        url = reverse('email_verification')
         data = {
-            'token': token.token
+            'token': str(token.token)
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -53,27 +60,38 @@ class AccountsEndpointsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_password_reset_confirm(self):
-        url = reverse('password_reset_confirm')
         token = PasswordResetToken.objects.create(user=self.user)
+        token.generate_token()
+
+        url = reverse('password_reset_confirm')
         data = {
             'token': token.token,
-            'new_password': 'newpassword',
-            'confirm_password': 'newpassword'
+            'new_password': 'newPassword123!',
+            'confirm_password': 'newPassword123!'
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_upload_profile_picture(self):
         url = reverse('upload_profile_picture')
-        with open('/home/badr/Downloads/avatar.jpg', 'rb') as image:
-            response = self.client.post(url, {'profile_picture': image}, format='multipart')
+        image = SimpleUploadedFile("test_image.jpg", b"file_content", content_type="image/jpeg")
+        response = self.client.post(url, {'profile_picture': image}, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-
     def test_delete_profile_picture(self):
-        ProfilePicture.objects.create(user=self.user, image='/home/badr/Downloads/avatar.jpg')
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        image = SimpleUploadedFile(
+            "test_image.jpg",
+            b"file_content",
+            content_type="image/jpeg"
+        )
+        profile_picture = ProfilePicture.objects.create(
+            user=self.user,
+            image=image
+        )
+    
         url = reverse('delete_profile_picture')
-        response = self.client.delete(url, format='json')
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_reset_progress(self):

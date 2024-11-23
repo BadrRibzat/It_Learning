@@ -2,16 +2,11 @@ from django.apps import apps
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from lessons.models import (
-        UserProgress,
-        Level,
-        LevelTest,
-        LevelTestQuestion,
-        Lesson,
-        Flashcard,
-        Quiz,
-        QuizQuestion,
+        UserProgress, Level, LevelTest, LevelTestQuestion,
+        Lesson, Flashcard, Quiz, QuizQuestion,
+        UserFlashcardProgress, UserQuizAttempt, UserProgress
         )
-
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils.translation import gettext_lazy as _
@@ -253,15 +248,15 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
 
         daily_progress = UserProgress.objects.filter(
             user=obj,
-            completed_at__gte=timezone.now() - timedelta(days=30)
-        ).order_by('-completed_at')
+            last_updated__gte=timezone.now() - timedelta(days=30)
+        ).order_by('-last_updated')
 
         streak = 0
         last_day = None
         for progress in daily_progress:
-            if last_day is None or (last_day - progress.completed_at.date()).days == 1:
+            if last_day is None or (last_day - progress.last_updated.date()).days == 1:
                 streak += 1
-                last_day = progress.completed_at.date()
+                last_day = progress.last_updated.date()
             else:
                 break
 

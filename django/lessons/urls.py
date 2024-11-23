@@ -17,19 +17,13 @@ router.register(r'level-tests', LevelTestViewSet, basename='level-test')
 
 urlpatterns = [
     path('', include(router.urls)),
-    
-    # Flashcard-specific endpoints
-    path('flashcards/submit/', FlashcardViewSet.as_view({
-        'post': 'submit_answer'
-        }), name='flashcard-submit'),
-    
-    # Quiz-specific endpoints
-    path('quizzes/submit/', QuizViewSet.as_view({
-        'post': 'submit_quiz'
-        }), name='quiz-submit'),
-    
-    # Level Test-specific endpoints
-    path('level-tests/submit/', LevelTestViewSet.as_view({
-        'post': 'submit_test'
-        }), name='level-test-submit'),
+    path('flashcards/submit-answer/', 
+         FlashcardViewSet.as_view({'post': 'submit_answer'}),
+         name='flashcard-submit'),
+    path('quizzes/submit-quiz/',
+         QuizViewSet.as_view({'post': 'submit_quiz'}),
+         name='quiz-submit'),
+    path('level-tests/submit-test/',
+         LevelTestViewSet.as_view({'post': 'submit_test'}),
+         name='level-test-submit'),
 ]
