@@ -12,6 +12,9 @@ class Command(BaseCommand):
     help = 'Clear test users and associated data'
 
     def add_arguments(self, parser):
+        """
+        Add arguments to the command.
+        """
         parser.add_argument(
             '--days', 
             type=int, 
@@ -20,10 +23,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """
+        Handle the command to clear test users and associated data.
+        """
         days = options['days']
         cutoff_date = timezone.now() - timedelta(days=days)
 
-        # Test users query
+        # Query for test users
         test_users = User.objects.filter(
             Q(email__startswith='testuser') |
             Q(username__startswith='testuser') |

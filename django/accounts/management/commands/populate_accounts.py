@@ -3,13 +3,18 @@ from django.contrib.auth import get_user_model
 from lessons.models import Level
 import time
 
+# Get the User model
 User = get_user_model()
 
 class Command(BaseCommand):
     help = 'Populate the database with test accounts'
 
     def handle(self, *args, **kwargs):
+        """
+        Handle the command to populate the database with test accounts.
+        """
         try:
+            # Get or create the Beginner level
             beginner_level, _ = Level.objects.get_or_create(
                 name='Beginner',
                 defaults={
@@ -19,11 +24,13 @@ class Command(BaseCommand):
                 }
             )
 
+            # Generate a unique username and email
             timestamp = int(time.time())
             username = f'testuser_{timestamp}'
             email = f'{username}@example.com'
 
             try:
+                # Create a test user
                 user = User.objects.create_user(
                     username=username,
                     email=email,

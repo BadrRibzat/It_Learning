@@ -395,6 +395,9 @@ class UploadProfilePictureView(APIView):
         user = request.user
         image = request.FILES['profile_picture']
 
+        if image.content_type not in ['image/jpeg', 'image/png']:
+            return Response({"detail": "Invalid file type"}, status=status.HTTP_400_BAD_REQUEST)
+
         profile_picture, created = ProfilePicture.objects.get_or_create(user=user)
         profile_picture.image = image
         profile_picture.save()

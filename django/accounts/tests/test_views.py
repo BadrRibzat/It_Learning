@@ -163,3 +163,111 @@ def test_user_statistics(api_client):
     url = reverse('user_statistics')
     response = api_client.get(url, format='json')
     assert response.status_code == status.HTTP_200_OK
+
+@pytest.mark.django_db
+def test_user_creation_with_existing_email(api_client):
+    User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
+    url = reverse('register')
+    data = {
+        'username': 'anotheruser',
+        'email': 'test@example.com',
+        'password': 'ComplexPassword123!',
+        'password_confirmation': 'ComplexPassword123!'
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.django_db
+def test_login_with_wrong_password(api_client):
+    User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
+    url = reverse('token_obtain_pair')
+    data = {
+        'email': 'test@example.com',
+        'password': 'wrongpassword'
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+@pytest.mark.django_db
+def test_logout_without_token(api_client):
+    url = reverse('logout')
+    response = api_client.post(url, {}, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.django_db
+def test_email_verification_with_invalid_token(api_client):
+    url = reverse('email_verification')
+    data = {
+        'token': 'invalidtoken'
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.django_db
+def test_password_reset_with_unregistered_email(api_client):
+    url = reverse('password_reset_request')
+    data = {
+        'email': 'nonexistent@example.com'
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.django_db
+def test_password_reset_confirm_with_mismatched_passwords(api_client):
+    user = User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
+    token = PasswordResetToken.objects.create(user=user)
+    token.generate_token()
+
+    url = reverse('password_reset_confirm')
+    data = {
+        'token': token.token,
+        'new_password': 'newPassword123!',
+        'confirm_password': 'differentPassword123!'
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.django_db
+def test_upload_invalid_profile_picture(api_client):
+    user = User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
+    api_client.force_authenticate(user=user)
+
+    url = reverse('upload_profile_picture')
+    image = SimpleUploadedFile("test_image.txt", b"file_content", content_type="text/plain")
+    response = api_client.post(url, {'profile_picture': image}, format='multipart')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.django_db
+def test_delete_nonexistent_profile_picture(api_client):
+    user = User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
+    api_client.force_authenticate(user=user)
+
+    url = reverse('delete_profile_picture')
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+@pytest.mark.django_db
+def test_get_recommended_lessons_while_logged_out(api_client):
+    url = reverse('recommended_lessons')
+    response = api_client.get(url, format='json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+@pytest.mark.django_db
+def test_view_profile_of_another_user(api_client):
+    user1 = User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
+    user2 = User.objects.create_user(username='anotheruser', email='anotheruser@example.com', password='anotherpassword')
+    api_client.force_authenticate(user=user1)
+
+    url = reverse('user_profile', kwargs={'username': 'anotheruser'})
+    response = api_client.get(url, format='json')
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+@pytest.mark.django_db
+def test_view_statistics_of_another_user(api_client):
+    user1 = User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
+    user2 = User.objects.create_user(username='anotheruser', email='anotheruser@example.com', password='anotherpassword')
+    api_client.force_authenticate(user=user1)
+
+    url = reverse('user_statistics', kwargs={'username': 'anotheruser'})
+    response = api_client.get(url, format='json')
+    assert response.status_code == status.HTTP_403_FORBIDDEN
