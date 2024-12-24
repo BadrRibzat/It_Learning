@@ -38,7 +38,8 @@ def test_password_reset_token_with_invalid_token():
     user = User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
     token = PasswordResetToken.objects.create(user=user)
     token.generate_token()
-    token.token = 'invalidtoken'
+    token.expires_at = timezone.now() - timedelta(hours=1)
+    token.save()
     assert not token.is_valid()
 
 @pytest.mark.django_db

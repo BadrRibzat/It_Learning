@@ -151,7 +151,7 @@ def test_profile_view(api_client):
     user = User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
     api_client.force_authenticate(user=user)
 
-    url = reverse('user_profile')
+    url = reverse('user_profile', kwargs={'username': user.username})
     response = api_client.get(url, format='json')
     assert response.status_code == status.HTTP_200_OK
 
@@ -160,7 +160,7 @@ def test_user_statistics(api_client):
     user = User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
     api_client.force_authenticate(user=user)
 
-    url = reverse('user_statistics')
+    url = reverse('user_statistics', kwargs={'username': user.username})
     response = api_client.get(url, format='json')
     assert response.status_code == status.HTTP_200_OK
 
@@ -190,6 +190,9 @@ def test_login_with_wrong_password(api_client):
 
 @pytest.mark.django_db
 def test_logout_without_token(api_client):
+    user = User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
+    api_client.force_authenticate(user=user)
+
     url = reverse('logout')
     response = api_client.post(url, {}, format='json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -250,7 +253,7 @@ def test_delete_nonexistent_profile_picture(api_client):
 def test_get_recommended_lessons_while_logged_out(api_client):
     url = reverse('recommended_lessons')
     response = api_client.get(url, format='json')
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 @pytest.mark.django_db
 def test_view_profile_of_another_user(api_client):
@@ -258,9 +261,9 @@ def test_view_profile_of_another_user(api_client):
     user2 = User.objects.create_user(username='anotheruser', email='anotheruser@example.com', password='anotherpassword')
     api_client.force_authenticate(user=user1)
 
-    url = reverse('user_profile', kwargs={'username': 'anotheruser'})
+    url = reverse('user_profile', kwargs={'username': user2.username})
     response = api_client.get(url, format='json')
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
 
 @pytest.mark.django_db
 def test_view_statistics_of_another_user(api_client):
@@ -268,6 +271,6 @@ def test_view_statistics_of_another_user(api_client):
     user2 = User.objects.create_user(username='anotheruser', email='anotheruser@example.com', password='anotherpassword')
     api_client.force_authenticate(user=user1)
 
-    url = reverse('user_statistics', kwargs={'username': 'anotheruser'})
+    url = reverse('user_statistics', kwargs={'username': user2.username})
     response = api_client.get(url, format='json')
     assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -177,31 +177,24 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        refresh_token = request.data.get("refresh_token")
+        if not refresh_token:
+            return Response(
+                {"error": "Refresh token is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         try:
-            refresh_token = request.data.get("refresh_token")
-            if not refresh_token:
-                return Response(
-                    {"error": "Refresh token is required"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            try:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-            except Exception as token_error:
-                return Response(
-                    {"error": "Invalid refresh token"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
+            token = RefreshToken(refresh_token)
+            token.blacklist()
             return Response(
                 {"detail": "Successfully logged out"},
                 status=status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception as token_error:
             return Response(
-                {"error": "Logout failed"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Invalid refresh token"},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 class EmailVerificationView(APIView):
@@ -496,6 +489,9 @@ class RecommendedLessonsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+
         try:
             user = request.user
 
@@ -558,23 +554,38 @@ class RecommendedLessonsView(APIView):
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        serializer = UserProfileSerializer(request.user)
-        return Response(serializer.data)
-
-    def put(self, request):
-        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
+    def get(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+            serializer = UserProfileSerializer(user)
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+            serializer = UserProfileSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class UserStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        serializer = UserStatisticsSerializer(request.user)
-        return Response(serializer.data)
+    def get(self, request, username):
+        try:
+            if username != request.user.username:
+                return Response({"detail": "You do not have permission to view this user's statistics."}, status=status.HTTP_403_FORBIDDEN)
+
+            user = User.objects.get(username=username)
+            serializer = UserStatisticsSerializer(user)
+            return Response(serializer.data)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])

@@ -1,4 +1,4 @@
-import pytest  # Add this import
+import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -35,8 +35,9 @@ class AccountsEndpointsTestCase(APITestCase):
 
     def test_logout_without_token(self):
         url = reverse('logout')
+        self.client.logout()
         response = self.client.post(url, {}, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_email_verification_with_invalid_token(self):
         url = reverse('email_verification')
@@ -98,18 +99,19 @@ class AccountsEndpointsTestCase(APITestCase):
         self.client.logout()
         url = reverse('recommended_lessons')
         response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
     @pytest.mark.django_db
     def test_view_profile_of_another_user(self):
         another_user = User.objects.create_user(username='anotheruser', email='anotheruser@example.com', password='anotherpassword')
-        url = reverse('user_profile', kwargs={'username': 'anotheruser'})
+        url = reverse('user_profile', kwargs={'username': another_user.username})
         response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['username'], another_user.username)
 
     @pytest.mark.django_db
     def test_view_statistics_of_another_user(self):
         another_user = User.objects.create_user(username='anotheruser', email='anotheruser@example.com', password='anotherpassword')
-        url = reverse('user_statistics', kwargs={'username': 'anotheruser'})
+        url = reverse('user_statistics', kwargs={'username': another_user.username})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

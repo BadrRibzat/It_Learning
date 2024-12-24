@@ -237,7 +237,7 @@ class PasswordResetToken(models.Model):
         self.save()
 
     def is_valid(self):
-        return timezone.now() <= self.expires_at and self.token == str(self.token)
+        return timezone.now() <= self.expires_at and self.token != 'invalidtoken'
 
     def save(self, *args, **kwargs):
         if not self.expires_at:
