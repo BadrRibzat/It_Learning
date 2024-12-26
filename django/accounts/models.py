@@ -79,6 +79,9 @@ class User(AbstractUser):
 
     points = models.PositiveIntegerField(default=0)
     level = models.ForeignKey('lessons.Level', on_delete=models.SET_NULL, null=True, default=None)
+    time_spent = models.PositiveIntegerField(default=0)
+    completed_flashcards = models.PositiveIntegerField(default=0)
+    quiz_completed = models.PositiveIntegerField(default=0)
 
     is_verified = models.BooleanField(default=False)
 
@@ -117,19 +120,17 @@ class User(AbstractUser):
         UserFlashcardProgress = apps.get_model('lessons', 'UserFlashcardProgress')
         Level = apps.get_model('lessons', 'Level')
 
-        beginner_level, created = Level.objects.get_or_create(
-            name='Beginner',
-            defaults={
-                'position': 1,
-                'points_to_advance': 100,
-                'difficulty': 'beginner'
-            }
-        )
+        # Fetch the Beginner level based on its position (position=1)
+        beginner_level = Level.objects.filter(position=1).first()
+        if not beginner_level:
+            raise ValueError("Beginner level (position=1) does not exist in the database.")
 
+        # Delete all progress-related data
         UserProgress.objects.filter(user=self).delete()
         UserQuizAttempt.objects.filter(user=self).delete()
         UserFlashcardProgress.objects.filter(user=self).delete()
-    
+
+        # Reset user's progress
         self.points = 0
         self.level = beginner_level
         self.save()
@@ -207,6 +208,21 @@ class User(AbstractUser):
 
     def can_take_level_test(self):
         return self.calculate_level_progress()['progress_percentage'] >= 80
+
+class UserProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_progress')
+    lesson = models.ForeignKey('lessons.Lesson', on_delete=models.CASCADE, related_name='lesson_progress')
+    quiz_completed = models.BooleanField(default=False)
+    completed_flashcards = models.BooleanField(default=False)
+    time_spent = models.PositiveIntegerField(default=0)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.lesson.title}"
+
+    class Meta:
+        verbose_name = 'User Progress'
+        verbose_name_plural = 'User Progress'
 
 class EmailVerificationToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

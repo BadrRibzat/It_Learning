@@ -1,489 +1,351 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-# Colors
+# Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
-YELLOW='\033[1;33m'
-BLUE='\033[1;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Configuration
+# Base URL
 BASE_URL="http://localhost:8000"
-LOG_FILE="test_endpoints.log"
 
-# Logging function
-log() {
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*" >> "$LOG_FILE"
+# Test user credentials
+USERNAME="PedroRibzat"
+EMAIL="badrribzat003@gmail.com"
+PASSWORD="PedroRibzat123@"
+
+# Function to print colored output
+print_result() {
+    local status=$1
+    local message=$2
+    if [ $status -eq 0 ]; then
+        echo -e "${GREEN}✓ $message${NC}"
+    else
+        echo -e "${RED}✗ $message${NC}"
+    fi
 }
 
-# Check if the server is running
-if ! nc -z localhost 8000; then
-    echo -e "${RED}Error: Django server is not running. Please start the server first.${NC}"
-    exit 1
-fi
-
-# Flag to track user creation
-USER_CREATED=false
-
-# Enhanced test endpoint function
-test_endpoint() {
+# Function to make API requests
+api_request() {
     local method=$1
     local endpoint=$2
     local data=$3
-    local description=$4
-    local auth_header=$5
-    local file_path=$6
+    local token=$4
 
-    echo -e "${YELLOW}Testing:${NC} $description"
-    log "Testing: $description"
-
-    # Curl command with verbose error handling
-    local response
-    local http_status
-
-    if [ -n "$auth_header" ]; then
-        if [ -n "$file_path" ]; then
-            response=$(curl -s -w "%{http_code}" -X "$method" \
-                -H "Authorization: Bearer $auth_header" \
-                -F "profile_picture=@$file_path" \
-                "${BASE_URL}${endpoint}")
-        else
-            response=$(curl -s -w "%{http_code}" -X "$method" \
-                -H "Content-Type: application/json" \
-                -H "Authorization: Bearer $auth_header" \
-                -d "$data" \
-                "${BASE_URL}${endpoint}")
-        fi
-    else
-        response=$(curl -s -w "%{http_code}" -X "$method" \
-            -H "Content-Type: application/json" \
-            -d "$data" \
-            "${BASE_URL}${endpoint}")
+    # Prepare headers
+    local headers=("-H" "Content-Type: application/json")
+    if [ -n "$token" ]; then
+        headers+=("-H" "Authorization: Bearer $token")
     fi
 
-    http_status=${response: -3}
-    response=${response:0:${#response}-3}
-
-    if [[ "$http_status" == "200" || "$http_status" == "201" ]]; then
-        echo -e "${GREEN}Success (Status $http_status):${NC}"
-        echo "$response" | python3 -m json.tool
-        log "Success: $description - Status $http_status"
-    else
-        echo -e "${RED}Failed (Status $http_status):${NC}"
-        echo "$response"
-        log "Failed: $description - Status $http_status"
-    fi
-}
-
-# Function for retrying curl requests
-retry_curl() {
-    local max_attempts=3
-    local attempt=0
+    # Make request
     local response
-    local http_status
+    if [ -n "$data" ]; then
+        response=$(curl -s -w "%{http_code}" -X "$method" "${headers[@]}" -d "$data" "$BASE_URL$endpoint")
+    else
+        response=$(curl -s -w "%{http_code}" -X "$method" "${headers[@]}" "$BASE_URL$endpoint")
+    fi
 
-    while [ $attempt -lt $max_attempts ]; do
-        response=$(curl -s -w "%{http_code}" "$@")
-        http_status=${response: -3}
-        response=${response:0:${#response}-3}
+    # Split status code and response body
+    local http_code=${response: -3}
+    local body=${response:0:${#response}-3}
 
-        if [[ "$http_status" == "200" || "$http_status" == "201" ]]; then
-            echo "$response"
-            return 0
-        fi
-
-        attempt=$((attempt + 1))
-        sleep 1
-    done
-
-    echo "Failed after $max_attempts attempts"
-    return 1
+    echo "$http_code|$body"
 }
 
-# 1. Test User Registration (Conditional)
-if [ "$USER_CREATED" == "false" ]; then # Only register if not already created
-    echo -e "\n${BLUE}1. Testing User Registration${NC}"
-    register_data='{
-        "username": "testuser",
-        "email": "testuser@example.com",
-        "password": "TestPass123!",
-        "password_confirmation": "TestPass123!",
-        "language": "en"
-    }'
-    test_endpoint "POST" "/accounts/register/" "$register_data" "User Registration"
-    USER_CREATED=true # Set the flag
-fi
-
-# 2. Test Login
-echo -e "\n${BLUE}2. Testing Login${NC}"
-login_data='{
-    "email": "testuser@example.com",
-    "password": "TestPass123!"
-}'
-login_response=$(curl -s -X POST \
-    -H "Content-Type: application/json" \
-    -d "$login_data" \
-    "${BASE_URL}/accounts/login/")
-
-ACCESS_TOKEN=$(echo $login_response | python3 -c "import sys, json; print(json.load(sys.stdin)['access'])")
-REFRESH_TOKEN=$(echo $login_response | python3 -c "import sys, json; print(json.load(sys.stdin)['refresh'])")
-
-if [ -n "$ACCESS_TOKEN" ]; then
-    echo -e "${GREEN}Login Successful - Token Received${NC}"
-else
-    echo -e "${RED}Login Failed${NC}"
-    exit 1
-fi
-
-# 3. Test Email Verification Request
-echo -e "\n${BLUE}3. Testing Email Verification Request${NC}"
-test_endpoint "POST" "/accounts/resend-verification/" "" "Email Verification Request" "$ACCESS_TOKEN"
-
-# 4. Test Password Reset Request
-echo -e "\n${BLUE}4. Testing Password Reset Request${NC}"
-reset_data='{"email": "testuser@example.com"}'
-test_endpoint "POST" "/accounts/password-reset/" "$reset_data" "Password Reset Request"
-
-# 5. Test Profile Retrieval
-echo -e "\n${BLUE}5. Testing Profile Retrieval${NC}"
-test_endpoint "GET" "/accounts/profile/" "" "Profile Retrieval" "$ACCESS_TOKEN"
-
-# 6. Test User Statistics
-echo -e "\n${BLUE}6. Testing User Statistics${NC}"
-test_endpoint "GET" "/accounts/statistics/" "" "User Statistics" "$ACCESS_TOKEN"
-
-# 7. Test MFA Setup
-echo -e "\n${BLUE}7. Testing MFA Setup${NC}"
-test_endpoint "POST" "/accounts/mfa/setup/" "" "MFA Setup" "$ACCESS_TOKEN"
-
-# 8. Test Recommended Lessons
-echo -e "\n${BLUE}8. Testing Recommended Lessons${NC}"
-test_endpoint "GET" "/accounts/recommended-lessons/" "" "Recommended Lessons" "$ACCESS_TOKEN"
-
-# 9. Test Note Creation
-# Test Create Note
-echo -e "\n${BLUE}1. Testing Note Creation${NC}"
-create_note_data='{
-    "title": "My First Learning Note",
-    "content": "Today I learned some important English grammar rules about verb tenses.",
-    "note_type": "grammar"
-}'
-create_response=$(curl -s -w "%{http_code}" -X POST \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -d "$create_note_data" \
-    "${BASE_URL}/accounts/notes/")
-
-NOTE_ID=$(echo "${create_response:0:${#create_response}-3}" | python3 -c "import sys, json; print(json.load(sys.stdin)['id'])")
-HTTP_STATUS=${create_response: -3}
-
-if [ "$HTTP_STATUS" == "201" ]; then
-    echo -e "${GREEN}Note Created Successfully with ID: $NOTE_ID${NC}"
-else
-    echo -e "${RED}Note Creation Failed${NC}"
-    exit 1
-fi
-
-# Test Read (List) Notes
-echo -e "\n${BLUE}2. Testing Note Listing${NC}"
-list_response=$(curl -s -w "%{http_code}" -X GET \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/accounts/notes/")
-
-HTTP_STATUS=${list_response: -3}
-RESPONSE_BODY=${list_response:0:${#list_response}-3}
-
-if [ "$HTTP_STATUS" == "200" ]; then
-    echo -e "${GREEN}Notes Retrieved Successfully:${NC}"
-    echo "$RESPONSE_BODY" | python3 -m json.tool
-else
-    echo -e "${RED}Note Listing Failed${NC}"
-fi
-
-# Test Read (Retrieve Single Note)
-echo -e "\n${BLUE}3. Testing Single Note Retrieval${NC}"
-retrieve_response=$(curl -s -w "%{http_code}" -X GET \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/accounts/notes/$NOTE_ID/")
-
-HTTP_STATUS=${retrieve_response: -3}
-RESPONSE_BODY=${retrieve_response:0:${#retrieve_response}-3}
-
-if [ "$HTTP_STATUS" == "200" ]; then
-    echo -e "${GREEN}Note Retrieved Successfully:${NC}"
-    echo "$RESPONSE_BODY" | python3 -m json.tool
-else
-    echo -e "${RED}Note Retrieval Failed${NC}"
-fi
-
-# Test Update Note
-echo -e "\n${BLUE}4. Testing Note Update${NC}"
-update_note_data='{
-    "title": "Updated Learning Note",
-    "content": "I have expanded my understanding of English grammar rules.",
-    "note_type": "grammar"
-}'
-update_response=$(curl -s -w "%{http_code}" -X PUT \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -d "$update_note_data" \
-    "${BASE_URL}/accounts/notes/$NOTE_ID/")
-
-HTTP_STATUS=${update_response: -3}
-RESPONSE_BODY=${update_response:0:${#update_response}-3}
-
-if [ "$HTTP_STATUS" == "200" ]; then
-    echo -e "${GREEN}Note Updated Successfully:${NC}"
-    echo "$RESPONSE_BODY" | python3 -m json.tool
-else
-    echo -e "${RED}Note Update Failed${NC}"
-fi
-
-# Test Partial Update (Patch) Note Type
-echo -e "\n${BLUE}5. Testing Note Type Change${NC}"
-change_type_data='{
-    "note_type": "vocabulary"
-}'
-change_type_response=$(curl -s -w "%{http_code}" -X PATCH \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -d "$change_type_data" \
-    "${BASE_URL}/accounts/notes/$NOTE_ID/change-type/")
-
-HTTP_STATUS=${change_type_response: -3}
-RESPONSE_BODY=${change_type_response:0:${#change_type_response}-3}
-
-if [ "$HTTP_STATUS" == "200" ]; then
-    echo -e "${GREEN}Note Type Changed Successfully:${NC}"
-    echo "$RESPONSE_BODY" | python3 -m json.tool
-else
-    echo -e "${RED}Note Type Change Failed${NC}"
-fi
-
-# Test Note Search
-echo -e "\n${BLUE}6. Testing Note Search${NC}"
-search_response=$(curl -s -w "%{http_code}" -X GET \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/accounts/notes/search/?q=grammar")
-
-HTTP_STATUS=${search_response: -3}
-RESPONSE_BODY=${search_response:0:${#search_response}-3}
-
-if [ "$HTTP_STATUS" == "200" ]; then
-    echo -e "${GREEN}Note Search Successful:${NC}"
-    echo "$RESPONSE_BODY" | python3 -m json.tool
-else
-    echo -e "${RED}Note Search Failed${NC}"
-fi
-
-# Test Delete Note
-echo -e "\n${BLUE}7. Testing Note Deletion${NC}"
-delete_response=$(curl -s -w "%{http_code}" -X DELETE \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/accounts/notes/$NOTE_ID/")
-
-HTTP_STATUS=${delete_response: -3}
-
-if [ "$HTTP_STATUS" == "204" ]; then
-    echo -e "${GREEN}Note Deleted Successfully${NC}"
-else
-    echo -e "${RED}Note Deletion Failed${NC}"
-fi
-
-echo -e "\n${GREEN}All Note CRUD Tests Completed!${NC}"
-
-# 12. Test Token Refresh
-echo -e "\n${BLUE}10. Testing Token Refresh${NC}"
-refresh_data="{\"refresh\":\"$REFRESH_TOKEN\"}"
-test_endpoint "POST" "/accounts/token/refresh/" "$refresh_data" "Token Refresh"
-
-# 13. Test Upload Profile Picture
-echo -e "\n${BLUE}11. Testing Upload Profile Picture${NC}"
-test_endpoint "POST" "/accounts/upload-profile-picture/" "" "Upload Profile Picture" "$ACCESS_TOKEN" "/home/badr/Downloads/avatar.jpg"
-
-# 14. Test Delete Profile Picture
-echo -e "\n${BLUE}13. Testing Delete Profile Picture${NC}"
-test_endpoint "DELETE" "/accounts/delete-profile-picture/" "" "Delete Profile Picture" "$ACCESS_TOKEN"
-
-# 15. Testing Intermediate Level Test Submission
-# Testing Intermediate Level Test
-echo -e "\n${BLUE}Testing Intermediate Level Test${NC}"
-
-# Get the intermediate level ID
-intermediate_level_response=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" "${BASE_URL}/lessons/levels/")
-intermediate_level=$(echo "$intermediate_level_response" | python3 -c '
-import sys, json
-data = json.loads(sys.stdin.read())
-for level in data["results"]:
-    if level["name"] == "Intermediate":
-        print(level["id"])
-        break
-')
-
-if [ -z "$intermediate_level" ]; then
-    echo -e "${RED}Failed to fetch Intermediate Level${NC}"
-    exit 1
-fi
-
-# Create Intermediate Level Test
-echo -e "\n${BLUE}Creating Intermediate Level Test${NC}"
-create_test_response=$(curl -s -w "%{http_code}" -X POST \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -d '{
-        "level": '"$intermediate_level"',
-        "title": "Intermediate Level Test",
-        "passing_score": 80,
-        "total_questions": 10
-    }' \
-    "${BASE_URL}/lessons/leveltests/")
-
-http_status=${create_test_response: -3}
-create_test_body=${create_test_response:0:${#create_test_response}-3}
-
-if [ "$http_status" != "200" ] && [ "$http_status" != "201" ]; then
-    echo -e "${RED}Failed to create Level Test (Status $http_status)${NC}"
-    log "Failed to create Level Test - Status $http_status"
-    log "Response: $create_test_body"
-    exit 1
-fi
-
-# Extract the level test ID
-level_test_id=$(echo "$create_test_body" | python3 -c '
-import sys, json
-data = json.loads(sys.stdin.read())
-print(data.get("id", ""))
-')
-
-if [ -z "$level_test_id" ]; then
-    echo -e "${RED}Failed to extract Level Test ID from creation response${NC}"
-    log "Failed to extract Level Test ID from creation response"
-    exit 1
-fi
-
-# Create test questions
-echo -e "\n${BLUE}Creating Test Questions${NC}"
-questions_data='{
-    "questions": [
-        {
-            "question_text": "What is the past tense of \"go\"?",
-            "correct_answer": "went",
-            "order": 1
-        },
-        {
-            "question_text": "What is the plural of \"child\"?",
-            "correct_answer": "children",
-            "order": 2
-        },
-        {
-            "question_text": "What is the opposite of \"happy\"?",
-            "correct_answer": "sad",
-            "order": 3
-        }
-    ]
-}'
-
-test_endpoint "POST" "/lessons/leveltests/${level_test_id}/questions/" "$questions_data" "Create Test Questions" "$ACCESS_TOKEN"
-
-# Submit test answers
-echo -e "\n${BLUE}Submitting Test Answers${NC}"
-test_answers='{
-    "answers": [
-        {"question_id": 1, "answer": "went"},
-        {"question_id": 2, "answer": "children"},
-        {"question_id": 3, "answer": "sad"}
-    ]
-}'
-
-test_endpoint "POST" "/lessons/leveltests/${level_test_id}/submit/" "$test_answers" "Submit Test Answers" "$ACCESS_TOKEN"
-
-# Test accessing intermediate lessons after passing the test
-echo -e "\n${BLUE}Testing Access to Intermediate Lessons${NC}"
-test_endpoint "GET" "/lessons/lessons/?level=${intermediate_level}" "" "Access Intermediate Lessons" "$ACCESS_TOKEN"
-
-# Similar approach for Advanced Level Test
-echo -e "\n${BLUE}17. Testing Advanced Level Test Submission${NC}"
-# Fetch Advanced Level
-advanced_level=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/lessons/levels/?name=Advanced" | python3 -c "import sys, json; print(json.load(sys.stdin)['results'][0]['id'])")
-
-if [ -z "$advanced_level" ]; then
-    echo -e "${RED}Failed to fetch Advanced Level${NC}"
-    exit 1
-fi
-
-# Fetch Advanced Level Test Questions
-advanced_level_test_questions=$(curl -s -H "Authorization: Bearer $ACCESS_TOKEN" \
-    "${BASE_URL}/lessons/leveltests/${advanced_level}/questions/")
-
-# Check if questions were retrieved successfully
-if [ -z "$advanced_level_test_questions" ]; then
-    echo -e "${RED}No Advanced Level Test questions found${NC}"
-    exit 1
-fi
-
-# Dynamically extract question IDs
-advanced_question_ids=$(echo "$advanced_level_test_questions" | python3 -c "
-import sys, json
-try:
-    questions = json.load(sys.stdin)
-    print(' '.join(str(q['id']) for q in questions))
-except Exception as e:
-    print('')
-")
-
-# Prepare dynamic answers
-advanced_level_test_data='{
-    "answers": ['
-for id in $advanced_question_ids; do
-    advanced_level_test_data+="
-    {\"question_id\": $id, \"answer\": \"Correct Answer\"},"
-done
-advanced_level_test_data="${advanced_level_test_data%,}
-]}"
-
-# Submit Advanced Level Test
-test_endpoint "POST" "/lessons/levels/${advanced_level}/submit-test/" "$advanced_level_test_data" "Advanced Level Test Submission" "$ACCESS_TOKEN"
-
-# 18. Test Lessons Accessibility After Level Tests
-echo -e "\n${BLUE}18. Testing Lessons Accessibility${NC}"
-test_endpoint "GET" "/lessons/lessons/" "" "Lessons Accessibility After Level Tests" "$ACCESS_TOKEN"
-
-# 19. Test Lessons
-echo -e "\n${BLUE}15. Testing Lessons${NC}"
-test_endpoint "GET" "/lessons/lessons/" "" "Lessons" "$ACCESS_TOKEN"
-
-# 20. Test Flashcards
-echo -e "\n${BLUE}16. Testing Flashcards${NC}"
-test_endpoint "GET" "/lessons/flashcards/" "" "Flashcards" "$ACCESS_TOKEN"
-
-# 21. Test Quizzes
-echo -e "\n${BLUE}17. Testing Quizzes${NC}"
-test_endpoint "GET" "/lessons/quizzes/" "" "Quizzes" "$ACCESS_TOKEN"
-
-# 22. Test User Progress
-echo -e "\n${BLUE}18. Testing User Progress${NC}"
-test_endpoint "GET" "/lessons/progress/learning_progress/" "" "User Progress" "$ACCESS_TOKEN"
-
-# 23. Test Learning Metrics
-echo -e "\n${BLUE}19. Testing Learning Metrics${NC}"
-test_endpoint "GET" "/lessons/progress/learning-metrics/" "" "Learning Metrics" "$ACCESS_TOKEN"
-
-# 24. Test Comprehensive Learning Report
-echo -e "\n${BLUE}20. Testing Comprehensive Learning Report${NC}"
-test_endpoint "GET" "/lessons/progress/comprehensive-learning-report/" "" "Comprehensive Learning Report" "$ACCESS_TOKEN"
-
-# 12. Test Reset Progress
-echo -e "\n${BLUE}12. Testing Reset Progress${NC}"
-test_endpoint "POST" "/accounts/reset-progress/" "" "Reset Progress" "$ACCESS_TOKEN"
-
-# 15. Test Reset Progress Details
-echo -e "\n${BLUE}22. Testing Reset Progress Details${NC}"
-test_endpoint "GET" "/accounts/reset-progress-details/" "" "Reset Progress Details" "$ACCESS_TOKEN"
-
-# 25. Test Logout
-echo -e "\n${BLUE}21. Testing Logout${NC}"
-logout_data="{\"refresh\":\"$REFRESH_TOKEN\"}"
-test_endpoint "POST" "/accounts/logout/" "$logout_data" "Logout" "$ACCESS_TOKEN"
-
-echo -e "\n${GREEN}All tests completed!${NC}"
+# Function to extract token from response
+extract_token() {
+    local response="$1"
+    local token_type="$2"
+    echo "$response" | grep -o "\"$token_type\":\"[^\"]*\"" | cut -d'"' -f4
+}
+
+# Function to extract first ID from response
+extract_first_id() {
+    local response="$1"
+    echo "$response" | grep -o '"id":[0-9]*' | cut -d':' -f2 | head -n 1
+}
+
+# Function to add debug printing
+debug_print_response() {
+    local response="$1"
+    local message="$2"
+    
+    echo -e "${NC}Debug - $message:${NC}"
+    echo "Status Code: $(echo "$response" | cut -d'|' -f1)"
+    echo "Response Body: $(echo "$response" | cut -d'|' -f2)"
+}
+
+# Main test function
+run_tests() {
+    echo "Starting comprehensive API endpoint tests..."
+
+    # 1. User Registration
+    echo -e "\n${NC}1. User Registration Test${NC}"
+    reg_response=$(api_request "POST" "/accounts/register/" "{
+        \"username\": \"$USERNAME\",
+        \"email\": \"$EMAIL\",
+        \"password\": \"$PASSWORD\",
+        \"password_confirmation\": \"$PASSWORD\",
+        \"language\": \"en\"
+    }")
+    reg_status=$(echo "$reg_response" | cut -d'|' -f1)
+    debug_print_response "$reg_response" "User Registration"
+    print_result $([[ "$reg_status" == "201" ]] && echo 0 || echo 1) "User Registration"
+
+    # 2. User Login
+    echo -e "\n${NC}2. User Login Test${NC}"
+    login_response=$(api_request "POST" "/accounts/login/" "{
+        \"email\": \"$EMAIL\",
+        \"password\": \"$PASSWORD\"
+    }")
+    login_status=$(echo "$login_response" | cut -d'|' -f1)
+    debug_print_response "$login_response" "User Login"
+    ACCESS_TOKEN=$(extract_token "$login_response" "access")
+    REFRESH_TOKEN=$(extract_token "$login_response" "refresh")
+    print_result $([[ "$login_status" == "200" ]] && echo 0 || echo 1) "User Login"
+
+    # Authentication check
+    if [ -z "$ACCESS_TOKEN" ]; then
+        echo -e "${RED}✗ Authentication Failed. Exiting tests.${NC}"
+        exit 1
+    fi
+
+    # 3. Multi-Factor Authentication Setup
+    echo -e "\n${NC}3. Multi-Factor Authentication Setup Test${NC}"
+    mfa_setup_response=$(api_request "POST" "/accounts/mfa/setup/" "" "$ACCESS_TOKEN")
+    mfa_setup_status=$(echo "$mfa_setup_response" | cut -d'|' -f1)
+    debug_print_response "$mfa_setup_response" "MFA Setup"
+    print_result $([[ "$mfa_setup_status" == "200" ]] && echo 0 || echo 1) "MFA Setup"
+
+    # 4. Upload Profile Picture
+    echo -e "\n${NC}4. Upload Profile Picture Test${NC}"
+    upload_response=$(curl -s -w "\n%{http_code}" -X POST -H "Authorization: Bearer $ACCESS_TOKEN" -F "profile_picture=@/home/badr/Downloads/test-image.jpeg" "$BASE_URL/accounts/upload-profile-picture/")
+    upload_status=$(echo "$upload_response" | tail -n 1)
+    upload_body=$(echo "$upload_response" | sed '$d')
+    debug_print_response "$upload_status|$upload_body" "Upload Profile Picture"
+    print_result $([[ "$upload_status" == "200" ]] && echo 0 || echo 1) "Upload Profile Picture"
+
+    # 5. Delete Profile Picture
+    echo -e "\n${NC}5. Delete Profile Picture Test${NC}"
+    delete_response=$(api_request "DELETE" "/accounts/delete-profile-picture/" "" "$ACCESS_TOKEN")
+    delete_status=$(echo "$delete_response" | cut -d'|' -f1)
+    debug_print_response "$delete_response" "Delete Profile Picture"
+    print_result $([[ "$delete_status" == "200" ]] && echo 0 || echo 1) "Delete Profile Picture"
+
+    # 6. Reset Progress
+    echo -e "\n${NC}6. Reset Progress Test${NC}"
+    reset_response=$(api_request "POST" "/accounts/reset-progress/" "" "$ACCESS_TOKEN")
+    reset_status=$(echo "$reset_response" | cut -d'|' -f1)
+    debug_print_response "$reset_response" "Reset Progress"
+    print_result $([[ "$reset_status" == "200" ]] && echo 0 || echo 1) "Reset Progress"
+
+    # 7. Get Reset Progress Details
+    echo -e "\n${NC}7. Get Reset Progress Details Test${NC}"
+    reset_details_response=$(api_request "GET" "/accounts/reset-progress-details/" "" "$ACCESS_TOKEN")
+    reset_details_status=$(echo "$reset_details_response" | cut -d'|' -f1)
+    debug_print_response "$reset_details_response" "Get Reset Progress Details"
+    print_result $([[ "$reset_details_status" == "200" ]] && echo 0 || echo 1) "Get Reset Progress Details"
+
+    # 8. Get User Profile
+    echo -e "\n${NC}8. Get User Profile Test${NC}"
+    profile_response=$(api_request "GET" "/accounts/profile/$USERNAME/" "" "$ACCESS_TOKEN")
+    profile_status=$(echo "$profile_response" | cut -d'|' -f1)
+    debug_print_response "$profile_response" "Get User Profile"
+    print_result $([[ "$profile_status" == "200" ]] && echo 0 || echo 1) "Get User Profile"
+
+    # 9. Update User Profile
+    echo -e "\n${NC}9. Update User Profile Test${NC}"
+    update_profile_response=$(api_request "PUT" "/accounts/profile/$USERNAME/" "{
+        \"username\": \"${USERNAME}_updated\",
+         \"bio\": \"Test bio\"
+    }" "$ACCESS_TOKEN")
+    update_profile_status=$(echo "$update_profile_response" | cut -d'|' -f1)
+    debug_print_response "$update_profile_response" "Update User Profile"
+    print_result $([[ "$update_profile_status" == "200" ]] && echo 0 || echo 1) "Update User Profile"
+
+    # Extract the updated username from the response
+    UPDATED_USERNAME=$(echo "$update_profile_response" | cut -d'|' -f2 | grep -o '"username":"[^"]*"' | cut -d'"' -f4)
+
+    # 10. Get User Statistics
+    echo -e "\n${NC}10. Get User Statistics Test${NC}"
+    stats_response=$(api_request "GET" "/accounts/statistics/$UPDATED_USERNAME/" "" "$ACCESS_TOKEN")
+    stats_status=$(echo "$stats_response" | cut -d'|' -f1)
+    debug_print_response "$stats_response" "Get User Statistics"
+    print_result $([[ "$stats_status" == "200" ]] && echo 0 || echo 1) "Get User Statistics"
+
+    # 11. Create Note
+    echo -e "\n${NC}11. Create Note Test${NC}"
+    create_note_response=$(api_request "POST" "/accounts/notes/" "{
+        \"title\": \"Test Note\",
+        \"content\": \"This is a test note content\",
+        \"note_type\": \"general\"
+    }" "$ACCESS_TOKEN")
+    create_note_status=$(echo "$create_note_response" | cut -d'|' -f1)
+    NOTE_ID=$(extract_first_id "$create_note_response")
+    debug_print_response "$create_note_response" "Create Note"
+    print_result $([[ "$create_note_status" == "201" ]] && echo 0 || echo 1) "Create Note"
+
+    # 12. Get Notes
+    echo -e "\n${NC}12. Get Notes Test${NC}"
+    notes_response=$(api_request "GET" "/accounts/notes/" "" "$ACCESS_TOKEN")
+    notes_status=$(echo "$notes_response" | cut -d'|' -f1)
+    debug_print_response "$notes_response" "Get Notes"
+    print_result $([[ "$notes_status" == "200" ]] && echo 0 || echo 1) "Get Notes"
+
+    # 13. Update Note
+    echo -e "\n${NC}13. Update Note Test${NC}"
+    update_note_response=$(api_request "PUT" "/accounts/notes/$NOTE_ID/" "{
+        \"title\": \"Updated Test Note\",
+        \"content\": \"Updated test note content\",
+        \"note_type\": \"vocabulary\"
+    }" "$ACCESS_TOKEN")
+    update_note_status=$(echo "$update_note_response" | cut -d'|' -f1)
+    debug_print_response "$update_note_response" "Update Note"
+    print_result $([[ "$update_note_status" == "200" ]] && echo 0 || echo 1) "Update Note"
+
+    # 14. Delete Note
+    echo -e "\n${NC}14. Delete Note Test${NC}"
+    delete_note_response=$(api_request "DELETE" "/accounts/notes/$NOTE_ID/" "" "$ACCESS_TOKEN")
+    delete_note_status=$(echo "$delete_note_response" | cut -d'|' -f1)
+    debug_print_response "$delete_note_response" "Delete Note"
+    print_result $([[ "$delete_note_status" == "204" ]] && echo 0 || echo 1) "Delete Note"
+
+    # 15. Get Recommended Lessons
+    echo -e "\n${NC}15. Get Recommended Lessons Test${NC}"
+    recommended_response=$(api_request "GET" "/accounts/recommended-lessons/" "" "$ACCESS_TOKEN")
+    recommended_status=$(echo "$recommended_response" | cut -d'|' -f1)
+    debug_print_response "$recommended_response" "Get Recommended Lessons"
+    print_result $([[ "$recommended_status" == "200" ]] && echo 0 || echo 1) "Get Recommended Lessons"
+
+    # 16. Get Levels
+    echo -e "\n${NC}16. Get Levels Test${NC}"
+    levels_response=$(api_request "GET" "/lessons/levels/" "" "$ACCESS_TOKEN")
+    levels_status=$(echo "$levels_response" | cut -d'|' -f1)
+    debug_print_response "$levels_response" "Get Levels"
+    print_result $([[ "$levels_status" == "200" ]] && echo 0 || echo 1) "Get Levels"
+
+    # 17. Get Lessons for a Level
+    echo -e "\n${NC}17. Get Lessons for a Level Test${NC}"
+    first_level_id=$(extract_first_id "$levels_response")
+    lessons_response=$(api_request "GET" "/lessons/levels/$first_level_id/lessons/" "" "$ACCESS_TOKEN")
+    lessons_status=$(echo "$lessons_response" | cut -d'|' -f1)
+    debug_print_response "$lessons_response" "Get Lessons for a Level"
+    print_result $([[ "$lessons_status" == "200" ]] && echo 0 || echo 1) "Get Lessons for a Level"
+
+    # 18. Get Flashcards for a Lesson
+    echo -e "\n${NC}18. Get Flashcards for a Lesson Test${NC}"
+    first_lesson_id=$(extract_first_id "$lessons_response")
+    flashcards_response=$(api_request "GET" "/lessons/lessons/$first_lesson_id/flashcards/" "" "$ACCESS_TOKEN")
+    flashcards_status=$(echo "$flashcards_response" | cut -d'|' -f1)
+    debug_print_response "$flashcards_response" "Get Flashcards for a Lesson"
+    print_result $([[ "$flashcards_status" == "200" ]] && echo 0 || echo 1) "Get Flashcards for a Lesson"
+
+    # 19. Submit Flashcard
+    echo -e "\n${NC}19. Submit Flashcard Test${NC}"
+    first_flashcard_id=$(extract_first_id "$flashcards_response")
+    flashcard_response=$(api_request "POST" "/lessons/flashcards/submit-answer/" "{
+        \"flashcard_id\": $first_flashcard_id,
+        \"user_answer\": \"test\"
+    }" "$ACCESS_TOKEN")
+    flashcard_status=$(echo "$flashcard_response" | cut -d'|' -f1)
+    debug_print_response "$flashcard_response" "Submit Flashcard"
+    print_result $([[ "$flashcard_status" == "200" ]] && echo 0 || echo 1) "Submit Flashcard"
+
+    # 20. Get Quiz for a Lesson
+    echo -e "\n${NC}20. Get Quiz for a Lesson Test${NC}"
+    quiz_response=$(api_request "GET" "/lessons/lessons/$first_lesson_id/quiz/" "" "$ACCESS_TOKEN")
+    quiz_status=$(echo "$quiz_response" | cut -d'|' -f1)
+    debug_print_response "$quiz_response" "Get Quiz for a Lesson"
+    print_result $([[ "$quiz_status" == "200" ]] && echo 0 || echo 1) "Get Quiz for a Lesson"
+
+    # 21. Submit Quiz
+    echo -e "\n${NC}21. Submit Quiz Test${NC}"
+    first_quiz_id=$(extract_first_id "$quiz_response")
+    quiz_submit_response=$(api_request "POST" "/lessons/quizzes/submit-quiz/" "{
+        \"quiz_id\": $first_quiz_id,
+        \"answers\": [{\"question_id\": 1, \"user_answer\": \"test\"}]
+    }" "$ACCESS_TOKEN")
+    quiz_submit_status=$(echo "$quiz_submit_response" | cut -d'|' -f1)
+    debug_print_response "$quiz_submit_response" "Submit Quiz"
+    print_result $([[ "$quiz_submit_status" == "200" ]] && echo 0 || echo 1) "Submit Quiz"
+
+    # 22. Get Level Test Progress
+    echo -e "\n${NC}22. Get Level Test Progress Test${NC}"
+    level_test_progress_response=$(api_request "GET" "/lessons/level-tests/progress/" "" "$ACCESS_TOKEN")
+    level_test_progress_status=$(echo "$level_test_progress_response" | cut -d'|' -f1)
+    debug_print_response "$level_test_progress_response" "Get Level Test Progress"
+    print_result $([[ "$level_test_progress_status" == "200" ]] && echo 0 || echo 1) "Get Level Test Progress"
+
+    # 23. Submit Level Test
+    echo -e "\n${NC}23. Submit Level Test Test${NC}"
+    level_test_response=$(api_request "GET" "/lessons/level-tests/" "" "$ACCESS_TOKEN")
+    first_level_test_id=$(extract_first_id "$level_test_response")
+    level_test_submit_response=$(api_request "POST" "/lessons/level-tests/submit-test/" "{
+        \"level_test_id\": $first_level_test_id,
+        \"answers\": [{\"question_id\": 1, \"user_answer\": \"test\"}]
+    }" "$ACCESS_TOKEN")
+    level_test_submit_status=$(echo "$level_test_submit_response" | cut -d'|' -f1)
+    debug_print_response "$level_test_submit_response" "Submit Level Test"
+    print_result $([[ "$level_test_submit_status" == "200" ]] && echo 0 || echo 1) "Submit Level Test"
+
+    # 24. Logout
+    echo -e "\n${NC}24. Logout Test${NC}"
+    logout_response=$(api_request "POST" "/accounts/logout/" "{
+        \"refresh_token\": \"$REFRESH_TOKEN\"
+    }" "$ACCESS_TOKEN")
+    logout_status=$(echo "$logout_response" | cut -d'|' -f1)
+    debug_print_response "$logout_response" "User Logout"
+    print_result $([[ "$logout_status" == "200" ]] && echo 0 || echo 1) "User Logout"
+
+    # 25. Get User Progress
+    echo -e "\n${NC}25. Get User Progress Test${NC}"
+    progress_response=$(api_request "GET" "/accounts/progress/" "" "$ACCESS_TOKEN")
+    progress_status=$(echo "$progress_response" | cut -d'|' -f1)
+    debug_print_response "$progress_response" "Get User Progress"
+    print_result $([[ "$progress_status" == "200" ]] && echo 0 || echo 1) "Get User Progress"
+
+    # 26. Get User Flashcard Progress
+    echo -e "\n${NC}26. Get User Flashcard Progress Test${NC}"
+    flashcard_progress_response=$(api_request "GET" "/accounts/flashcard-progress/" "" "$ACCESS_TOKEN")
+    flashcard_progress_status=$(echo "$flashcard_progress_response" | cut -d'|' -f1)
+    debug_print_response "$flashcard_progress_response" "Get User Flashcard Progress"
+    print_result $([[ "$flashcard_progress_status" == "200" ]] && echo 0 || echo 1) "Get User Flashcard Progress"
+
+    # 27. Get User Quiz Attempts
+    echo -e "\n${NC}27. Get User Quiz Attempts Test${NC}"
+    quiz_attempts_response=$(api_request "GET" "/accounts/quiz-attempts/" "" "$ACCESS_TOKEN")
+    quiz_attempts_status=$(echo "$quiz_attempts_response" | cut -d'|' -f1)
+    debug_print_response "$quiz_attempts_response" "Get User Quiz Attempts"
+    print_result $([[ "$quiz_attempts_status" == "200" ]] && echo 0 || echo 1) "Get User Quiz Attempts"
+
+    # 28. Get Level Test Details
+    echo -e "\n${NC}28. Get Level Test Details Test${NC}"
+    level_test_response=$(api_request "GET" "/lessons/level-tests/1/" "" "$ACCESS_TOKEN") # Replace 1 with a valid level test ID
+    level_test_status=$(echo "$level_test_response" | cut -d'|' -f1)
+    debug_print_response "$level_test_response" "Get Level Test Details"
+    print_result $([[ "$level_test_status" == "200" ]] && echo 0 || echo 1) "Get Level Test Details"
+
+    # 29. Get User's Completed Lessons
+    echo -e "\n${NC}29. Get User's Completed Lessons Test${NC}"
+    completed_lessons_response=$(api_request "GET" "/accounts/completed-lessons/" "" "$ACCESS_TOKEN")
+    completed_lessons_status=$(echo "$completed_lessons_response" | cut -d'|' -f1)
+    debug_print_response "$completed_lessons_response" "Get User's Completed Lessons"
+    print_result $([[ "$completed_lessons_status" == "200" ]] && echo 0 || echo 1) "Get User's Completed Lessons"
+
+    # 30. Chatbot Response
+    echo -e "\n${NC}25. Chatbot Response Test${NC}"
+    chatbot_response=$(api_request "POST" "/chatbot/chatbot/" "{
+        \"input\": \"Hello\"
+    }")
+    chatbot_status=$(echo "$chatbot_response" | cut -d'|' -f1)
+    debug_print_response "$chatbot_response" "Chatbot Response"
+    print_result $([[ "$chatbot_status" == "200" ]] && echo 0 || echo 1) "Chatbot Response"
+
+    echo -e "\n${GREEN}All endpoint tests completed!${NC}"
+}
+
+# Run tests and capture overall success
+run_tests
+RESULT=$?
+
+exit $RESULT

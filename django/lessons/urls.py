@@ -5,7 +5,8 @@ from .views import (
     LessonViewSet, 
     FlashcardViewSet, 
     QuizViewSet, 
-    LevelTestViewSet
+    LevelTestViewSet,
+    LevelTestDetailView
 )
 
 router = DefaultRouter()
@@ -26,4 +27,7 @@ urlpatterns = [
     path('level-tests/submit-test/',
          LevelTestViewSet.as_view({'post': 'submit_test'}),
          name='level-test-submit'),
+    path('level-tests/<int:level_test_id>/', 
+         LevelTestDetailView.as_view(), 
+         name='level_test_detail'),
 ]

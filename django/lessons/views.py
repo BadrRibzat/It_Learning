@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
 
 from .models import Level, Lesson, Flashcard, Quiz, LevelTest, UserProgress
 from .serializers import (
@@ -145,6 +146,15 @@ class LevelTestViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LevelTestSerializer
     permission_classes = [IsAuthenticated]
 
+    @action(detail=False, methods=['GET'], url_path='progress')
+    def progress(self, request):
+        user = request.user
+        progress = UserProgress.objects.filter(user=user).first()
+        if progress:
+            serializer = UserProgressSerializer(progress)
+            return Response(serializer.data)
+        return Response({"detail": "No progress found"}, status=404)
+
     @action(detail=False, methods=['post'], url_path='submit-test')
     def submit_test(self, request):
         serializer = LevelTestSubmissionSerializer(data=request.data)
@@ -205,3 +215,16 @@ class LevelTestViewSet(viewsets.ReadOnlyModelViewSet):
         progress.save()
     
         return progress.level_unlocked
+
+class LevelTestDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, level_test_id):
+        try:
+            level_test = LevelTest.objects.get(id=level_test_id)
+            serializer = LevelTestSerializer(level_test)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except LevelTest.DoesNotExist:
+            return Response({"detail": "Level test not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

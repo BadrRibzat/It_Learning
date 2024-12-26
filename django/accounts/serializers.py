@@ -19,8 +19,6 @@ from .models import (
     MultiFactorAuthentication
 )
 
-User = apps.get_model('accounts', 'User')
-
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
@@ -234,10 +232,10 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
         ]
 
     def get_completed_lessons(self, obj):
-        return UserProgress.objects.filter(user=obj, quiz_completed=True).count()
+        return UserProgress.objects.filter(user=obj, quiz_completed=True).count()  # Use quiz_completed
 
     def get_correct_flashcards(self, obj):
-        return UserFlashcardProgress.objects.filter(user=obj, is_completed=True).count()
+        return obj.completed_flashcards
 
     def get_total_flashcards(self, obj):
         return Flashcard.objects.count()
@@ -263,16 +261,9 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
         return streak
 
     def get_time_spent_learning(self, obj):
-        from django.db.models import Sum
-        from datetime import timedelta
-
-        total_seconds = UserProgress.objects.filter(user=obj).aggregate(
-            total_time=Sum('time_spent')
-        )['total_time'] or 0
-
         return {
-            'total_hours': total_seconds / 3600,
-            'total_minutes': total_seconds / 60
+            'total_hours': obj.time_spent / 3600,
+            'total_minutes': obj.time_spent / 60
         }
 
     def get_current_level_progress(self, obj):
@@ -284,7 +275,7 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
         completed_lessons = UserProgress.objects.filter(
             user=obj,
             lesson__level=current_level,
-            completed=True
+            quiz_completed=True  # Use quiz_completed
         ).count()
 
         total_quizzes = Quiz.objects.filter(lesson__level=current_level).count()
@@ -316,7 +307,7 @@ class UserProgressSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'level', 'points', 'completed_lessons']
 
     def get_completed_lessons(self, obj):
-        return UserProgress.objects.filter(user=obj, completed=True).count()
+        return UserProgress.objects.filter(user=obj, quiz_completed=True).count()
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:

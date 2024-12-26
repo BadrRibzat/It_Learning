@@ -9,9 +9,9 @@ NC='\033[0m'
 BASE_URL="http://localhost:8000"
 
 # Test user credentials
-USERNAME="testuser"
-EMAIL="testuser@example.com"
-PASSWORD="TestPassword123!"
+USERNAME="PedroRibzat"
+EMAIL="badrribzat003@gmail.com"
+PASSWORD="PedroRibzat123@"
 
 # Function to check response
 check_response() {
@@ -46,12 +46,6 @@ REGISTER_RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" -d "{
 }" $BASE_URL/accounts/register/)
 check_response $? 201 201 "User registration"
 
-# Request email verification
-VERIFY_EMAIL_RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" -d "{
-    \"email\": \"$EMAIL\"
-}" $BASE_URL/accounts/verify-email/)
-check_response $? 200 200 "Request email verification"
-
 # 3. Password Reset Flow
 echo "Testing password reset flow..."
 RESET_REQUEST_RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" -d "{
@@ -76,11 +70,11 @@ check_response $? 200 200 "MFA setup"
 
 # 6. Profile Operations
 echo "Testing profile operations..."
-PROFILE_RESPONSE=$(make_request "GET" "$BASE_URL/accounts/profile/")
+PROFILE_RESPONSE=$(make_request "GET" "$BASE_URL/accounts/profile/$USERNAME/")
 check_response $? 200 200 "Get profile"
 
 # Update profile
-UPDATE_PROFILE_RESPONSE=$(make_request "PUT" "$BASE_URL/accounts/profile/" "{
+UPDATE_PROFILE_RESPONSE=$(make_request "PUT" "$BASE_URL/accounts/profile/$USERNAME/" "{
     \"username\": \"${USERNAME}_updated\",
     \"bio\": \"Test bio\"
 }")
@@ -89,7 +83,7 @@ check_response $? 200 200 "Update profile"
 # Upload profile picture
 echo "Testing profile picture operations..."
 PICTURE_RESPONSE=$(curl -s -X POST -H "Authorization: Bearer $ACCESS_TOKEN" \
-    -F "profile_picture=@test_image.jpg" \
+    -F "profile_picture=@/home/badr/Downloads/test-image.jpeg" \
     "$BASE_URL/accounts/upload-profile-picture/")
 check_response $? 200 200 "Upload profile picture"
 
@@ -139,7 +133,7 @@ RECOMMENDED_RESPONSE=$(make_request "GET" "$BASE_URL/accounts/recommended-lesson
 check_response $? 200 200 "Get recommended lessons"
 
 # Get user statistics
-STATISTICS_RESPONSE=$(make_request "GET" "$BASE_URL/accounts/statistics/")
+STATISTICS_RESPONSE=$(make_request "GET" "$BASE_URL/accounts/statistics/$USERNAME/")
 check_response $? 200 200 "Get user statistics"
 
 # Submit flashcard answer

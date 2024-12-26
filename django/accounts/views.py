@@ -1,4 +1,5 @@
 from django.apps import apps
+from rest_framework.generics import RetrieveAPIView
 
 from rest_framework.authentication import (
         SessionAuthentication, 
@@ -51,7 +52,8 @@ from .serializers import (
     EmailVerificationSerializer,
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
-    MultiFactorAuthSerializer
+    MultiFactorAuthSerializer,
+    UserProgressSerializer
 )
 
 from .models import (
@@ -97,27 +99,20 @@ class UserRegistrationView(APIView):
 
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
-        try:
-            if serializer.is_valid(raise_exception=False):
-                user = serializer.save()
-                return Response({
-                    'id': user.id,
-                    'username': user.username,
-                    'email': user.email,
-                    'language': user.language
-                }, status=status.HTTP_201_CREATED)
-            else:
-                print("Validation Errors:", serializer.errors)
-                return Response(
-                    {'errors': serializer.errors},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        except Exception as e:
-            print(f"Registration Error: {e}")
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        if serializer.is_valid():
+            user = serializer.save()
+
+            # Mark the user as verified immediately
+            user.is_verified = True
+            user.save()
+
+            return Response({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'language': user.language
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -207,18 +202,7 @@ class EmailVerificationView(APIView):
             verification = serializer.validated_data['token']
             user = verification.user
 
-            if not verification.is_valid():
-                verification.delete()
-                new_token = EmailVerificationToken.objects.create(user=user)
-
-                verification_link = f"{settings.FRONTEND_URL}/verify-email/{new_token.token}"
-                self.send_verification_email(user, verification_link)
-
-                return Response({
-                    'detail': 'Verification token expired. A new verification link has been sent.',
-                    'token_regenerated': True
-                }, status=status.HTTP_400_BAD_REQUEST)
-
+            # Mark the user as verified and delete the token
             user.is_verified = True
             user.save()
             verification.delete()
@@ -228,7 +212,11 @@ class EmailVerificationView(APIView):
                 'username': user.username
             }, status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Handle invalid token
+        return Response({
+            'detail': 'Invalid or expired verification token',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     @staticmethod
     def send_verification_email(user, verification_link):
@@ -397,6 +385,55 @@ class UploadProfilePictureView(APIView):
 
         return Response({"detail": "Profile picture uploaded successfully"}, status=status.HTTP_200_OK)
 
+class UserProgressView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            progress = UserProgress.objects.filter(user=user)
+            serializer = UserProgressSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserFlashcardProgressView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            flashcard_progress = UserFlashcardProgress.objects.filter(user=user)
+            serializer = UserFlashcardProgressSerializer(flashcard_progress, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserQuizAttemptsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            quiz_attempts = UserQuizAttempt.objects.filter(user=user)
+            serializer = UserQuizAttemptSerializer(quiz_attempts, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserCompletedLessonsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            completed_lessons = UserProgress.objects.filter(user=user, quiz_completed=True).values_list('lesson', flat=True)
+            lessons = Lesson.objects.filter(id__in=completed_lessons)
+            serializer = LessonSerializer(lessons, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class ResetProgressView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -425,10 +462,20 @@ class ResetProgressDetailsView(APIView):
 
     def get(self, request):
         try:
+            # Retrieve reset progress details for the authenticated user
             reset_details = request.user.get_reset_progress_details()
+            
+            # Check if reset_details is empty or None
+            if not reset_details:
+                return Response({"detail": "No progress found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Return the reset progress details with a 200 OK status
             return Response(reset_details, status=status.HTTP_200_OK)
+        
         except Exception as e:
+            # Log the error for debugging purposes
             logger.error(f"Error retrieving reset progress details: {e}")
+            
             return Response({
                 "error": "An error occurred while retrieving reset progress details",
                 "detail": str(e)
@@ -573,19 +620,10 @@ class ProfileView(APIView):
         except User.DoesNotExist:
             return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-class UserStatisticsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, username):
-        try:
-            if username != request.user.username:
-                return Response({"detail": "You do not have permission to view this user's statistics."}, status=status.HTTP_403_FORBIDDEN)
-
-            user = User.objects.get(username=username)
-            serializer = UserStatisticsSerializer(user)
-            return Response(serializer.data)
-        except User.DoesNotExist:
-            return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+class UserStatisticsView(RetrieveAPIView):
+    serializer_class = UserStatisticsSerializer
+    queryset = User.objects.all()
+    lookup_field = 'username'
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
