@@ -8,10 +8,17 @@ User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.channel_layer = get_channel_layer()
-        self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
+        if "url_route" not in self.scope:
+            await self.close()
+            return
+
+        self.room_name = self.scope["url_route"]["kwargs"].get("room_name")
+        if not self.room_name:
+            await self.close()
+            return
+
         self.room_group_name = f"chat_{self.room_name}"
-        self.user = self.scope["user"]
+        self.user = self.scope.get("user")
 
         # Join room group
         await self.channel_layer.group_add(
@@ -28,13 +35,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message_type = text_data_json.get("type")
-        
-        if message_type == "progress_update":
-            await self.handle_progress_update(text_data_json)
-        elif message_type == "request_statistics":
-            await self.handle_statistics_request()
+        try:
+            text_data_json = json.loads(text_data)
+            message = text_data_json.get('message')
+            message_type = text_data_json.get('type')
+
+            # Send message to room group
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'message_type': message_type
+                }
+            )
+        except json.JSONDecodeError:
+            await self.send(text_data=json.dumps({
+                'error': 'Invalid JSON format'
+            }))
+
+    async def chat_message(self, event):
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'type': event.get('message_type', 'chat_message'),
+            'message': event.get('message')
+        }))
 
     async def handle_progress_update(self, data):
         # Update user progress in database
@@ -80,21 +105,59 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 class LearningProgressConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.channel_layer = get_channel_layer()
-        self.user = self.scope["user"]
-        self.room_name = f"user_{self.user.id}_progress"
-        self.room_group_name = f"learning_progress_{self.room_name}"
+        if "url_route" not in self.scope:
+            await self.close()
+            return
 
-        # Join room group
+        self.user_id = self.scope["url_route"]["kwargs"].get("user_id")
+        if not self.user_id:
+            await self.close()
+            return
+
+        self.user = self.scope.get("user")
+        if not self.user:
+            await self.close()
+            return
+
+        self.group_name = f"user_{self.user_id}_progress"
+
         await self.channel_layer.group_add(
-            self.room_group_name,
+            self.group_name,
             self.channel_name
         )
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave room group
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        if hasattr(self, 'group_name'):
+            await self.channel_layer.group_discard(
+                self.group_name,
+                self.channel_name
+            )
+
+    async def receive(self, text_data):
+        try:
+            text_data_json = json.loads(text_data)
+            progress = text_data_json.get('progress')
+            lesson_id = text_data_json.get('lesson_id')
+
+            # Send progress to group
+            await self.channel_layer.group_send(
+                self.group_name,
+                {
+                    'type': 'learning_progress',
+                    'progress': progress,
+                    'lesson_id': lesson_id
+                }
+            )
+        except json.JSONDecodeError:
+            await self.send(text_data=json.dumps({
+                'error': 'Invalid JSON format'
+            }))
+
+    async def learning_progress(self, event):
+        # Send progress update to WebSocket
+        await self.send(text_data=json.dumps({
+            'type': 'learning_progress',
+            'progress': event.get('progress'),
+            'lesson_id': event.get('lesson_id')
+        }))

@@ -8,11 +8,24 @@ from django.core.validators import (
     MinLengthValidator
 )
 from django.utils.translation import gettext_lazy as _
-import uuid
 from django.utils import timezone
+import uuid
+import logging
 from datetime import timedelta
 import pyotp
 from django.conf import settings
+def get_related_models():
+    from django.apps import apps
+    Lesson = apps.get_model('lessons', 'Lesson')
+    Level = apps.get_model('lessons', 'Level')
+    UserProgress = apps.get_model('lessons', 'UserProgress')
+    UserQuizAttempt = apps.get_model('lessons', 'UserQuizAttempt')
+    UserFlashcardProgress = apps.get_model('lessons', 'UserFlashcardProgress')
+    Flashcard = apps.get_model('lessons', 'Flashcard')
+    UserLevelTestProgress = apps.get_model('lessons', 'UserLevelTestProgress')
+    return Lesson, Level, UserProgress, UserQuizAttempt, UserFlashcardProgress, Flashcard, UserLevelTestProgress
+
+logger = logging.getLogger(__name__)
 
 LANGUAGE_CHOICES = [
     ('en', _('English')),
@@ -48,7 +61,7 @@ class User(AbstractUser):
         _('username'),
         max_length=150,
         unique=True,
-        help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
+        help_text=_('Required. 150 characters or fewer. Letters, digits and ./+/-/_ only.'),
         validators=[username_validator],
         error_messages={
             'unique': _("A user with that username already exists."),
@@ -89,6 +102,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username']
 
     def calculate_language_proficiency(self):
+        Lesson, Level, UserProgress, UserQuizAttempt, UserFlashcardProgress, Flashcard, UserLevelTestProgress = get_related_models()
         total_lessons = Lesson.objects.count()
         completed_lessons = UserProgress.objects.filter(user=self, completed=True).count()
         quiz_performance = UserQuizAttempt.objects.filter(user=self, is_passed=True).aggregate(avg_score=models.Avg('total_score'))['avg_score'] or 0
@@ -122,6 +136,7 @@ class User(AbstractUser):
 
         # Fetch the Beginner level based on its position (position=1)
         beginner_level = Level.objects.filter(position=1).first()
+        logger.info(f"Beginner level fetched: {beginner_level}")
         if not beginner_level:
             raise ValueError("Beginner level (position=1) does not exist in the database.")
 

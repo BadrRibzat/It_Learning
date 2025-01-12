@@ -78,9 +78,9 @@ from lessons.serializers import (
     LessonSerializer,
     FlashcardSerializer,
     UserFlashcardProgressSerializer,
-    UserQuizAttemptSerializer
+    UserQuizAttemptSerializer  # Add IsUserOrAdmin import
 )
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly, IsUserOrAdmin 
 from rest_framework.decorators import action
 from django.db.models import Q, Count
 import logging
@@ -132,7 +132,8 @@ class LoginView(APIView):
                 return Response({
                     'access': str(refresh.access_token),
                     'refresh': str(refresh),
-                    'user': UserSerializer(user).data
+                    'user': UserSerializer(user).data,
+                    'username': user.username
                 })
             else:
                 return Response(
@@ -624,6 +625,7 @@ class UserStatisticsView(RetrieveAPIView):
     serializer_class = UserStatisticsSerializer
     queryset = User.objects.all()
     lookup_field = 'username'
+    permission_classes = [IsUserOrAdmin]  # Use the new permission class
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])

@@ -54,9 +54,10 @@ api_request() {
 
 # Function to extract token from response
 extract_token() {
-    local response="$1"
-    local token_type="$2"
-    echo "$response" | grep -o "\"$token_type\":\"[^\"]*\"" | cut -d'"' -f4
+  local response="$1"
+  local token_type="$2"
+  # Use grep -i for case-insensitive matching of the token type
+  echo "$response" | grep -io "\"$token_type\":\"[^\"]*\"" | cut -d'"' -f4
 }
 
 # Function to extract first ID from response

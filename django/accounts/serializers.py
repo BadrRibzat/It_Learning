@@ -1,23 +1,11 @@
-from django.apps import apps
 from rest_framework import serializers
-from django.contrib.auth.password_validation import validate_password
-from lessons.models import (
-        UserProgress, Level, LevelTest, LevelTestQuestion,
-        Lesson, Flashcard, Quiz, QuizQuestion,
-        UserFlashcardProgress, UserQuizAttempt, UserProgress
-        )
-from django.utils import timezone
-from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.utils.translation import gettext_lazy as _
-from .models import (
-    User,
-    Note,
-    ProfilePicture,
-    EmailVerificationToken,
-    PasswordResetToken,
-    MultiFactorAuthentication
-)
+from .models import Note, MultiFactorAuthentication, EmailVerificationToken, UserProgress
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.utils import timezone  # Ensure timezone is imported
+
+User = get_user_model()
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
@@ -124,6 +112,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
+        # Add custom claims
         token['username'] = user.username
         token['email'] = user.email
         return token
@@ -155,8 +144,8 @@ class MultiFactorAuthSerializer(serializers.ModelSerializer):
             if not mfa.verify_token(data['token']):
                 raise serializers.ValidationError("Invalid token")
 
-        mfa.is_enabled = True
-        mfa.save()
+            mfa.is_enabled = True
+            mfa.save()
 
         return data
 
@@ -214,6 +203,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 class UserStatisticsSerializer(serializers.ModelSerializer):
+    username = serializers.CharField()
     completed_lessons = serializers.SerializerMethodField()
     total_points = serializers.IntegerField(source='points')
     correct_flashcards = serializers.SerializerMethodField()
@@ -225,23 +215,36 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
+            'username',
             'completed_lessons', 'total_points', 'level',
             'correct_flashcards', 'total_flashcards',
             'learning_streak', 'time_spent_learning',
             'current_level_progress'
         ]
 
+    def get_related_models(self):
+        from django.apps import apps
+        Lesson = apps.get_model('lessons', 'Lesson')
+        Level = apps.get_model('lessons', 'Level')
+        UserProgress = apps.get_model('lessons', 'UserProgress')
+        UserQuizAttempt = apps.get_model('lessons', 'UserQuizAttempt')
+        UserFlashcardProgress = apps.get_model('lessons', 'UserFlashcardProgress')
+        Flashcard = apps.get_model('lessons', 'Flashcard')
+        return Lesson, Level, UserProgress, UserQuizAttempt, UserFlashcardProgress, Flashcard
+
     def get_completed_lessons(self, obj):
-        return UserProgress.objects.filter(user=obj, quiz_completed=True).count()  # Use quiz_completed
+        Lesson, Level, UserProgress, UserQuizAttempt, UserFlashcardProgress, Flashcard = self.get_related_models()
+        return UserProgress.objects.filter(user=obj, quiz_completed=True).count()
 
     def get_correct_flashcards(self, obj):
         return obj.completed_flashcards
 
     def get_total_flashcards(self, obj):
+        Lesson, Level, UserProgress, UserQuizAttempt, UserFlashcardProgress, Flashcard = self.get_related_models()
         return Flashcard.objects.count()
 
     def get_learning_streak(self, obj):
-        from django.utils import timezone
+        Lesson, Level, UserProgress, UserQuizAttempt, UserFlashcardProgress, Flashcard = self.get_related_models()
         from datetime import timedelta
 
         daily_progress = UserProgress.objects.filter(
@@ -267,6 +270,7 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
         }
 
     def get_current_level_progress(self, obj):
+        Lesson, Level, UserProgress, UserQuizAttempt, UserFlashcardProgress, Flashcard = self.get_related_models()
         current_level = obj.level
         if not current_level:
             return None
@@ -275,15 +279,20 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
         completed_lessons = UserProgress.objects.filter(
             user=obj,
             lesson__level=current_level,
-            quiz_completed=True  # Use quiz_completed
+            quiz_completed=True
         ).count()
 
-        total_quizzes = Quiz.objects.filter(lesson__level=current_level).count()
-        passed_quizzes = UserQuizAttempt.objects.filter(
-            user=obj,
-            quiz__lesson__level=current_level,
-            is_passed=True
-        ).count()
+        try:
+            Quiz = apps.get_model('lessons', 'Quiz')
+            total_quizzes = Quiz.objects.filter(lesson__level=current_level).count()
+            passed_quizzes = UserQuizAttempt.objects.filter(
+                user=obj,
+                quiz__lesson__level=current_level,
+                is_passed=True
+            ).count()
+        except LookupError:
+            total_quizzes = 0
+            passed_quizzes = 0
 
         return {
             'level_name': current_level.name,
@@ -298,7 +307,7 @@ class UserStatisticsSerializer(serializers.ModelSerializer):
                 'percentage': (passed_quizzes / total_quizzes * 100) if total_quizzes > 0 else 0
             }
         }
-
+    
 class UserProgressSerializer(serializers.ModelSerializer):
     completed_lessons = serializers.SerializerMethodField()
 

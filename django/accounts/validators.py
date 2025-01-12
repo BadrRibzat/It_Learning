@@ -5,23 +5,10 @@ import zxcvbn
 
 class ComplexPasswordValidator:
     def validate(self, password, user=None):
-
         if len(password) < 8:
             raise ValidationError(
                 _("Password must be at least 8 characters long."),
                 code='password_too_short',
-            )
-        return
-"""
-        if password_strength['score'] < 3:
-            feedback = password_strength['feedback']['suggestions']
-            error_message = " ".join([
-                "Password is too weak.",
-                *feedback
-            ])
-            raise ValidationError(
-                _(error_message),
-                code='password_too_weak'
             )
 
         if not (

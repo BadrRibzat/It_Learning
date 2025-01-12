@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.test import APIClient
 from accounts.models import User, EmailVerificationToken, PasswordResetToken, ProfilePicture
+from accounts.serializers import CustomTokenObtainPairSerializer  # Add this line
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from datetime import timedelta
@@ -98,6 +99,18 @@ def test_delete_profile_picture(api_client):
 
 @pytest.mark.django_db
 def test_reset_progress(api_client):
+    # Create the beginner level
+    from lessons.models import Level
+    Level.objects.create(
+        name='Beginner',
+        description='Beginner level for new users.',
+        difficulty='beginner',
+        points_to_advance=100,
+        position=1,
+        passing_score=80,
+        unlocked_by_test=False
+    )
+
     user = User.objects.create_user(username='testuser', email='test@example.com', password='testpassword')
     api_client.force_authenticate(user=user)
 
@@ -271,6 +284,13 @@ def test_view_statistics_of_another_user(api_client):
     user2 = User.objects.create_user(username='anotheruser', email='anotheruser@example.com', password='anotherpassword')
     api_client.force_authenticate(user=user1)
 
+    # Attempt to view another user's statistics
     url = reverse('user_statistics', kwargs={'username': user2.username})
     response = api_client.get(url, format='json')
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    # Attempt to view own statistics
+    url = reverse('user_statistics', kwargs={'username': user1.username})
+    response = api_client.get(url, format='json')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['username'] == user1.username

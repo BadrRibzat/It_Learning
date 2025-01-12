@@ -1,8 +1,6 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.conf import settings
-
-User = get_user_model()
+from django.contrib.auth import get_user_model
 
 class Level(models.Model):
     DIFFICULTY_CHOICES = [
@@ -139,7 +137,7 @@ class UserProgress(models.Model):
         return f"{self.user.username} - {self.lesson.title}"
 
 class UserFlashcardProgress(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='flashcard_progress')
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='flashcard_progress')
     flashcard = models.ForeignKey(Flashcard, on_delete=models.CASCADE)
     is_completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(auto_now_add=True)
@@ -151,7 +149,7 @@ class UserFlashcardProgress(models.Model):
         return f"{self.user.username} - {self.flashcard.word}"
 
 class UserQuizAttempt(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_attempts')
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='quiz_attempts')
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
     score = models.FloatField(default=0)
     is_passed = models.BooleanField(default=False)

@@ -1,39 +1,30 @@
-from django.test.utils import override_settings
-from channels.testing import WebsocketCommunicator
-from channels.layers import get_channel_layer
-from realtime.consumers import ChatConsumer
-from accounts.models import User
-from asgiref.sync import sync_to_async
 import pytest
+from channels.testing import WebsocketCommunicator
+from realtime.consumers import ChatConsumer
+from django.test import override_settings
 
-@override_settings(CHANNEL_LAYERS={'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}})
-@pytest.mark.django_db
 @pytest.mark.asyncio
-async def test_chat_consumer():
-    channel_layer = get_channel_layer()
-
-    user = await sync_to_async(User.objects.create_user)(
-        username='testuser2',
-        email='test2@example.com',
-        password='testpassword'
+@pytest.mark.django_db(transaction=True)
+@override_settings(CHANNEL_LAYERS={'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}})
+async def test_chat_consumer(auth_communicator, test_user):
+    # Create communicator
+    communicator, user = await auth_communicator(
+        ChatConsumer,
+        f"/ws/chat/{test_user.id}/"
     )
 
-    scope = {
-        "type": "websocket",
-        "path": "/ws/chat/testroom/",
-        "headers": [],
-        "user": user,
-        "url_route": {
-            "kwargs": {
-                "room_name": "testroom"
-            }
-        },
-        "query_string": b"",
-    }
+    try:
+        # Test sending message
+        await communicator.send_json_to({
+            'type': 'chat_message',
+            'message': 'hello'
+        })
 
-    application = ChatConsumer.as_asgi(channel_layer=channel_layer)
-    communicator = WebsocketCommunicator(application, "/ws/chat/testroom/")
-    communicator.scope.update(scope)
-
-    connected, _ = await communicator.connect()
-    assert connected
+        # Test receiving message
+        response = await communicator.receive_json_from()
+        assert response == {
+            'type': 'chat_message',
+            'message': 'hello'
+        }
+    finally:
+        await communicator.disconnect()

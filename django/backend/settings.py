@@ -16,6 +16,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
 INSTALLED_APPS = [
+    'corsheaders',
     'admin_interface',
     'colorfield',
     'django.contrib.admin',
@@ -28,11 +29,12 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'corsheaders',
     'drf_yasg',
     'accounts',
     'lessons',
     'chatbot',
+    'channels',
+    'realtime',
 ]
 
 MIDDLEWARE = [
@@ -71,7 +73,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:8080')
 
 DATABASES = {
     'default': {
@@ -147,9 +149,9 @@ REST_FRAMEWORK = {
         'accounts.throttles.LoginUserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'login': '5/5m',
-        'login_user': '24/h',
-    }
+       'login': '5/5m',
+       'login_user': '24/h',
+    },
 }
 
 AUTHENTICATION_BACKENDS = [
@@ -245,13 +247,12 @@ REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
     'user': '1000/day'
 }
 
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:8080')
 
-CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -306,3 +307,12 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
+# Channel layer settings
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
+ASGI_APPLICATION = "backend.asgi.application"

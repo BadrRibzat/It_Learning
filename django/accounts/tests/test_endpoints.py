@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.test import APITestCase
 from accounts.models import User, Note, ProfilePicture, EmailVerificationToken, PasswordResetToken, MultiFactorAuthentication
+from accounts.serializers import CustomTokenObtainPairSerializer  # Add this line
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from datetime import timedelta
