@@ -1,0 +1,75 @@
+{
+  "hello": "안녕하세요",
+  "welcome": "우리 앱에 오신 것을 환영합니다!",
+  "auth": {
+    "login": {
+      "title": "로그인",
+      "submit": "로그인",
+      "success": "로그인 성공",
+      "error": "로그인 실패"
+    },
+    "register": {
+      "title": "회원가입",
+      "submit": "회원가입",
+      "success": "회원가입 성공",
+      "error": "회원가입 실패",
+      "passwordMismatch": "비밀번호가 일치하지 않습니다"
+    },
+    "forgotPassword": "비밀번호를 잊으셨나요?",
+    "rememberMe": "로그인 상태 유지",
+    "noAccount": "계정이 없으신가요?",
+    "hasAccount": "이미 계정이 있으신가요?",
+    "orContinueWith": "또는 다음으로 계속",
+    "googleAuth": "Google"
+  },
+  "common": {
+    "loading": "로딩 중..."
+  },
+  "lessons": {
+    "availableLessons": "사용 가능한 강의",
+    "exploreAndLearn": "탐색하고 배우기",
+    "noLessonsFound": "강의를 찾을 수 없습니다",
+    "tryAdjustingFilters": "필터를 조정해 보세요",
+    "loadMore": "더 불러오기",
+    "completed": "완료",
+    "continue": "계속",
+    "start": "시작",
+    "difficulty": {
+      "beginner": "초급",
+      "intermediate": "중급",
+      "advanced": "고급"
+    },
+    "sort": {
+      "newest": "최신",
+      "rating": "평점",
+      "popular": "인기"
+    },
+    "allLevels": "모든 레벨",
+    "allCategories": "모든 카테고리"
+  },
+  "notes": {
+    "title": "노트",
+    "createNote": "노트 작성",
+    "editNote": "노트 수정",
+    "deleteNote": "노트 삭제",
+    "save": "저장",
+    "cancel": "취소"
+  },
+  "profile": {
+    "title": "프로필",
+    "personalInformation": "개인 정보",
+    "statistics": "통계",
+    "totalLessonsCompleted": "완료된 강의 총 수",
+    "totalPoints": "총 포인트",
+    "currentLevel": "현재 레벨",
+    "save": "저장"
+  },
+  "chatbot": {
+    "title": "챗봇",
+    "typeMessage": "메시지 입력..."
+  },
+  "about": {
+    "title": "우리에 대해",
+    "description": "우리 앱과 미션에 대해 자세히 알아보세요."
+  }
+}

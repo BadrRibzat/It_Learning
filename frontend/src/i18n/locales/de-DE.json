@@ -1,0 +1,87 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "lessons": "Lektionen",
+    "flashcards": "Lernkarten",
+    "quiz": "Quiz",
+    "profile": "Profil",
+    "logout": "Abmelden",
+    "levels": "Stufen"
+  },
+  "home": {
+    "title": "Willkommen bei Learn English",
+    "description": "Beginnen Sie Ihre Reise zum Erlernen der englischen Sprache mit unseren interaktiven Lektionen und Quizfragen.",
+    "startLearning": "Starte das Lernen",
+    "howItWorks": "Wie es funktioniert",
+    "step1Title": "Wähle deine Stufe",
+    "step1Description": "Beginnen Sie mit einer Stufe, die Ihren aktuellen englischen Fähigkeiten entspricht.",
+    "step2Title": "Lernen Sie mit Lernkarten",
+    "step2Description": "Merken Sie sich neue Wörter und Phrasen mit unseren interaktiven Lernkarten.",
+    "step3Title": "Testen Sie Ihr Wissen",
+    "step3Description": "Nehmen Sie Quizfragen, um das Gelernte zu festigen und Ihren Fortschritt zu verfolgen.",
+    "flashcardDemo": "Probieren Sie eine Lernkarte aus"
+  },
+  "login": {
+    "title": "Anmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "submit": "Anmelden"
+  },
+  "register": {
+    "title": "Registrieren",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "passwordConfirmation": "Passwort bestätigen",
+    "submit": "Registrieren",
+    "username": "Benutzername"
+  },
+  "flashcards": {
+    "title": "Lernkarten",
+    "noFlashcards": "Keine Lernkarten verfügbar.",
+    "next": "Nächste",
+    "correctAnswer": "Richtige Antwort!",
+    "incorrectAnswer": "Falsche Antwort. Versuchen Sie es noch einmal!",
+    "errorSubmitting": "Fehler beim Einreichen der Antwort. Bitte versuchen Sie es erneut."
+  },
+  "flashcard": {
+    "answerPlaceholder": "Geben Sie Ihre Antwort hier ein",
+    "submit": "Einreichen"
+  },
+  "profile": {
+    "title": "Profil",
+    "welcomeMessage": "Willkommen in Ihrem Profil!",
+    "level": "Ihre aktuelle Stufe: {level}",
+    "points": "Gesamtpunkte: {points}",
+    "loading": "Lade Benutzerprofil..."
+  },
+  "quiz": {
+    "title": "Quiz",
+    "noQuestions": "Keine Quizfragen verfügbar.",
+    "submit": "Quiz absenden"
+  },
+  "levels": {
+    "title": "Wählen Sie Ihre Stufe",
+    "start": "Starten",
+    "takeTest": "Stufentest machen"
+  },
+  "levelTest": {
+    "title": "Stufentest"
+  },
+  "notes": {
+    "title": "Meine Notizen",
+    "titlePlaceholder": "Notiztitel",
+    "contentPlaceholder": "Notizinhalt",
+    "add": "Notiz hinzufügen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen"
+  },
+  "chatbot": {
+    "title": "Chat-Assistent",
+    "inputPlaceholder": "Geben Sie Ihre Nachricht hier ein..."
+  },
+  "errors": {
+    "general": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+  }
+}
