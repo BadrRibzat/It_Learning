@@ -22,13 +22,39 @@
         <div class="flex items-center space-x-4">
           <language-switcher />
 
-          <router-link
-            to="/profile"
-            class="text-gray-600 hover:text-primary transition-colors"
-          >
-            <i class="fas fa-user mr-2"></i>
-            Profile
-          </router-link>
+          <!-- Show Profile/Logout based on authentication status -->
+          <template v-if="isAuthenticated">
+            <router-link
+              to="/profile"
+              class="text-gray-600 hover:text-primary transition-colors"
+            >
+              <i class="fas fa-user mr-2"></i>
+              Profile
+            </router-link>
+            <button
+              @click="logout"
+              class="text-gray-600 hover:text-primary transition-colors"
+            >
+              <i class="fas fa-sign-out-alt mr-2"></i>
+              Logout
+            </button>
+          </template>
+          <template v-else>
+            <router-link
+              to="/auth/login"
+              class="text-gray-600 hover:text-primary transition-colors"
+            >
+              <i class="fas fa-sign-in-alt mr-2"></i>
+              Login
+            </router-link>
+            <router-link
+              to="/auth/register"
+              class="text-gray-600 hover:text-primary transition-colors"
+            >
+              <i class="fas fa-user-plus mr-2"></i>
+              Register
+            </router-link>
+          </template>
         </div>
       </div>
     </div>
@@ -36,22 +62,29 @@
 </template>
 
 <script>
-import LanguageSwitcher from "./LanguageSwitcher.vue";
+import { mapGetters, mapActions } from 'vuex';
+import LanguageSwitcher from './LanguageSwitcher.vue';
 
 export default {
-  name: "Header",
+  name: 'Header',
   components: {
     LanguageSwitcher,
   },
   data() {
     return {
       navigationLinks: [
-        { name: "Home", path: "/", icon: "fas fa-home" },
-        { name: "About", path: "/about", icon: "fas fa-info-circle" },
-        { name: "Features", path: "/features", icon: "fas fa-star" },
-        { name: "Contact", path: "/contact", icon: "fas fa-envelope" },
+        { name: 'Home', path: '/', icon: 'fas fa-home' },
+        { name: 'About', path: '/about', icon: 'fas fa-info-circle' },
+        { name: 'Features', path: '/features', icon: 'fas fa-star' },
+        { name: 'Contact', path: '/contact', icon: 'fas fa-envelope' },
       ],
     };
+  },
+  computed: {
+    ...mapGetters('auth', ['isAuthenticated']),
+  },
+  methods: {
+    ...mapActions('auth', ['logout']),
   },
 };
 </script>

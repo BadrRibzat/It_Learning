@@ -1,6 +1,6 @@
 <template>
   <div id="app" class="min-h-screen bg-gray-50">
-    <Header />
+    <Header :key="isAuthenticated" />
     <main class="container mx-auto px-4 py-8">
       <router-view />
     </main>
@@ -22,6 +22,7 @@ import Footer from '@/components/common/Footer.vue';
 import ChatBot from '@/components/common/ChatBot.vue';
 import Notification from '@/components/common/Notification.vue';
 import { notificationState } from '@/utils/NotificationService.js';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'App',
@@ -30,6 +31,9 @@ export default {
     Footer,
     ChatBot,
     Notification,
+  },
+  computed: {
+    ...mapGetters('auth', ['isAuthenticated']),
   },
   setup() {
     return {

@@ -13,6 +13,7 @@
                 id="email"
                 v-model="email"
                 required
+                autocomplete="email"
                 class="border border-gray-400 px-4 py-2 rounded-lg w-full focus:outline-none focus:border-primary"
               />
             </div>
@@ -24,6 +25,7 @@
                 id="password"
                 v-model="password"
                 required
+                autocomplete="current-password"
                 class="border border-gray-400 px-4 py-2 rounded-lg w-full focus:outline-none focus:border-primary"
               />
             </div>
@@ -40,6 +42,15 @@
               Don't have an account?
               <router-link to="/auth/register" class="text-primary hover:underline">Register</router-link>
             </p>
+            <p class="text-gray-600 mt-2">
+              <router-link to="/auth/forgot-password" class="text-primary hover:underline">Forgot Password?</router-link>
+            </p>
+            <p class="text-gray-600 mt-2">
+              <router-link to="/auth/mfa" class="text-primary hover:underline">Setup MFA</router-link>
+            </p>
+            <p class="text-gray-600 mt-2">
+              <router-link to="/auth/verify-email" class="text-primary hover:underline">Verify Email</router-link>
+            </p>
           </div>
         </div>
       </div>
@@ -48,41 +59,49 @@
 </template>
 
 <script>
-import { ref } from 'vue'
-import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import AuthService from '@/services/api/AuthService';
 
 export default {
   name: 'LoginView',
   setup() {
-    const store = useStore()
-    const router = useRouter()
-    const email = ref('')
-    const password = ref('')
-    const error = ref(null)
-    const isLoading = ref(false)
+    const router = useRouter();
+    const email = ref('');
+    const password = ref('');
+    const error = ref(null);
+    const isLoading = ref(false);
 
     const login = async () => {
-      isLoading.value = true
-      error.value = null
+      isLoading.value = true;
+      error.value = null;
 
       try {
-        await store.dispatch('auth/login', { email: email.value, password: password.value })
-        router.push('/dashboard/profile') // Redirect to profile after successful login
+        const response = await AuthService.login({
+          email: email.value,
+          password: password.value,
+        });
+
+        // Store tokens in localStorage or Vuex store
+        localStorage.setItem('access_token', response.access);
+        localStorage.setItem('refresh_token', response.refresh);
+
+        // Redirect to dashboard
+        router.push('/profile');
       } catch (err) {
-        error.value = err.message || 'Invalid credentials'
+        error.value = err.message || 'Login failed';
       } finally {
-        isLoading.value = false
+        isLoading.value = false;
       }
-    }
+    };
 
     return {
       email,
       password,
       error,
       isLoading,
-      login
-    }
-  }
-}
+      login,
+    };
+  },
+};
 </script>

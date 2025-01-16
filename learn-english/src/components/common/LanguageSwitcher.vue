@@ -9,7 +9,6 @@
       aria-haspopup="true"
     >
       <span class="mr-2">
-        <!-- Use Font Awesome icon based on selectedLanguage.icon -->
         <i :class="selectedLanguage.icon"></i>
       </span>
       {{ selectedLanguage.code.toUpperCase() }}
@@ -44,7 +43,6 @@
           role="menuitem"
         >
           <span class="flex items-center">
-            <!-- Use Font Awesome icon for each language -->
             <i :class="language.icon" class="mr-2"></i>
             {{ language.name }}
           </span>
@@ -59,30 +57,34 @@ import { ref } from "vue";
 
 export default {
   name: "LanguageSwitcher",
-  setup() {
+  props: {
+    modelValue: {
+      type: String,
+      default: "en",
+    },
+  },
+  emits: ["update:modelValue"],
+  setup(props, { emit }) {
     const isOpen = ref(false);
-    const selectedLanguage = ref({
-      code: "en",
-      name: "English",
-      icon: "fas fa-flag-usa", // Default to US flag for English
-    });
-
     const languages = [
-      { code: "ar", name: "Arabic", icon: "fas fa-globe-africa" }, // Example icon
+      { code: "ar", name: "Arabic", icon: "fas fa-globe-africa" },
       { code: "en", name: "English", icon: "fas fa-flag-usa" },
-      { code: "fr", name: "French", icon: "fas fa-flag" }, // Example icon
-      { code: "es", name: "Spanish", icon: "fas fa-flag" }, // Example icon
-      { code: "de", name: "German", icon: "fas fa-flag" }, // Example icon
-      { code: "ja", name: "Japanese", icon: "fas fa-flag" }, // Example icon
-      { code: "ko", name: "Korean", icon: "fas fa-flag" }, // Example icon
-      { code: "zh", name: "Chinese", icon: "fas fa-flag" }, // Example icon
-      // Add more languages and appropriate Font Awesome icons
+      { code: "fr", name: "French", icon: "fas fa-flag" },
+      { code: "es", name: "Spanish", icon: "fas fa-flag" },
+      { code: "de", name: "German", icon: "fas fa-flag" },
+      { code: "ja", name: "Japanese", icon: "fas fa-flag" },
+      { code: "ko", name: "Korean", icon: "fas fa-flag" },
+      { code: "zh", name: "Chinese", icon: "fas fa-flag" },
     ];
+
+    const selectedLanguage = ref(
+      languages.find((lang) => lang.code === props.modelValue) || languages[0]
+    );
 
     const changeLanguage = (language) => {
       selectedLanguage.value = language;
       isOpen.value = false;
-      // Handle language change logic (e.g., emit event, update Vuex store)
+      emit("update:modelValue", language.code); // Emit the selected language code
     };
 
     return {

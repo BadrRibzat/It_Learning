@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import store from "@/store";
 
 // Public Views
 import HomeView from "@/views/public/HomeView.vue";
@@ -7,6 +8,9 @@ import ContactView from "@/views/public/ContactView.vue";
 import FeaturesView from "@/views/public/FeaturesView.vue";
 import LoginView from "@/views/auth/LoginView.vue";
 import RegisterView from "@/views/auth/RegisterView.vue";
+import MFAView from '@/views/auth/MFAView.vue';
+import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue';
+import VerifyEmailView from '@/views/auth/VerifyEmailView.vue';
 
 // User Views
 import ProfileView from "@/views/user/ProfileView.vue";
@@ -52,10 +56,26 @@ const routes = [
     name: "register",
     component: RegisterView,
   },
+  { 
+    path: "/auth/mfa",
+    name: "MFA",
+    component: MFAView,
+  },
+  {
+    path: "/auth/forgot-password",
+    name: "ForgotPassword",
+    component: ForgotPasswordView,
+  },
+  {
+   path: "/auth/verify-email",
+    name: "VerifyEmail",
+    component: VerifyEmailView,
+  },
   {
     path: "/profile",
     name: "profile",
     component: ProfileView,
+    meta: { requiresAuth: true }, 
     children: [
       {
         path: "",
@@ -73,9 +93,9 @@ const routes = [
         component: RecommendedView,
       },
       {
-	path: "Test",
-	name: "profile.Test",
-	component: TestView,
+        path: "Test",
+        name: "profile.Test",
+        component: TestView,
       },
       {
         path: "beginner",
@@ -113,12 +133,24 @@ const routes = [
     path: "/profile/edit",
     name: "profile.edit",
     component: ProfileForm,
+    meta: { requiresAuth: true },
   },
 ];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+});
+
+// Navigation guard to protect routes
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = localStorage.getItem("access_token") !== null;
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next({ name: "login" });
+  } else {
+    next();
+  }
 });
 
 export default router;

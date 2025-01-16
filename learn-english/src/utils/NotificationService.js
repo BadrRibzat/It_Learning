@@ -43,4 +43,10 @@ export const NotificationService = {
     notificationState.show = false;
     notificationState.message = '';
   },
+ 
+  // Specific error messages for authentication
+  handleAuthError(error) {
+    const message = error.response?.data?.message || error.message || 'An error occurred';
+    this.showError(message);
+  },
 };
