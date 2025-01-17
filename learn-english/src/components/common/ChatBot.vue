@@ -8,7 +8,7 @@
     </button>
 
     <div
-      v-if="isOpen"
+      v-if="isChatOpen"
       class="absolute bottom-16 right-0 w-80 bg-white rounded-lg shadow-xl"
     >
       <div class="bg-primary text-white p-4 rounded-t-lg">
@@ -52,64 +52,38 @@
 </template>
 
 <script>
-import { ref, computed } from "vue";
+import { computed, ref } from 'vue';
+import { useStore } from 'vuex';
 
 export default {
-  name: "ChatBot",
+  name: 'ChatBot',
   setup() {
-    const isOpen = ref(false);
-    const messages = ref([
-      { text: "Hello! How can I help you today?", isBot: true },
-    ]);
-    const newMessage = ref("");
+    const store = useStore();
+    const newMessage = ref('');
+
+    const messages = computed(() => store.getters['chatbot/messages']);
+    const isChatOpen = computed(() => store.getters['chatbot/isChatOpen']);
 
     const toggleChat = () => {
-      isOpen.value = !isOpen.value;
+      store.dispatch('chatbot/toggleChat');
     };
 
     const sendMessage = async () => {
       if (!newMessage.value.trim()) return;
 
-      messages.value.push({
-        text: newMessage.value,
-        isBot: false,
-      });
-
-      const userMessage = newMessage.value;
-      newMessage.value = "";
-
-      try {
-        // Simulate chatbot API response
-        const response = await new Promise((resolve) => {
-          setTimeout(() => {
-            resolve({
-              data: {
-                response_text: "This is a simulated response.",
-              },
-            });
-          }, 1000); // Simulate a 1-second delay
-        });
-
-        messages.value.push({
-          text: response.data.response_text,
-          isBot: true,
-        });
-      } catch (error) {
-        console.error("Error:", error);
-        messages.value.push({
-          text: "Sorry, I encountered an error. Please try again.",
-          isBot: true,
-        });
-      }
+      await store.dispatch('chatbot/sendMessage', newMessage.value);
+      newMessage.value = '';
     };
 
     return {
-      isOpen,
       messages,
+      isChatOpen,
       newMessage,
       toggleChat,
       sendMessage,
-      chatIcon: computed(() => (isOpen.value ? "fas fa-times" : "fas fa-robot")),
+      chatIcon: computed(() =>
+        isChatOpen.value ? 'fas fa-times' : 'fas fa-robot'
+      ),
     };
   },
 };

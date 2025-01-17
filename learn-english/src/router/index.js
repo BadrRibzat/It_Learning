@@ -10,11 +10,11 @@ import LoginView from "@/views/auth/LoginView.vue";
 import RegisterView from "@/views/auth/RegisterView.vue";
 import MFAView from '@/views/auth/MFAView.vue';
 import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue';
+import ResetPasswordView from '@/views/auth/ResetPasswordView.vue';
 import VerifyEmailView from '@/views/auth/VerifyEmailView.vue';
 
 // User Views
 import ProfileView from "@/views/user/ProfileView.vue";
-import ProfileForm from "@/components/profile/ProfileForm.vue";
 import StatisticsView from "@/views/user/StatisticsView.vue";
 import RecommendedView from "@/views/user/RecommendedView.vue";
 import NotesView from "@/views/user/NotesView.vue";
@@ -67,7 +67,12 @@ const routes = [
     component: ForgotPasswordView,
   },
   {
-   path: "/auth/verify-email",
+    path: "/auth/reset-password",
+    name: "ResetPassword",
+    component: ResetPasswordView,
+  },
+  {
+    path: "/auth/verify-email",
     name: "VerifyEmail",
     component: VerifyEmailView,
   },
@@ -75,12 +80,12 @@ const routes = [
     path: "/profile",
     name: "profile",
     component: ProfileView,
-    meta: { requiresAuth: true }, 
+    meta: { requiresAuth: true },
     children: [
       {
-        path: "",
-        name: "profile.default",
-        component: () => import("@/views/user/ProfileView.vue"),
+        path: "edit",
+        name: "profile.edit",
+        component: () => import("@/components/profile/ProfileForm.vue"),
       },
       {
         path: "statistics",
@@ -129,12 +134,6 @@ const routes = [
       },
     ],
   },
-  {
-    path: "/profile/edit",
-    name: "profile.edit",
-    component: ProfileForm,
-    meta: { requiresAuth: true },
-  },
 ];
 
 const router = createRouter({
@@ -144,10 +143,12 @@ const router = createRouter({
 
 // Navigation guard to protect routes
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem("access_token") !== null;
+  const isAuthenticated = localStorage.getItem('access_token') !== null;
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: "login" });
+    next({ name: 'login' });
+  } else if ((to.name === 'login' || to.name === 'register') && isAuthenticated) {
+    next({ name: 'profile' });
   } else {
     next();
   }

@@ -1,140 +1,114 @@
 import axios from 'axios';
 import { NotificationService } from '@/utils/NotificationService';
 
-// Add axios interceptor to include token in requests
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-const BASE_URL = 'http://localhost:8000/accounts';
+const API_URL = 'http://127.0.0.1:8000/accounts';
 
 const AuthService = {
-  // Register a new user
   async register(userData) {
     try {
-      const response = await axios.post(`${BASE_URL}/register/`, userData);
-      NotificationService.showSuccess('Registration successful! Please check your email for verification.');
+      const response = await axios.post(`${API_URL}/register/`, {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        password_confirmation: userData.password_confirmation,
+        language: userData.language,
+        date_of_birth: userData.date_of_birth,
+      });
+      NotificationService.showSuccess('Registration successful!');
       return response.data;
     } catch (error) {
-      NotificationService.showError(error.response?.data?.message || 'Registration failed');
+      NotificationService.handleAuthError(error);
       throw error;
     }
   },
 
-  // Login user
   async login(credentials) {
     try {
-      const response = await axios.post(`${BASE_URL}/login/`, credentials);
-      // Store tokens
+      const response = await axios.post(`${API_URL}/login/`, credentials);
       localStorage.setItem('access_token', response.data.access);
       localStorage.setItem('refresh_token', response.data.refresh);
-      // Set axios default header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
       NotificationService.showSuccess('Login successful!');
       return response.data;
     } catch (error) {
-      NotificationService.showError(error.response?.data?.message || 'Login failed');
+      NotificationService.handleAuthError(error);
       throw error;
     }
   },
 
-  // Logout user
   async logout() {
     try {
       const refreshToken = localStorage.getItem('refresh_token');
-      if (!refreshToken) {
-        throw new Error('No refresh token found');
-      }
-      
-      await axios.post(`${BASE_URL}/logout/`, { refresh_token: refreshToken });
-      
-      // Clear tokens and headers
+      await axios.post(`${API_URL}/logout/`, { refresh_token: refreshToken }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+      });
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-      delete axios.defaults.headers.common['Authorization'];
-      
       NotificationService.showSuccess('Logout successful!');
     } catch (error) {
-      NotificationService.showError('Logout failed');
+      NotificationService.handleAuthError(error);
       throw error;
     }
   },
 
-  // Forgot password
-  async forgotPassword(email) {
-    try {
-      const response = await axios.post(`${BASE_URL}/forgot-password/`, { email });
-      NotificationService.showSuccess('Password reset email sent!');
-      return response.data;
-    } catch (error) {
-      NotificationService.showError(error.response?.data?.message || 'Failed to send reset email');
-      throw error;
-    }
-  },
-
-  // Reset password
-  async resetPassword(token, newPassword) {
-    try {
-      const response = await axios.post(`${BASE_URL}/reset-password/`, { token, new_password: newPassword });
-      NotificationService.showSuccess('Password reset successful!');
-      return response.data;
-    } catch (error) {
-      NotificationService.showError(error.response?.data?.message || 'Password reset failed');
-      throw error;
-    }
-  },
-
-  // Verify email
   async verifyEmail(token) {
     try {
-      const response = await axios.post(`${BASE_URL}/verify-email/`, { token });
+      const response = await axios.post(`${API_URL}/verify-email/`, { token });
       NotificationService.showSuccess('Email verified successfully!');
       return response.data;
     } catch (error) {
-      NotificationService.showError(error.response?.data?.message || 'Email verification failed');
+      NotificationService.handleAuthError(error);
       throw error;
     }
   },
 
-  // Resend verification email
-  async resendVerificationEmail() {
+  async requestPasswordReset(email) {
     try {
-      const response = await axios.post(`${BASE_URL}/resend-verification/`);
-      NotificationService.showSuccess('Verification email resent!');
+      const response = await axios.post(`${API_URL}/password-reset/`, { email });
+      NotificationService.showSuccess('Password reset link sent to your email!');
       return response.data;
     } catch (error) {
-      NotificationService.showError(error.response?.data?.message || 'Failed to resend verification email');
+      NotificationService.handleAuthError(error);
       throw error;
     }
   },
 
-  // Setup MFA
+  async confirmPasswordReset(token, newPassword) {
+    try {
+      const response = await axios.post(`${API_URL}/password-reset-confirm/`, {
+        token,
+        new_password: newPassword,
+        confirm_password: newPassword,
+      });
+      NotificationService.showSuccess('Password reset successfully!');
+      return response.data;
+    } catch (error) {
+      NotificationService.handleAuthError(error);
+      throw error;
+    }
+  },
+
   async setupMFA() {
     try {
-      const response = await axios.post(`${BASE_URL}/mfa/setup/`);
-      NotificationService.showSuccess('MFA setup successful!');
+      const response = await axios.post(`${API_URL}/mfa/setup/`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+      });
+      NotificationService.showSuccess('MFA setup initiated!');
       return response.data;
     } catch (error) {
-      NotificationService.showError(error.response?.data?.message || 'MFA setup failed');
+      NotificationService.handleAuthError(error);
       throw error;
     }
   },
 
-  // Verify MFA code
-  async verifyMFA(code) {
+  async verifyMFA(token) {
     try {
-      const response = await axios.post(`${BASE_URL}/mfa/verify/`, { code });
-      NotificationService.showSuccess('MFA verification successful!');
+      const response = await axios.post(`${API_URL}/mfa/setup/`, { token }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+      });
+      NotificationService.showSuccess('MFA verified successfully!');
       return response.data;
     } catch (error) {
-      NotificationService.showError(error.response?.data?.message || 'MFA verification failed');
+      NotificationService.handleAuthError(error);
       throw error;
     }
   },

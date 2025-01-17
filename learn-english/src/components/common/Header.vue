@@ -32,7 +32,7 @@
               Profile
             </router-link>
             <button
-              @click="logout"
+              @click="handleLogout"
               class="text-gray-600 hover:text-primary transition-colors"
             >
               <i class="fas fa-sign-out-alt mr-2"></i>
@@ -64,6 +64,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
 import LanguageSwitcher from './LanguageSwitcher.vue';
+import { NotificationService } from '@/utils/NotificationService';
 
 export default {
   name: 'Header',
@@ -85,6 +86,14 @@ export default {
   },
   methods: {
     ...mapActions('auth', ['logout']),
+    async handleLogout() {
+      try {
+        await this.logout();
+        this.$router.push('/');
+      } catch (error) {
+        NotificationService.handleAuthError(error);
+      }
+    },
   },
 };
 </script>

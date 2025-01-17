@@ -1,43 +1,26 @@
 <template>
-  <div class="verify-email-view">
-    <div class="card">
-      <h1>Verify Email</h1>
-      <form @submit.prevent="verifyEmail">
-        <input type="text" v-model="token" placeholder="Enter verification token" required />
-        <button type="submit" :disabled="isLoading">
-          {{ isLoading ? 'Verifying...' : 'Verify Email' }}
-        </button>
-      </form>
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+      <div>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Verify Email</h2>
+      </div>
+      <VerifyEmailForm />
+      <div class="text-center">
+        <router-link
+          to="/auth/login"
+          class="text-sm text-primary hover:text-primary-dark"
+        >
+          Back to Login
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue';
-import AuthService from '@/services/api/AuthService';
+import VerifyEmailForm from '@/components/auth/VerifyEmailForm.vue';
 
 export default {
-  name: 'VerifyEmailView',
-  setup() {
-    const token = ref('');
-    const isLoading = ref(false);
-
-    const verifyEmail = async () => {
-      isLoading.value = true;
-      try {
-        await AuthService.verifyEmail(token.value);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        isLoading.value = false;
-      }
-    };
-
-    return {
-      token,
-      isLoading,
-      verifyEmail,
-    };
-  },
+  components: { VerifyEmailForm },
 };
 </script>

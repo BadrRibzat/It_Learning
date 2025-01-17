@@ -16,7 +16,6 @@ export const NotificationService = {
     notificationState.duration = options.duration || 3000;
     notificationState.position = options.position || 'bottom-right';
 
-    // Immediately hide any existing notification
     clearTimeout(this.hideTimeout);
     this.hideTimeout = setTimeout(() => {
       this.hide();
@@ -43,7 +42,7 @@ export const NotificationService = {
     notificationState.show = false;
     notificationState.message = '';
   },
- 
+
   // Specific error messages for authentication
   handleAuthError(error) {
     const message = error.response?.data?.message || error.message || 'An error occurred';

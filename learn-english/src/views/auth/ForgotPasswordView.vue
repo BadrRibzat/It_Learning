@@ -1,43 +1,26 @@
 <template>
-  <div class="forgot-password-view">
-    <div class="card">
-      <h1>Forgot Password</h1>
-      <form @submit.prevent="forgotPassword">
-        <input type="email" v-model="email" placeholder="Enter your email" required />
-        <button type="submit" :disabled="isLoading">
-          {{ isLoading ? 'Sending email...' : 'Send Reset Link' }}
-        </button>
-      </form>
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+      <div>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Forgot Password</h2>
+      </div>
+      <ForgotPasswordForm />
+      <div class="text-center">
+        <router-link
+          to="/auth/login"
+          class="text-sm text-primary hover:text-primary-dark"
+        >
+          Back to Login
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue';
-import AuthService from '@/services/api/AuthService';
+import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm.vue';
 
 export default {
-  name: 'ForgotPasswordView',
-  setup() {
-    const email = ref('');
-    const isLoading = ref(false);
-
-    const forgotPassword = async () => {
-      isLoading.value = true;
-      try {
-        await AuthService.forgotPassword(email.value);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        isLoading.value = false;
-      }
-    };
-
-    return {
-      email,
-      isLoading,
-      forgotPassword,
-    };
-  },
+  components: { ForgotPasswordForm },
 };
 </script>

@@ -1,47 +1,54 @@
 <template>
-  <div class="forgot-password-form">
-    <form @submit.prevent="submit">
-      <input
-        type="email"
-        v-model="email"
-        placeholder="Enter your email"
-        required
-        autocomplete="email"
-      />
-      <button type="submit" :disabled="isLoading">
-        {{ isLoading ? 'Sending...' : 'Send Reset Link' }}
+  <form @submit.prevent="submitForm">
+    <div class="rounded-md shadow-sm space-y-4">
+      <div>
+        <label for="email" class="sr-only">Email</label>
+        <input
+          id="email"
+          v-model="form.email"
+          type="email"
+          required
+          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+          placeholder="Email"
+        />
+      </div>
+    </div>
+    <div>
+      <button
+        type="submit"
+        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+      >
+        Request Reset
       </button>
-    </form>
-  </div>
+    </div>
+  </form>
 </template>
 
 <script>
 import { ref } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+import { NotificationService } from '@/utils/NotificationService';
 
 export default {
-  name: 'ForgotPasswordForm',
   setup() {
     const store = useStore();
-    const email = ref('');
-    const isLoading = ref(false);
+    const router = useRouter();
+    const form = ref({
+      email: '',
+    });
 
-    const submit = async () => {
-      isLoading.value = true;
+    const submitForm = async () => {
       try {
-        await store.dispatch('auth/forgotPassword', email.value);
+        await store.dispatch('auth/requestPasswordReset', form.value.email);
+        NotificationService.showSuccess('Password reset link sent to your email!');
+        router.push('/auth/login');
       } catch (error) {
-        console.error(error);
-      } finally {
-        isLoading.value = false;
+        NotificationService.handleAuthError(error);
       }
     };
 
-    return {
-      email,
-      isLoading,
-      submit,
-    };
+    return { form, submitForm };
   },
 };
 </script>

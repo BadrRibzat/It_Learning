@@ -1,88 +1,116 @@
 <template>
-  <div class="register-form">
-    <form @submit.prevent="submit">
-      <input
-        type="text"
-        v-model="username"
-        placeholder="Username"
-        required
-        autocomplete="username"
-      />
-      <input
-        type="email"
-        v-model="email"
-        placeholder="Email"
-        required
-        autocomplete="email"
-      />
-      <input
-        type="password"
-        v-model="password"
-        placeholder="Password"
-        required
-        autocomplete="new-password"
-      />
-      <input
-        type="password"
-        v-model="passwordConfirmation"
-        placeholder="Confirm Password"
-        required
-        autocomplete="new-password"
-      />
-      <LanguageSwitcher v-model:selectedLanguage="language" />
-
-      <button type="submit" :disabled="isLoading">
-        {{ isLoading ? 'Registering...' : 'Register' }}
+  <form @submit.prevent="submitForm">
+    <div class="rounded-md shadow-sm space-y-4">
+      <div>
+        <label for="username" class="sr-only">Username</label>
+        <input
+          id="username"
+          v-model="form.username"
+          type="text"
+          required
+          autocomplete="username"
+          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+          placeholder="Username"
+        />
+      </div>
+      <div>
+        <label for="email" class="sr-only">Email</label>
+        <input
+          id="email"
+          v-model="form.email"
+          type="email"
+          required
+          autocomplete="email"
+          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+          placeholder="Email"
+        />
+      </div>
+      <div>
+        <label for="password" class="sr-only">Password</label>
+        <input
+          id="password"
+          v-model="form.password"
+          type="password"
+          required
+          autocomplete="new-password"
+          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+          placeholder="Password"
+        />
+      </div>
+      <div>
+        <label for="password_confirmation" class="sr-only">Confirm Password</label>
+        <input
+          id="password_confirmation"
+          v-model="form.password_confirmation"
+          type="password"
+          required
+          autocomplete="new-password"
+          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+          placeholder="Confirm Password"
+        />
+      </div>
+      <div>
+        <LanguageSwitcher v-model="form.language" />
+      </div>
+      <div>
+        <label for="date_of_birth" class="sr-only">Date of Birth</label>
+        <input
+          id="date_of_birth"
+          v-model="form.date_of_birth"
+          type="date"
+          required
+          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+          placeholder="Date of Birth"
+        />
+      </div>
+    </div>
+    <div>
+      <button
+        type="submit"
+        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+      >
+        Register
       </button>
-    </form>
-  </div>
+    </div>
+  </form>
 </template>
 
 <script>
 import { ref } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
+import { NotificationService } from '@/utils/NotificationService';
 
 export default {
-  name: 'RegisterForm',
-  components: {
-    LanguageSwitcher,
-  },
+  components: { LanguageSwitcher },
   setup() {
     const store = useStore();
-    const username = ref('');
-    const email = ref('');
-    const password = ref('');
-    const passwordConfirmation = ref('');
-    const language = ref('en'); 
-    const isLoading = ref(false);
+    const router = useRouter();
+    const form = ref({
+      username: '',
+      email: '',
+      password: '',
+      password_confirmation: '',
+      language: 'en',
+      date_of_birth: '',
+    });
 
-    const submit = async () => {
-      isLoading.value = true;
+    const submitForm = async () => {
+      if (form.value.password !== form.value.password_confirmation) {
+        NotificationService.showError('Passwords do not match!');
+        return;
+      }
       try {
-        await store.dispatch('auth/register', {
-          username: username.value,
-          email: email.value,
-          password: password.value,
-          password_confirmation: passwordConfirmation.value,
-          language: language.value, // Pass the selected language
-        });
+        await store.dispatch('auth/register', form.value);
+        NotificationService.showSuccess('Registration successful!');
+        router.push('/auth/login');
       } catch (error) {
-        console.error(error);
-      } finally {
-        isLoading.value = false;
+        NotificationService.handleAuthError(error);
       }
     };
 
-    return {
-      username,
-      email,
-      password,
-      passwordConfirmation,
-      language,
-      isLoading,
-      submit,
-    };
+    return { form, submitForm };
   },
 };
 </script>

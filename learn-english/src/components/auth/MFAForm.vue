@@ -1,47 +1,55 @@
 <template>
-  <div class="mfa-form">
-    <form @submit.prevent="submit">
-      <input
-        type="text"
-        v-model="code"
-        placeholder="Enter MFA Code"
-        required
-        autocomplete="one-time-code"
-      />
-      <button type="submit" :disabled="isLoading">
-        {{ isLoading ? 'Verifying...' : 'Verify' }}
+  <form @submit.prevent="submitForm">
+    <div class="rounded-md shadow-sm space-y-4">
+      <div>
+        <label for="token" class="sr-only">MFA Token</label>
+        <input
+          id="token"
+          v-model="form.token"
+          type="text"
+          required
+          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+          placeholder="MFA Token"
+        />
+      </div>
+    </div>
+    <div>
+      <button
+        type="submit"
+        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+      >
+        Verify MFA
       </button>
-    </form>
-  </div>
+    </div>
+  </form>
 </template>
 
 <script>
 import { ref } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+import { NotificationService } from '@/utils/NotificationService';
 
 export default {
-  name: 'MFAForm',
   setup() {
     const store = useStore();
-    const code = ref('');
-    const isLoading = ref(false);
+    const router = useRouter();
+    const form = ref({
+      token: '',
+    });
 
-    const submit = async () => {
-      isLoading.value = true;
+    const submitForm = async () => {
       try {
-        await store.dispatch('auth/verifyMFA', code.value);
+        await store.dispatch('auth/setupMFA');
+        await store.dispatch('auth/verifyMFA', form.value.token);
+        NotificationService.showSuccess('MFA verified successfully!');
+        router.push('/profile');
       } catch (error) {
-        console.error(error);
-      } finally {
-        isLoading.value = false;
+        NotificationService.handleAuthError(error);
       }
     };
 
-    return {
-      code,
-      isLoading,
-      submit,
-    };
+    return { form, submitForm };
   },
 };
 </script>
