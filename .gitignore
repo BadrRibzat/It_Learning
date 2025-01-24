@@ -1,0 +1,75 @@
+# Updated .gitignore for Python/Flask/MongoDB project
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.so
+.Python
+*.egg-info/
+*.egg
+.installed.cfg
+
+# Virtual Environments
+**/env/
+**/.venv/
+**/venv/
+**/ENV/
+env.bak/
+
+# Environment files
+.env
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Package metadata
+**/*.dist-info/
+**/*.dist-info/*
+**/*.egg-info/*
+**/REQUESTED
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# ML/AI
+**/*.pkl
+**/*.model
+**/*.bin
+**/*.cfg
+**/chatbot/model/
+
+# Database
+*.sql
+*.sqlite
+
+# Docker
+docker-compose.override.yml
+
+# Local development
+tmp/
+temp/
+
+# Special cases (pip internal files)
+**/pip-*.dist-info/
+**/pip/_vendor/
+**/pip/_internal/
