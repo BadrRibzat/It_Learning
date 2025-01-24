@@ -30,57 +30,18 @@
 
 ## 📦 Project Structure
 .
-├── authentication
-│   ├── __init__.py
-│   ├── routes.py
-│   ├── schemas.py
-│   └── utils.py
-├── chatbot
-│   ├── __init__.py
-│   ├── routes.py
-│   ├── schemas.py
-│   ├── scripts
-│   │   ├── conversational_prompts.txt
-│   │   ├── populate_chatbot.py
-│   │   └── train_chatbot.py
-│   └── utils.py
-├── config.py
-├── docker-compose.yml
-├── Dockerfile
-├── __init__.py
-├── lessons
-│   ├── __init__.py
-│   ├── routes.py
-│   ├── schemas.py
-│   ├── scripts
-│   │   └── populate_data.py
-│   └── utils.py
-├── pytest.ini
-├── README.md
-├── requirements.txt
-├── run.py
-├── services
-│   ├── __init__.py
-│   ├── level_service.py
-│   ├── ml_service.py
-│   └── progress_service.py
-├── test_auth.py
-├── test_chatbot.py
-├── test_lessons.py
-├── test_profile.py
-├── user_profile
-│   ├── __init__.py
-│   ├── profile_routes.py
-│   ├── schemas.py
-│   └── utils.py
-└── utils
-    ├── api_config.py
-    ├── auth.py
-    ├── db.py
-    ├── exceptions.py
-    ├── __init__.py
-    └── redis_cache.py
-
+├── authentication/ # Auth endpoints and logic
+├── chatbot/ # ML-powered chatbot
+│   └── scripts/ # Training/population scripts
+├── lessons/ # Lesson management
+├── services/ # Business logic services
+├── user_profile/ # User profile management
+├── utils/ # Shared utilities
+├── config.py # Configuration loader
+├── docker-compose.yml # Docker setup
+├── Dockerfile # Container configuration
+├── requirements.txt # Dependencies
+└── run.py # Entry point
 
 ## 🛠️ Installation & Setup
 
