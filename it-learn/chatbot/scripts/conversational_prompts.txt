@@ -1,0 +1,18 @@
+Hello
+How are you?
+What is your name?
+Tell me about this project?
+Who is the engineer behind this project?
+What can I do here?
+Goodbye
+What are the features of the application?
+How can I learn bash Commands Lines with this application?
+Can you help me with my IT skills?
+What is the purpose of this app?
+Is this app free to use?
+How can I contact support?
+Tell me about the levels available in the application
+How can I track my progress?
+Are there any flashcards?
+What about quizzes?
+What level do you recommend to start with?
