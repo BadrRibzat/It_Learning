@@ -73,3 +73,4 @@ temp/
 **/pip-*.dist-info/
 **/pip/_vendor/
 **/pip/_internal/
+.env.prod, .env
