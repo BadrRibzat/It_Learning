@@ -11,7 +11,13 @@ from lessons.routes import lessons_ns
 from services.ml_service import MLContentService
 from utils.exceptions import AppError
 from bson import ObjectId
-from utils.db import init_db, get_db  # Added missing imports
+from utils.db import init_db, get_db, mongo_healthcheck
+from utils.redis_cache import redis_healthcheck
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class CustomJSONEncoder(JSONEncoder):
     def default(self, obj):
@@ -26,19 +32,31 @@ def create_app():
 
     # Initialize database
     with app.app_context():
-        init_db()
+        try:
+            init_db()
+            logger.info("Database initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize database: {e}")
+            raise
 
+    # Initialize JWT
     jwt = JWTManager(app)
 
     @jwt.token_in_blocklist_loader
     def check_if_token_revoked(jwt_header, jwt_payload):
-        db = get_db()
-        jti = jwt_payload["jti"]
-        token = db.revoked_tokens.find_one({"jti": jti})
-        return token is not None
+        try:
+            db = get_db()
+            jti = jwt_payload["jti"]
+            token = db.revoked_tokens.find_one({"jti": jti})
+            return token is not None
+        except Exception as e:
+            logger.error(f"Token check failed: {e}")
+            return True
 
     # Configure CORS
-    CORS(app, resources={r"/*": {"origins": config.FRONTEND_URL}}, supports_credentials=True)
+    CORS(app, 
+         resources={r"/*": {"origins": config.CORS_ORIGINS.split(","), "methods": ["GET", "POST", "PUT", "DELETE"]}},
+         supports_credentials=True)
 
     # Initialize API documentation
     api = Api(
@@ -46,7 +64,15 @@ def create_app():
         version="1.0",
         title="Learn English API",
         description="API for learning English through flashcards and quizzes",
-        doc="/docs/"
+        doc="/docs/",
+        authorizations={
+            'Bearer Auth': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'Authorization',
+                'description': "Type in the *'Value'* input box below: **'Bearer &lt;JWT&gt;'**, where JWT is the token"
+            },
+        }
     )
 
     # Register namespaces
@@ -54,8 +80,22 @@ def create_app():
     api.add_namespace(profile_ns)
     api.add_namespace(chatbot_ns)
     api.add_namespace(lessons_ns)
-
-    # Centralized error handling
+    
+    # Add healthcheck endpoint
+    @app.route('/healthcheck')
+    def health_check():
+        services_status = {
+            'redis': redis_healthcheck(),
+            'mongodb': mongo_healthcheck(),
+            'status': 'healthy'
+        }
+        
+        is_healthy = all(services_status.values())
+        services_status['status'] = 'healthy' if is_healthy else 'unhealthy'
+        
+        return jsonify(services_status), 200 if is_healthy else 503
+    
+    # Error handlers
     @app.errorhandler(400)
     def bad_request(error):
         return jsonify({"error": "Bad request", "message": str(error)}), 400
@@ -70,14 +110,20 @@ def create_app():
 
     @app.errorhandler(500)
     def internal_error(error):
+        logger.error(f"Internal server error: {error}")
         return jsonify({"error": "Internal server error", "message": str(error)}), 500
 
     @app.errorhandler(AppError)
     def handle_app_error(error):
         return jsonify({"error": error.message}), error.status_code
 
-    # Initialize the ML service
-    MLContentService()
+    # Initialize ML service
+    try:
+        MLContentService()
+        logger.info("ML service initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize ML service: {e}")
+        raise
 
     return app
 
