@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: e-learn-backend
+  namespace: e-learn
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: e-learn
+  template:
+    metadata:
+      labels:
+        app: e-learn
+    spec:
+      containers:
+      - name: app
+        image: it-learn-app:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        envFrom:
+        - configMapRef:
+            name: e-learn-config
+        - secretRef:
+            name: e-learn-secrets
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 5000
+          initialDelaySeconds: 40
+          periodSeconds: 20
+          timeoutSeconds: 5
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
