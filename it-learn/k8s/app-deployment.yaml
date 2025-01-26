@@ -4,7 +4,7 @@ metadata:
   name: e-learn-backend
   namespace: e-learn
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: e-learn
@@ -16,7 +16,7 @@ spec:
       containers:
       - name: app
         image: it-learn-app:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Never
         ports:
         - containerPort: 5000
         envFrom:
@@ -28,20 +28,20 @@ spec:
           httpGet:
             path: /healthcheck
             port: 5000
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 15
-          timeoutSeconds: 5
+          timeoutSeconds: 10
         livenessProbe:
           httpGet:
             path: /healthcheck
             port: 5000
-          initialDelaySeconds: 40
+          initialDelaySeconds: 90
           periodSeconds: 20
-          timeoutSeconds: 5
+          timeoutSeconds: 10
         resources:
           requests:
             memory: "512Mi"
-            cpu: "200m"
+            cpu: "250m"
           limits:
             memory: "1Gi"
             cpu: "500m"
