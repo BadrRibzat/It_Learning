@@ -8,21 +8,37 @@
         </router-link>
 
         <div class="hidden md:flex items-center space-x-8">
-          <router-link
-            v-for="link in navigationLinks"
-            :key="link.path"
-            :to="link.path"
-            class="text-gray-600 hover:text-primary transition-colors"
-          >
-            <i :class="link.icon" class="mr-2"></i>
-            {{ link.name }}
-          </router-link>
+          <!-- Public Routes -->
+          <template v-if="!isAuthenticated">
+            <router-link
+              v-for="link in publicLinks"
+              :key="link.path"
+              :to="link.path"
+              class="text-gray-600 hover:text-primary transition-colors"
+            >
+              <i :class="link.icon" class="mr-2"></i>
+              {{ link.name }}
+            </router-link>
+          </template>
+
+          <!-- Protected Routes -->
+          <template v-else>
+            <router-link
+              v-for="link in protectedLinks"
+              :key="link.path"
+              :to="link.path"
+              class="text-gray-600 hover:text-primary transition-colors"
+            >
+              <i :class="link.icon" class="mr-2"></i>
+              {{ link.name }}
+            </router-link>
+          </template>
         </div>
 
         <div class="flex items-center space-x-4">
           <language-switcher />
 
-          <!-- Show Profile/Logout based on authentication status -->
+          <!-- Auth Buttons -->
           <template v-if="isAuthenticated">
             <router-link
               to="/profile"
@@ -31,13 +47,7 @@
               <i class="fas fa-user mr-2"></i>
               Profile
             </router-link>
-            <button
-              @click="handleLogout"
-              class="text-gray-600 hover:text-primary transition-colors"
-            >
-              <i class="fas fa-sign-out-alt mr-2"></i>
-              Logout
-            </button>
+            <logout-button />
           </template>
           <template v-else>
             <router-link
@@ -62,38 +72,43 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex';
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import LanguageSwitcher from './LanguageSwitcher.vue';
-import { NotificationService } from '@/utils/NotificationService';
+import LogoutButton from '../auth/LogoutButton.vue';
 
 export default {
   name: 'Header',
   components: {
     LanguageSwitcher,
+    LogoutButton
   },
-  data() {
+  setup() {
+    const store = useStore();
+    const router = useRouter();
+
+    const isAuthenticated = computed(() => store.getters['auth/isAuthenticated']);
+
+    const publicLinks = [
+      { name: 'Home', path: '/', icon: 'fas fa-home' },
+      { name: 'About', path: '/about', icon: 'fas fa-info-circle' },
+      { name: 'Features', path: '/features', icon: 'fas fa-star' },
+      { name: 'Contact', path: '/contact', icon: 'fas fa-envelope' },
+    ];
+
+    const protectedLinks = [
+      { name: 'Dashboard', path: '/dashboard', icon: 'fas fa-tachometer-alt' },
+      { name: 'Lessons', path: '/lessons', icon: 'fas fa-book' },
+      { name: 'Flashcards', path: '/flashcards', icon: 'fas fa-cards' },
+      { name: 'Progress', path: '/progress', icon: 'fas fa-chart-line' },
+    ];
+
     return {
-      navigationLinks: [
-        { name: 'Home', path: '/', icon: 'fas fa-home' },
-        { name: 'About', path: '/about', icon: 'fas fa-info-circle' },
-        { name: 'Features', path: '/features', icon: 'fas fa-star' },
-        { name: 'Contact', path: '/contact', icon: 'fas fa-envelope' },
-      ],
+      isAuthenticated,
+      publicLinks,
+      protectedLinks
     };
-  },
-  computed: {
-    ...mapGetters('auth', ['isAuthenticated']),
-  },
-  methods: {
-    ...mapActions('auth', ['logout']),
-    async handleLogout() {
-      try {
-        await this.logout();
-        this.$router.push('/');
-      } catch (error) {
-        NotificationService.handleAuthError(error);
-      }
-    },
-  },
+  }
 };
 </script>

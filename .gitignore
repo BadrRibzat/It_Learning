@@ -1,14 +1,12 @@
-# Updated .gitignore for Python/Flask/MongoDB project
+# Updated .gitignore for Python/Flask/MongoDB and Vue.js/Vite project
 
-# Python
+### Python ###
+# Byte-compiled / optimized / DLL files
 **/__pycache__/
 **/*.py[cod]
 **/*$py.class
 **/*.so
 .Python
-*.egg-info/
-*.egg
-.installed.cfg
 
 # Virtual Environments
 **/env/
@@ -16,20 +14,26 @@
 **/venv/
 **/ENV/
 env.bak/
+venv.bak/
 
-# Environment files
-.env
-*.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Package metadata
+# Distribution / packaging
+**/*.egg-info/
+**/*.egg
+.installed.cfg
 **/*.dist-info/
 **/*.dist-info/*
 **/*.egg-info/*
 **/REQUESTED
+
+# Environment files
+.env
+.env.*
+.env.prod
+.env.prod.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Testing
 .coverage
@@ -69,8 +73,35 @@ docker-compose.override.yml
 tmp/
 temp/
 
+### Frontend ###
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vite
+dist/
+dist-ssr/
+.cache/
+
+# ESLint
+.eslintcache
+
+# Tailwind CSS
+.tailwindcss/
+
+# Environment files (Frontend)
+.env
+.env.*
+.env.prod
+.env.prod.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 # Special cases (pip internal files)
 **/pip-*.dist-info/
 **/pip/_vendor/
 **/pip/_internal/
-.env.prod, .env

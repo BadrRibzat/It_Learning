@@ -1,14 +1,14 @@
 import { createStore } from 'vuex';
 import auth from './modules/auth';
 import profile from './modules/profile';
-import chatbot from './modules/chatbot';
+import lessons from './modules/lessons';
+import progress from './modules/progress';
 
-const store = createStore({
+export default createStore({
   modules: {
     auth,
     profile,
-    chatbot,
+    lessons,
+    progress
   }
 });
-
-export default store;

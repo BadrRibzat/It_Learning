@@ -1,76 +1,83 @@
 <template>
-  <form @submit.prevent="submitForm">
-    <div class="rounded-md shadow-sm space-y-4">
+  <form @submit.prevent="handleSubmit" class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div class="space-y-4">
       <div>
-        <label for="username" class="sr-only">Username</label>
+        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
         <input
-          id="username"
-          v-model="form.username"
-          type="text"
-          required
-          autocomplete="username"
-          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-          placeholder="Username"
-        />
-      </div>
-      <div>
-        <label for="email" class="sr-only">Email</label>
-        <input
-          id="email"
-          v-model="form.email"
+          v-model="formData.email"
           type="email"
+          id="email"
           required
-          autocomplete="email"
-          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-          placeholder="Email"
+          class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
         />
       </div>
+
       <div>
-        <label for="password" class="sr-only">Password</label>
+        <label for="full_name" class="block text-sm font-medium text-gray-700">Full Name</label>
         <input
+          v-model="formData.full_name"
+          type="text"
+          id="full_name"
+          required
+          class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+        />
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <input
+          v-model="formData.password"
+          type="password"
           id="password"
-          v-model="form.password"
-          type="password"
           required
-          autocomplete="new-password"
-          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-          placeholder="Password"
+          class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
         />
       </div>
+
       <div>
-        <label for="password_confirmation" class="sr-only">Confirm Password</label>
+        <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
         <input
-          id="password_confirmation"
-          v-model="form.password_confirmation"
+          v-model="formData.confirm_password"
           type="password"
+          id="confirm_password"
           required
-          autocomplete="new-password"
-          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-          placeholder="Confirm Password"
+          class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
         />
       </div>
+
       <div>
-        <LanguageSwitcher v-model="form.language" />
-      </div>
-      <div>
-        <label for="date_of_birth" class="sr-only">Date of Birth</label>
+        <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
         <input
-          id="date_of_birth"
-          v-model="form.date_of_birth"
+          v-model="formData.date_of_birth"
           type="date"
-          required
-          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-          placeholder="Date of Birth"
+          id="date_of_birth"
+          class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+        />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Preferred Language</label>
+        <LanguageSwitcher
+          v-model="formData.current_language"
+          class="w-full"
         />
       </div>
     </div>
-    <div>
+
+    <div class="mt-6">
       <button
         type="submit"
-        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+        :disabled="loading"
+        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
       >
-        Register
+        {{ loading ? 'Registering...' : 'Register' }}
       </button>
+    </div>
+
+    <div class="mt-4 text-center">
+      <router-link to="/auth/login" class="text-sm text-primary hover:text-primary-dark">
+        Already have an account? Login
+      </router-link>
     </div>
   </form>
 </template>
@@ -83,34 +90,52 @@ import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
 import { NotificationService } from '@/utils/NotificationService';
 
 export default {
-  components: { LanguageSwitcher },
+  name: 'RegisterForm',
+  components: {
+    LanguageSwitcher
+  },
   setup() {
     const store = useStore();
     const router = useRouter();
-    const form = ref({
-      username: '',
+    const loading = ref(false);
+
+    const formData = ref({
       email: '',
+      full_name: '',
       password: '',
-      password_confirmation: '',
-      language: 'en',
+      confirm_password: '',
       date_of_birth: '',
+      current_language: 'en'
     });
 
-    const submitForm = async () => {
-      if (form.value.password !== form.value.password_confirmation) {
-        NotificationService.showError('Passwords do not match!');
-        return;
+    const validateForm = () => {
+      if (formData.value.password !== formData.value.confirm_password) {
+        NotificationService.showError('Passwords do not match');
+        return false;
       }
+      return true;
+    };
+
+    const handleSubmit = async () => {
+      if (!validateForm()) return;
+
+      loading.value = true;
       try {
-        await store.dispatch('auth/register', form.value);
-        NotificationService.showSuccess('Registration successful!');
+        await store.dispatch('auth/register', formData.value);
+        NotificationService.showSuccess('Registration successful! Please login.');
         router.push('/auth/login');
       } catch (error) {
         NotificationService.handleAuthError(error);
+      } finally {
+        loading.value = false;
       }
     };
 
-    return { form, submitForm };
-  },
+    return {
+      formData,
+      loading,
+      handleSubmit
+    };
+  }
 };
 </script>

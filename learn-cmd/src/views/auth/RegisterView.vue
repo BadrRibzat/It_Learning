@@ -1,18 +1,13 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-      <div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Create an account</h2>
-      </div>
+  <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        Create your account
+      </h2>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <RegisterForm />
-      <div class="text-center">
-        <router-link
-          to="/auth/login"
-          class="text-sm text-primary hover:text-primary-dark"
-        >
-          Already have an account? Sign in
-        </router-link>
-      </div>
     </div>
   </div>
 </template>
@@ -21,6 +16,9 @@
 import RegisterForm from '@/components/auth/RegisterForm.vue';
 
 export default {
-  components: { RegisterForm },
+  name: 'RegisterView',
+  components: {
+    RegisterForm
+  }
 };
 </script>

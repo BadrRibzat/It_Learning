@@ -1,73 +1,21 @@
-import axios from 'axios';
-import { NotificationService } from '@/utils/NotificationService';
+import apiClient from './apiClient';
 
-const API_URL = 'http://127.0.0.1:8000/accounts';
-
-const ProfileService = {
-  async getProfile(username) {
+export default {
+  async getProfile() {
     try {
-      const response = await axios.get(`${API_URL}/profile/${username}/`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
-      });
+      const response = await apiClient.get('/profile/profile');
       return response.data;
     } catch (error) {
-      NotificationService.handleAuthError(error);
-      throw error;
+      throw error.response?.data || error.message;
     }
   },
 
-  async updateProfile(username, data) {
+  async updateProfile(profileData) {
     try {
-      const response = await axios.put(`${API_URL}/profile/${username}/`, data, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
-      });
-      NotificationService.showSuccess('Profile updated successfully!');
+      const response = await apiClient.put('/profile/update', profileData);
       return response.data;
     } catch (error) {
-      NotificationService.handleAuthError(error);
-      throw error;
+      throw error.response?.data || error.message;
     }
-  },
-
-  async uploadProfilePicture(file) {
-    try {
-      const formData = new FormData();
-      formData.append('profile_picture', file);
-      const response = await axios.post(`${API_URL}/upload-profile-picture/`, formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
-      });
-      NotificationService.showSuccess('Profile picture uploaded successfully!');
-      return response.data;
-    } catch (error) {
-      NotificationService.handleAuthError(error);
-      throw error;
-    }
-  },
-
-  async deleteProfilePicture() {
-    try {
-      const response = await axios.delete(`${API_URL}/delete-profile-picture/`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
-      });
-      NotificationService.showSuccess('Profile picture deleted successfully!');
-      return response.data;
-    } catch (error) {
-      NotificationService.handleAuthError(error);
-      throw error;
-    }
-  },
-
-  async getStatistics(username) {
-    try {
-      const response = await axios.get(`${API_URL}/statistics/${username}/`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
-      });
-      return response.data;
-    } catch (error) {
-      NotificationService.handleAuthError(error);
-      throw error;
-    }
-  },
+  }
 };
-
-export default ProfileService;

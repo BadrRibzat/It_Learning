@@ -1,38 +1,47 @@
 <template>
-  <form @submit.prevent="submitForm">
-    <div class="rounded-md shadow-sm space-y-4">
+  <form @submit.prevent="handleSubmit" class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div class="space-y-4">
       <div>
-        <label for="email" class="sr-only">Email</label>
+        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
         <input
-          id="email"
-          v-model="form.email"
+          v-model="formData.email"
           type="email"
+          id="email"
           required
           autocomplete="email"
-          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-          placeholder="Email"
+          class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+          :class="{ 'border-red-500': errors.email }"
         />
       </div>
+
       <div>
-        <label for="password" class="sr-only">Password</label>
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
         <input
-          id="password"
-          v-model="form.password"
+          v-model="formData.password"
           type="password"
+          id="password"
           required
           autocomplete="current-password"
-          class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-          placeholder="Password"
+          class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+          :class="{ 'border-red-500': errors.password }"
         />
       </div>
     </div>
-    <div>
+
+    <div class="mt-6">
       <button
         type="submit"
-        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+        :disabled="loading"
+        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
       >
-        Sign in
+        {{ loading ? 'Logging in...' : 'Login' }}
       </button>
+    </div>
+
+    <div class="mt-4 text-center space-y-2">
+      <router-link to="/auth/register" class="text-sm text-primary hover:text-primary-dark block">
+        Don't have an account? Register
+      </router-link>
     </div>
   </form>
 </template>
@@ -44,25 +53,40 @@ import { useRouter } from 'vue-router';
 import { NotificationService } from '@/utils/NotificationService';
 
 export default {
+  name: 'LoginForm',
   setup() {
     const store = useStore();
     const router = useRouter();
-    const form = ref({
+    const loading = ref(false);
+    const errors = ref({});
+
+    const formData = ref({
       email: '',
-      password: '',
+      password: ''
     });
 
-    const submitForm = async () => {
+    const handleSubmit = async () => {
+      loading.value = true;
+      errors.value = {};
+
       try {
-        await store.dispatch('auth/login', form.value);
+        const response = await store.dispatch('auth/login', formData.value);
         NotificationService.showSuccess('Login successful!');
         router.push('/profile');
       } catch (error) {
         NotificationService.handleAuthError(error);
+        errors.value = error.errors || {};
+      } finally {
+        loading.value = false;
       }
     };
 
-    return { form, submitForm };
-  },
+    return {
+      formData,
+      loading,
+      errors,
+      handleSubmit
+    };
+  }
 };
 </script>

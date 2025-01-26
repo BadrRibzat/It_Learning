@@ -16,14 +16,63 @@
 
       <!-- Sidebar Links -->
       <ul class="space-y-2 mt-12">
-        <li v-for="item in sidebarItems" :key="item.name">
+        <!-- Profile Dashboard -->
+        <li>
           <router-link
-            :to="item.path"
+            to="/profile"
             class="flex items-center p-2 rounded-lg hover:bg-gray-200 transition-colors"
-            :class="{ 'bg-gray-200': isActive(item.path) }"
+            :class="{ 'bg-gray-200': isActive('/profile') }"
           >
-            <font-awesome-icon :icon="item.icon" class="w-6 text-center" />
-            <span v-if="isSidebarOpen" class="ml-3">{{ item.name }}</span>
+            <font-awesome-icon icon="user" class="w-6 text-center" />
+            <span v-if="isSidebarOpen" class="ml-3">Dashboard</span>
+          </router-link>
+        </li>
+
+        <!-- Lessons Section -->
+        <li>
+          <router-link
+            to="/profile/lessons"
+            class="flex items-center p-2 rounded-lg hover:bg-gray-200 transition-colors"
+            :class="{ 'bg-gray-200': isActive('/profile/lessons') }"
+          >
+            <font-awesome-icon icon="book" class="w-6 text-center" />
+            <span v-if="isSidebarOpen" class="ml-3">Lessons</span>
+          </router-link>
+        </li>
+
+        <!-- Flashcards -->
+        <li>
+          <router-link
+            to="/profile/flashcards"
+            class="flex items-center p-2 rounded-lg hover:bg-gray-200 transition-colors"
+            :class="{ 'bg-gray-200': isActive('/profile/flashcards') }"
+          >
+            <font-awesome-icon icon="layer-group" class="w-6 text-center" />
+            <span v-if="isSidebarOpen" class="ml-3">Flashcards</span>
+          </router-link>
+        </li>
+
+        <!-- Statistics -->
+        <li>
+          <router-link
+            to="/profile/statistics"
+            class="flex items-center p-2 rounded-lg hover:bg-gray-200 transition-colors"
+            :class="{ 'bg-gray-200': isActive('/profile/statistics') }"
+          >
+            <font-awesome-icon icon="chart-bar" class="w-6 text-center" />
+            <span v-if="isSidebarOpen" class="ml-3">Statistics</span>
+          </router-link>
+        </li>
+
+        <!-- Notes -->
+        <li>
+          <router-link
+            to="/profile/notes"
+            class="flex items-center p-2 rounded-lg hover:bg-gray-200 transition-colors"
+            :class="{ 'bg-gray-200': isActive('/profile/notes') }"
+          >
+            <font-awesome-icon icon="sticky-note" class="w-6 text-center" />
+            <span v-if="isSidebarOpen" class="ml-3">Notes</span>
           </router-link>
         </li>
       </ul>
@@ -45,25 +94,11 @@ export default {
   setup() {
     const route = useRoute();
 
-    const sidebarItems = [
-      { name: "Profile", path: "/profile", icon: "user" },
-      { name: "Statistics", path: "/profile/statistics", icon: "chart-bar" },
-      { name: "Recommended", path: "/profile/recommended", icon: "thumbs-up" },
-      { name: "Beginner", path: "/profile/beginner", icon: "level-up-alt" },
-      { name: "Intermediate", path: "/profile/intermediate", icon: "level-up-alt" },
-      { name: "Level-Test", path: "/profile/Test", icon: "clipboard-check" },
-      { name: "Advanced", path: "/profile/advanced", icon: "level-up-alt" },
-      { name: "Flashcards", path: "/profile/flashcards", icon: "layer-group" },
-      { name: "Quizzes", path: "/profile/quizzes", icon: "question-circle" },
-      { name: "Notes", path: "/profile/notes", icon: "sticky-note" },
-    ];
-
     const isActive = (path) => {
-      return route.path === path;
+      return route.path.startsWith(path);
     };
 
     return {
-      sidebarItems,
       isActive,
     };
   },

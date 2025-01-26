@@ -1,31 +1,21 @@
 import { createRouter, createWebHistory } from "vue-router";
 import store from "@/store";
 
-// Public Views
+// Import public views
 import HomeView from "@/views/public/HomeView.vue";
 import AboutView from "@/views/public/AboutView.vue";
 import ContactView from "@/views/public/ContactView.vue";
 import FeaturesView from "@/views/public/FeaturesView.vue";
+
+// Import auth views
 import LoginView from "@/views/auth/LoginView.vue";
 import RegisterView from "@/views/auth/RegisterView.vue";
-import MFAView from '@/views/auth/MFAView.vue';
-import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue';
-import ResetPasswordView from '@/views/auth/ResetPasswordView.vue';
-import VerifyEmailView from '@/views/auth/VerifyEmailView.vue';
 
-// User Views
+// Import user views
 import ProfileView from "@/views/user/ProfileView.vue";
-import StatisticsView from "@/views/user/StatisticsView.vue";
-import RecommendedView from "@/views/user/RecommendedView.vue";
-import NotesView from "@/views/user/NotesView.vue";
-import BeginnerView from "@/views/levels/BeginnerView.vue";
-import IntermediateView from "@/views/levels/IntermediateView.vue";
-import AdvancedView from "@/views/levels/AdvancedView.vue";
-import FlashcardsView from "@/views/flashcards/FlashcardsView.vue";
-import QuizzesView from "@/views/quizzes/QuizzesView.vue";
-import TestView from "@/views/levels/TestView.vue";
 
 const routes = [
+  // Public Routes
   {
     path: "/",
     name: "home",
@@ -56,84 +46,53 @@ const routes = [
     name: "register",
     component: RegisterView,
   },
-  { 
-    path: "/auth/mfa",
-    name: "MFA",
-    component: MFAView,
-  },
-  {
-    path: "/auth/forgot-password",
-    name: "ForgotPassword",
-    component: ForgotPasswordView,
-  },
-  {
-    path: "/auth/reset-password",
-    name: "ResetPassword",
-    component: ResetPasswordView,
-  },
-  {
-    path: "/auth/verify-email",
-    name: "VerifyEmail",
-    component: VerifyEmailView,
-  },
+
+  // Protected Profile Route with all features as children
   {
     path: "/profile",
     name: "profile",
     component: ProfileView,
     meta: { requiresAuth: true },
     children: [
+      // Profile related routes
       {
-        path: "edit",
-        name: "profile.edit",
-        component: () => import("@/components/profile/ProfileForm.vue"),
+        path: "",
+        name: "profile.dashboard",
+        component: () => import("@/components/profile/ProfileComponent.vue"),
       },
       {
         path: "statistics",
         name: "profile.statistics",
-        component: StatisticsView,
-      },
-      {
-        path: "recommended",
-        name: "profile.recommended",
-        component: RecommendedView,
-      },
-      {
-        path: "Test",
-        name: "profile.Test",
-        component: TestView,
-      },
-      {
-        path: "beginner",
-        name: "profile.beginner",
-        component: BeginnerView,
-      },
-      {
-        path: "intermediate",
-        name: "profile.intermediate",
-        component: IntermediateView,
-      },
-      {
-        path: "advanced",
-        name: "profile.advanced",
-        component: AdvancedView,
-      },
-      {
-        path: "flashcards",
-        name: "profile.flashcards",
-        component: FlashcardsView,
-      },
-      {
-        path: "quizzes",
-        name: "profile.quizzes",
-        component: QuizzesView,
+        component: () => import("@/components/progress/StatisticsChart.vue"),
       },
       {
         path: "notes",
         name: "profile.notes",
-        component: NotesView,
+        component: () => import("@/views/user/NotesView.vue"),
       },
+      // Lessons routes as children of profile
+      {
+        path: "lessons",
+        name: "profile.lessons",
+        component: () => import("@/views/lessons/LessonsView.vue"),
+      },
+      {
+        path: "lessons/:level/flashcards",
+        name: "profile.lessons.flashcards",
+        component: () => import("@/views/lessons/FlashcardsView.vue"),
+      },
+      {
+        path: "lessons/:level/quiz",
+        name: "profile.lessons.quiz",
+        component: () => import("@/views/lessons/QuizView.vue"),
+      },
+      {
+        path: "lessons/:level/test",
+        name: "profile.lessons.test",
+        component: () => import("@/views/lessons/LevelTestView.vue"),
+      }
     ],
-  },
+  }
 ];
 
 const router = createRouter({
@@ -141,9 +100,9 @@ const router = createRouter({
   routes,
 });
 
-// Navigation guard to protect routes
+// Navigation guard
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem('access_token') !== null;
+  const isAuthenticated = store.getters['auth/isAuthenticated'];
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     next({ name: 'login' });
