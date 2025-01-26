@@ -48,17 +48,64 @@
 ```
 .
 ├── authentication/            # Auth endpoints and logic
+│   ├── __init__.py
+│   ├── routes.py
+│   ├── schemas.py
+│   └── utils.py
 ├── chatbot/                   # ML-powered chatbot
-│   └── scripts/               # Training/population scripts
-├── lessons/                   # Lesson management
-├── services/                  # Business logic services
-├── user_profile/              # User profile management
-├── utils/                     # Shared utilities
+│   ├── __init__.py
+│   ├── routes.py
+│   ├── schemas.py
+│   ├── scripts/               # Training/population scripts
+│   │   ├── conversational_prompts.txt
+│   │   ├── populate_chatbot.py
+│   │   └── train_chatbot.py
+│   └── utils.py
 ├── config.py                  # Configuration loader
 ├── docker-compose.yml         # Docker setup
 ├── Dockerfile                 # Container configuration
+├── __init__.py
+├── k8s/                       # Kubernetes deployment files
+│   ├── app-deployment.yaml
+│   ├── app-ingress.yaml
+│   ├── app-service.yaml
+│   ├── configmap.yaml
+│   ├── namespace.yaml
+│   ├── redis-deployment.yaml
+│   ├── redis-service.yaml
+│   └── secrets.yaml
+├── lessons/                   # Lesson management
+│   ├── __init__.py
+│   ├── routes.py
+│   ├── schemas.py
+│   ├── scripts/               # Data population scripts
+│   │   └── populate_data.py
+│   └── utils.py
+├── pytest.ini                 # Pytest configuration
+├── README.md                  # Backend documentation
 ├── requirements.txt           # Dependencies
-└── run.py                     # Entry point
+├── run.py                     # Entry point
+├── services/                  # Business logic services
+│   ├── __init__.py
+│   ├── level_service.py
+│   ├── ml_service.py
+│   └── progress_service.py
+├── test_auth.py               # Authentication tests
+├── test_chatbot.py            # Chatbot tests
+├── test_lessons.py            # Lesson tests
+├── test_profile.py            # Profile tests
+├── user_profile/              # User profile management
+│   ├── __init__.py
+│   ├── profile_routes.py
+│   ├── schemas.py
+│   └── utils.py
+└── utils/                     # Shared utilities
+    ├── api_config.py
+    ├── auth.py
+    ├── db.py
+    ├── exceptions.py
+    ├── __init__.py
+    └── redis_cache.py
 ```
 
 ### Frontend Structure
