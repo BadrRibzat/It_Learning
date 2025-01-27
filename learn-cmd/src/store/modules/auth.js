@@ -1,4 +1,5 @@
 import AuthService from '@/services/api/AuthService';
+import router from '@/router';
 
 export default {
   namespaced: true,
@@ -28,6 +29,7 @@ export default {
     async register({ commit }, userData) {
       try {
         const response = await AuthService.register(userData);
+        router.push('/auth/login');
         return response;
       } catch (error) {
         throw error;
@@ -38,6 +40,7 @@ export default {
       try {
         const response = await AuthService.login(credentials);
         commit('SET_TOKEN', response.access_token);
+        router.push('/profile');
         return response;
       } catch (error) {
         throw error;
@@ -48,18 +51,10 @@ export default {
       try {
         await AuthService.logout();
         commit('CLEAR_AUTH');
-        localStorage.removeItem('token');
+        router.push('/auth/login');
       } catch (error) {
-        throw error;
-      }
-    },
-
-    async deleteAccount({ commit }) {
-      try {
-        await AuthService.deleteAccount();
         commit('CLEAR_AUTH');
-        localStorage.removeItem('token');
-      } catch (error) {
+        router.push('/auth/login');
         throw error;
       }
     }
@@ -67,7 +62,6 @@ export default {
 
   getters: {
     isAuthenticated: state => state.isAuthenticated,
-    token: state => state.token,
-    user: state => state.user
+    token: state => state.token
   }
 };

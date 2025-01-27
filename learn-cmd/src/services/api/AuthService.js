@@ -6,7 +6,7 @@ export default {
       const response = await apiClient.post('/auth/register', userData);
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || { message: error.message };
     }
   },
 
@@ -18,27 +18,18 @@ export default {
       }
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || { message: error.message };
     }
   },
 
   async logout() {
     try {
-      await apiClient.post('/auth/logout');
+      const response = await apiClient.post('/auth/logout');
       localStorage.removeItem('token');
-      return true;
+      return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  async deleteAccount() {
-    try {
-      await apiClient.delete('/auth/delete');
       localStorage.removeItem('token');
-      return true;
-    } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || { message: error.message };
     }
   }
 };

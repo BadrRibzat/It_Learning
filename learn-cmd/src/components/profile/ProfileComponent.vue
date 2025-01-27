@@ -1,38 +1,57 @@
 <template>
   <div class="flex">
-    <!-- Sidebar -->
     <Sidebar :isSidebarOpen="isSidebarOpen" @toggle-sidebar="toggleSidebar" />
 
-    <!-- Main Content -->
-    <div
-      :class="[
-        isSidebarOpen ? 'ml-64' : 'ml-16',
-        'flex-1 transition-all duration-300 ease-in-out p-6'
-      ]"
-    >
-    <div class="mt-8">
-    <StatisticsChart
-      v-if="profile?.statistics"
-      :statistics="profile.statistics"
-    />
-  </div>
-    <!-- Statistics Section -->
-      <div v-if="profile" class="space-y-6">
+    <div :class="[isSidebarOpen ? 'ml-64' : 'ml-16', 'flex-1 p-6']">
+      <!-- Loading State -->
+      <LoadingSpinner v-if="isLoading" 
+                     fullscreen 
+                     size="lg" 
+                     label="Loading profile..." />
+
+      <!-- Error State -->
+      <div v-else-if="error" 
+           class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <ExclamationIcon class="h-5 w-5 text-red-500" />
+          </div>
+          <div class="ml-3">
+            <p class="text-red-700">{{ error }}</p>
+            <button @click="retryLoading" 
+                    class="mt-2 text-red-700 hover:text-red-600 font-medium">
+              Try again
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <template v-else>
         <!-- Profile Header -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <div class="flex items-center justify-between mb-6">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <div class="flex justify-between items-center">
+            <!-- Profile Picture Section -->
             <div class="flex items-center space-x-4">
               <div class="relative group">
-                <img
-                  :src="profile.profile_picture || '/default-avatar.png'"
-                  alt="Profile"
-                  class="w-24 h-24 rounded-full object-cover"
-                />
+                <div class="relative">
+                  <img
+                    :src="profileData.profile_picture || userProfilePicture"
+                    alt="Profile"
+                    class="w-24 h-24 rounded-full object-cover border-4 border-primary"
+                    :class="{ 'opacity-50': isUpdatingPicture }"
+                  />
+                  <LoadingSpinner v-if="isUpdatingPicture" 
+                                 size="sm" 
+                                 class="absolute inset-0 m-auto" />
+                </div>
                 <div
                   @click="triggerFileInput"
-                  class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
+                  class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity duration-200"
+                  role="button"
+                  tabindex="0"
+                  @keypress.enter="triggerFileInput"
                 >
-                  <i class="fas fa-camera"></i>
+                  <font-awesome-icon icon="camera" class="text-xl" />
                 </div>
                 <input
                   type="file"
@@ -40,193 +59,191 @@
                   class="hidden"
                   accept="image/*"
                   @change="handleProfilePictureChange"
+                  aria-label="Update profile picture"
                 />
               </div>
+              
               <div>
-                <h1 class="text-2xl font-bold text-gray-900">
-                  {{ profile.user.full_name }}
-                </h1>
-                <p class="text-gray-600">{{ profile.user.email }}</p>
+                <h1 class="text-2xl font-bold text-gray-900">{{ userFullName }}</h1>
+                <p class="text-gray-600">{{ userEmail }}</p>
+                <p class="text-sm text-gray-500 mt-1">{{ userBio }}</p>
               </div>
             </div>
-            <button
-              @click="showDeleteConfirm = true"
-              class="text-red-600 hover:text-red-800 transition-colors"
-            >
-              <i class="fas fa-trash-alt mr-2"></i>
-              Delete Account
-            </button>
-          </div>
 
-          <!-- Profile Form -->
-          <form @submit.prevent="updateProfile" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Bio</label>
-              <textarea
-                v-model="profileData.bio"
-                rows="3"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-              ></textarea>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">
-                Preferred Language
-              </label>
-              <LanguageSwitcher
-                v-model="profileData.preferred_language"
-                class="mt-1"
+            <!-- Progress Circle -->
+            <div class="flex items-center space-x-6">
+              <ProgressCircle
+                :progress="levelProgress"
+                :label="currentLevel"
+                :size="100"
+                color="#4F46E5"
               />
             </div>
-
-            <div class="flex justify-end">
-              <button
-                type="submit"
-                :disabled="updating"
-                class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
-              >
-                {{ updating ? 'Saving...' : 'Save Changes' }}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Statistics -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">
-              Flashcards Progress
-            </h3>
-            <div class="text-3xl font-bold text-primary">
-              {{ profile.statistics?.flashcard_progress?.length || 0 }}
-            </div>
-            <p class="text-gray-600">Lessons Completed</p>
-          </div>
-
-          <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">
-              Level Progress
-            </h3>
-            <div class="text-3xl font-bold text-primary">
-              {{ profile.statistics?.level_progression?.current_level || 'Beginner' }}
-            </div>
-            <p class="text-gray-600">Current Level</p>
-          </div>
-
-          <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Quiz Status</h3>
-            <div class="text-3xl font-bold text-primary">
-              {{ profile.statistics?.quiz_unlocked ? 'Available' : 'Locked' }}
-            </div>
-            <p class="text-gray-600">Quiz Access</p>
           </div>
         </div>
-      </div>
 
-      <!-- Delete Account Confirmation Modal -->
-      <div
-        v-if="showDeleteConfirm"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      >
-        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-          <h3 class="text-lg font-bold text-gray-900 mb-4">Delete Account</h3>
-          <p class="text-gray-600 mb-6">
-            Are you sure you want to delete your account? This action cannot be undone.
-          </p>
-          <div class="flex justify-end space-x-4">
+        <!-- Statistics Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <StatCard
+            title="Flashcards Progress"
+            :value="`${flashcardStats.completed}/${flashcardStats.total}`"
+            label="Cards Completed"
+            icon="layer-group"
+          />
+
+          <StatCard
+            title="Current Level"
+            :value="currentLevel"
+            label="Learning Progress"
+            icon="graduation-cap"
+          />
+
+          <StatCard
+            title="Quiz Status"
+            :value="`${flashcardStats.unlockedQuizzes} Available`"
+            label="Next Quiz Available"
+            icon="question-circle"
+          />
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="mb-6">
+          <nav class="flex space-x-4" aria-label="Profile sections">
             <button
-              @click="showDeleteConfirm = false"
-              class="px-4 py-2 text-gray-600 hover:text-gray-800"
+              v-for="tab in tabs"
+              :key="tab.id"
+              @click="activeTab = tab.id"
+              :class="[
+                'px-4 py-2 rounded-md font-medium transition-colors',
+                activeTab === tab.id
+                  ? 'bg-primary text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              ]"
+              :aria-selected="activeTab === tab.id"
+              role="tab"
             >
-              Cancel
+              {{ tab.name }}
             </button>
-            <button
-              @click="deleteAccount"
-              :disabled="deleting"
-              class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-            >
-              {{ deleting ? 'Deleting...' : 'Delete Account' }}
-            </button>
-          </div>
+          </nav>
         </div>
-      </div>
+
+        <!-- Dynamic Content -->
+        <keep-alive>
+          <component 
+            :is="activeComponent"
+            v-bind="componentProps"
+            @update="handleUpdate"
+          />
+        </keep-alive>
+      </template>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import Sidebar from '@/components/common/Sidebar.vue';
-import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue';
-import { NotificationService } from '@/utils/NotificationService';
-import StatisticsChart from '@/components/progress/StatisticsChart.vue';
 import ProgressCircle from '@/components/progress/ProgressCircle.vue';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+import StatCard from '@/components/common/StatCard.vue';
+import { NotificationService } from '@/utils/NotificationService';
+
+// Lazy-loaded components
+const ProfilePersonal = defineAsyncComponent(() => 
+  import('@/components/profile/ProfilePersonal.vue')
+);
+const ProfilePreferences = defineAsyncComponent(() => 
+  import('@/components/profile/ProfilePreferences.vue')
+);
+const ProfileStatistics = defineAsyncComponent(() => 
+  import('@/components/profile/ProfileStatistics.vue')
+);
 
 export default {
   name: 'ProfileComponent',
+  
   components: {
-    ProgressCircle,
     Sidebar,
-    StatisticsChart,
-    LanguageSwitcher
+    ProgressCircle,
+    LoadingSpinner,
+    StatCard,
+    ProfilePersonal,
+    ProfilePreferences,
+    ProfileStatistics
   },
+
   setup() {
     const store = useStore();
     const router = useRouter();
     const fileInput = ref(null);
     const isSidebarOpen = ref(true);
-    const profile = ref(null);
-    const updating = ref(false);
-    const deleting = ref(false);
-    const showDeleteConfirm = ref(false);
+    const isLoading = ref(true);
+    const error = ref(null);
+    const isUpdatingPicture = ref(false);
+    const activeTab = ref('personal');
 
+    // Profile data initialization
     const profileData = ref({
-      bio: '',
-      preferred_language: 'en',
       profile_picture: null
     });
 
-    const fetchProfile = async () => {
+    const tabs = [
+      { id: 'personal', name: 'Personal Info' },
+      { id: 'preferences', name: 'Preferences' },
+      { id: 'statistics', name: 'Statistics' }
+    ];
+
+    // Computed properties
+    const profile = computed(() => store.getters['profile/profile']);
+    const statistics = computed(() => store.getters['profile/statistics']);
+    const welcomeMessage = computed(() => store.getters['profile/welcomeMessage']);
+    const userFullName = computed(() => store.getters['profile/userFullName']);
+    const userEmail = computed(() => store.getters['profile/userEmail']);
+    const currentLevel = computed(() => store.getters['profile/currentLevel']);
+    const flashcardStats = computed(() => store.getters['profile/flashcardStats']);
+    const userProfilePicture = computed(() => profile.value?.profile_picture || '/default-avatar.png');
+    const userBio = computed(() => profile.value?.bio || 'No bio added yet');
+    const levelProgress = computed(() => {
+      const progression = statistics.value?.level_progression;
+      return progression ? Math.round((progression.progress || 0) * 100) : 0;
+    });
+
+    const activeComponent = computed(() => {
+      switch (activeTab.value) {
+        case 'personal':
+          return 'ProfilePersonal';
+        case 'preferences':
+          return 'ProfilePreferences';
+        case 'statistics':
+          return 'ProfileStatistics';
+        default:
+          return 'ProfilePersonal';
+      }
+    });
+
+    // Methods
+    const toggleSidebar = () => {
+      isSidebarOpen.value = !isSidebarOpen.value;
+    };
+
+    const loadProfile = async () => {
+      isLoading.value = true;
+      error.value = null;
+      
       try {
-        const response = await store.dispatch('profile/fetchProfile');
-        profile.value = response;
-        profileData.value = {
-          bio: response.profile_data.bio || '',
-          preferred_language: response.profile_data.preferred_language || 'en',
-          profile_picture: response.profile_data.profile_picture
-        };
-      } catch (error) {
-        NotificationService.showError('Failed to load profile');
+        await store.dispatch('profile/fetchProfile');
+      } catch (err) {
+        error.value = 'Failed to load profile data. Please try again.';
+        NotificationService.showError(error.value);
+      } finally {
+        isLoading.value = false;
       }
     };
 
-    const updateProfile = async () => {
-      updating.value = true;
-      try {
-        await store.dispatch('profile/updateProfile', profileData.value);
-        NotificationService.showSuccess('Profile updated successfully');
-        await fetchProfile();
-      } catch (error) {
-        NotificationService.showError('Failed to update profile');
-      } finally {
-        updating.value = false;
-      }
-    };
-
-    const deleteAccount = async () => {
-      deleting.value = true;
-      try {
-        await store.dispatch('auth/deleteAccount');
-        NotificationService.showSuccess('Account deleted successfully');
-        router.push({ name: 'login' });
-      } catch (error) {
-        NotificationService.showError('Failed to delete account');
-      } finally {
-        deleting.value = false;
-        showDeleteConfirm.value = false;
-      }
+    const retryLoading = () => {
+      loadProfile();
     };
 
     const triggerFileInput = () => {
@@ -235,38 +252,99 @@ export default {
 
     const handleProfilePictureChange = async (event) => {
       const file = event.target.files[0];
-      if (file) {
-        try {
-          // Create form data
-          const formData = new FormData();
-          formData.append('profile_picture', file);
-          
-          // Update profile data with new picture
-          profileData.value.profile_picture = formData;
-          await updateProfile();
-        } catch (error) {
-          NotificationService.showError('Failed to upload profile picture');
-        }
+      if (!file) return;
+
+      isUpdatingPicture.value = true;
+      try {
+        const formData = new FormData();
+        formData.append('profile_picture', file);
+        
+        await store.dispatch('profile/updateProfile', {
+          ...profileData.value,
+          profile_picture: formData
+        });
+        
+        NotificationService.showSuccess('Profile picture updated successfully');
+      } catch (error) {
+        NotificationService.showError('Failed to update profile picture');
+        profileData.value.profile_picture = null;
+      } finally {
+        isUpdatingPicture.value = false;
       }
     };
 
+    const handleUpdate = async (data) => {
+      isLoading.value = true;
+      try {
+        await store.dispatch('profile/updateProfile', data);
+        NotificationService.showSuccess('Profile updated successfully');
+      } catch (error) {
+        NotificationService.showError('Failed to update profile');
+      } finally {
+        isLoading.value = false;
+      }
+    };
+
+    // Lifecycle hooks
     onMounted(() => {
-      fetchProfile();
+      loadProfile();
     });
 
     return {
-      profile,
+      // State
       profileData,
-      isSidebarOpen,
-      updating,
-      deleting,
-      showDeleteConfirm,
       fileInput,
-      updateProfile,
-      deleteAccount,
+      isSidebarOpen,
+      isLoading,
+      error,
+      isUpdatingPicture,
+      activeTab,
+      tabs,
+
+      // Computed
+      profile,
+      statistics,
+      welcomeMessage,
+      userFullName,
+      userEmail,
+      currentLevel,
+      levelProgress,
+      flashcardStats,
+      userProfilePicture,
+      userBio,
+      activeComponent,
+
+      // Methods
+      toggleSidebar,
+      retryLoading,
       triggerFileInput,
-      handleProfilePictureChange
+      handleProfilePictureChange,
+      handleUpdate
     };
   }
 };
 </script>
+
+<style scoped>
+.profile-picture-upload:hover .upload-overlay {
+  opacity: 1;
+}
+
+/* Add smooth transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Accessibility focus styles */
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+</style>

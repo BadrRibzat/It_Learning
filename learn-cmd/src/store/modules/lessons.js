@@ -5,11 +5,15 @@ export default {
   namespaced: true,
 
   state: {
+    currentLevel: null,
     levelProgression: null,
     currentLesson: null,
+    lessons: [],
+    flashcards: [],
     currentFlashcard: null,
-    quizQuestions: [],
-    testQuestions: [],
+    quizzes: [],
+    currentQuiz: null,
+    levelTest: null,
     loading: false,
     error: null
   },
@@ -18,27 +22,42 @@ export default {
     SET_LEVEL_PROGRESSION(state, progression) {
       state.levelProgression = progression;
     },
+    SET_LESSONS(state, lessons) {
+      state.lessons = lessons;
+    },
     SET_CURRENT_LESSON(state, lesson) {
       state.currentLesson = lesson;
+    },
+    SET_FLASHCARDS(state, flashcards) {
+      state.flashcards = flashcards;
     },
     SET_CURRENT_FLASHCARD(state, flashcard) {
       state.currentFlashcard = flashcard;
     },
-    SET_QUIZ_QUESTIONS(state, questions) {
-      state.quizQuestions = questions;
+    SET_QUIZZES(state, quizzes) {
+      state.quizzes = quizzes;
     },
-    SET_TEST_QUESTIONS(state, questions) {
-      state.testQuestions = questions;
+    SET_CURRENT_QUIZ(state, quiz) {
+      state.currentQuiz = quiz;
+    },
+    SET_LEVEL_TEST(state, test) {
+      state.levelTest = test;
     },
     SET_LOADING(state, status) {
       state.loading = status;
     },
     SET_ERROR(state, error) {
       state.error = error;
+    },
+    CLEAR_CURRENT_STATE(state) {
+      state.currentFlashcard = null;
+      state.currentQuiz = null;
+      state.levelTest = null;
     }
   },
 
   actions: {
+    // Level Progression
     async fetchLevelProgression({ commit }) {
       commit('SET_LOADING', true);
       try {
@@ -54,15 +73,47 @@ export default {
       }
     },
 
-    async getNextFlashcard({ commit }, { level }) {
+    // Lessons
+    async getLessonsByLevel({ commit }, level) {
       commit('SET_LOADING', true);
       try {
-        const response = await LessonService.getNextFlashcard(level);
+        const response = await LessonService.getLessonsByLevel(level);
+        commit('SET_LESSONS', response);
+        return response;
+      } catch (error) {
+        commit('SET_ERROR', error.message);
+        NotificationService.showError('Failed to fetch lessons');
+        throw error;
+      } finally {
+        commit('SET_LOADING', false);
+      }
+    },
+
+    async getLesson({ commit }, lessonId) {
+      commit('SET_LOADING', true);
+      try {
+        const response = await LessonService.getLesson(lessonId);
+        commit('SET_CURRENT_LESSON', response);
+        return response;
+      } catch (error) {
+        commit('SET_ERROR', error.message);
+        NotificationService.showError('Failed to fetch lesson');
+        throw error;
+      } finally {
+        commit('SET_LOADING', false);
+      }
+    },
+
+    // Flashcards
+    async getNextFlashcard({ commit }, { lessonId }) {
+      commit('SET_LOADING', true);
+      try {
+        const response = await LessonService.getFlashcardsForLesson(lessonId);
         commit('SET_CURRENT_FLASHCARD', response);
         return response;
       } catch (error) {
         commit('SET_ERROR', error.message);
-        NotificationService.showError('Failed to load next flashcard');
+        NotificationService.showError('Failed to fetch flashcard');
         throw error;
       } finally {
         commit('SET_LOADING', false);
@@ -72,10 +123,7 @@ export default {
     async submitFlashcardAnswer({ commit }, { lessonId, answerData }) {
       commit('SET_LOADING', true);
       try {
-        const response = await LessonService.submitFlashcardAnswer(
-          lessonId,
-          answerData
-        );
+        const response = await LessonService.submitFlashcardAnswer(lessonId, answerData);
         return response;
       } catch (error) {
         commit('SET_ERROR', error.message);
@@ -86,25 +134,26 @@ export default {
       }
     },
 
-    async getQuizQuestions({ commit }, { level }) {
+    // Quizzes
+    async getQuizQuestions({ commit }, { lessonId }) {
       commit('SET_LOADING', true);
       try {
-        const response = await LessonService.getQuizQuestions(level);
-        commit('SET_QUIZ_QUESTIONS', response);
+        const response = await LessonService.getQuizForLesson(lessonId);
+        commit('SET_CURRENT_QUIZ', response);
         return response;
       } catch (error) {
         commit('SET_ERROR', error.message);
-        NotificationService.showError('Failed to load quiz questions');
+        NotificationService.showError('Failed to fetch quiz');
         throw error;
       } finally {
         commit('SET_LOADING', false);
       }
     },
 
-    async submitQuiz({ commit }, { level, answers }) {
+    async submitQuiz({ commit }, { lessonId, answers }) {
       commit('SET_LOADING', true);
       try {
-        const response = await LessonService.submitQuiz(level, answers);
+        const response = await LessonService.submitQuizAnswers(lessonId, answers);
         return response;
       } catch (error) {
         commit('SET_ERROR', error.message);
@@ -115,11 +164,12 @@ export default {
       }
     },
 
+    // Level Tests
     async checkLevelTestEligibility({ commit }, { level }) {
       commit('SET_LOADING', true);
       try {
-        const response = await LessonService.checkLevelTestEligibility(level);
-        return response;
+        const response = await LessonService.getLevelTest(level);
+        return response.eligible;
       } catch (error) {
         commit('SET_ERROR', error.message);
         NotificationService.showError('Failed to check test eligibility');
@@ -129,25 +179,28 @@ export default {
       }
     },
 
-    async getLevelTestQuestions({ commit }, { level }) {
+    async getLevelTest({ commit }, { level }) {
       commit('SET_LOADING', true);
       try {
-        const response = await LessonService.getLevelTestQuestions(level);
-        commit('SET_TEST_QUESTIONS', response);
+        const response = await LessonService.getLevelTest(level);
+        commit('SET_LEVEL_TEST', response);
         return response;
       } catch (error) {
         commit('SET_ERROR', error.message);
-        NotificationService.showError('Failed to load test questions');
+        NotificationService.showError('Failed to fetch level test');
         throw error;
       } finally {
         commit('SET_LOADING', false);
       }
     },
 
-    async submitLevelTest({ commit }, { level, answers }) {
+    async submitLevelTest({ commit, dispatch }, { level, answers }) {
       commit('SET_LOADING', true);
       try {
         const response = await LessonService.submitLevelTest(level, answers);
+        if (response.passed) {
+          await dispatch('fetchLevelProgression');
+        }
         return response;
       } catch (error) {
         commit('SET_ERROR', error.message);
@@ -156,15 +209,35 @@ export default {
       } finally {
         commit('SET_LOADING', false);
       }
+    },
+
+    // Cleanup
+    clearCurrentState({ commit }) {
+      commit('CLEAR_CURRENT_STATE');
     }
   },
 
   getters: {
-    levelProgression: state => state.levelProgression,
-    currentLesson: state => state.currentLesson,
-    currentFlashcard: state => state.currentFlashcard,
-    quizQuestions: state => state.quizQuestions,
-    testQuestions: state => state.testQuestions,
+    currentLevel: state => state.levelProgression?.current_level,
+    nextLevel: state => state.levelProgression?.next_level,
+    unlockedLevels: state => state.levelProgression?.unlocked_levels || [],
+    levelProgress: state => {
+      const progression = state.levelProgression;
+      if (!progression) return 0;
+      return Math.round((progression.progress || 0) * 100);
+    },
+    isLevelUnlocked: state => level => {
+      if (level === 'beginner') return true;
+      return state.levelProgression?.unlocked_levels?.includes(level) || false;
+    },
+    canTakeLevelTest: state => level => {
+      if (level === 'beginner') return false;
+      const lessons = state.lessons.filter(lesson => lesson.level === level);
+      return lessons.every(lesson => 
+        lesson.progress?.completed_flashcards === lesson.total_flashcards &&
+        lesson.progress?.quiz_completed
+      );
+    },
     isLoading: state => state.loading,
     error: state => state.error
   }

@@ -1,17 +1,14 @@
-import axios from 'axios';
+import apiClient from './apiClient';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/chatbot';
-
-export const ChatbotService = {
+export default {
   async sendMessage(message) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/chatbot/`, {
-        input: message,
+      const response = await apiClient.post('/chatbot/chatbot', {
+        input: message
       });
       return response.data;
     } catch (error) {
-      console.error('Error sending message to chatbot:', error);
-      throw error;
+      throw error.response?.data || { message: error.message };
     }
-  },
+  }
 };

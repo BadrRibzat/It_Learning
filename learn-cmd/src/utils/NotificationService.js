@@ -5,7 +5,7 @@ export const notificationState = reactive({
   message: '',
   type: 'info',
   duration: 3000,
-  position: 'bottom-right',
+  position: 'top-right',
 });
 
 export const NotificationService = {
@@ -14,7 +14,7 @@ export const NotificationService = {
     notificationState.message = message;
     notificationState.type = type;
     notificationState.duration = options.duration || 3000;
-    notificationState.position = options.position || 'bottom-right';
+    notificationState.position = options.position || 'top-right';
 
     clearTimeout(this.hideTimeout);
     this.hideTimeout = setTimeout(() => {

@@ -1,84 +1,88 @@
 import apiClient from './apiClient';
 
 export default {
-  // Existing methods
+  // Level and Progress
   async getLevelProgression() {
     try {
       const response = await apiClient.get('/lessons/levels/progression');
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || { message: error.message };
+    }
+  },
+
+  // Lesson Operations
+  async getLessonsByLevel(level) {
+    try {
+      const response = await apiClient.get(`/lessons/${level}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: error.message };
+    }
+  },
+
+   // Flashcard Operations
+  async getFlashcardsForLesson(lessonId) {
+    try {
+      const response = await apiClient.get(`/lessons/${lessonId}/flashcards`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: error.message };
     }
   },
 
   async submitFlashcardAnswer(lessonId, answerData) {
     try {
-      const response = await apiClient.post(
-        `/lessons/flashcards/${lessonId}/submit`,
-        answerData
-      );
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  // New methods for lessons and quizzes
-  async getNextFlashcard(level) {
-    try {
-      const response = await apiClient.get(`/lessons/${level}/flashcards/next`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  async getQuizQuestions(level) {
-    try {
-      const response = await apiClient.get(`/lessons/${level}/quiz`);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  async submitQuiz(level, answers) {
-    try {
-      const response = await apiClient.post(`/lessons/${level}/quiz/submit`, {
-        answers
+      const response = await apiClient.post(`/lessons/flashcards/${lessonId}/submit`, {
+        flashcard_id: answerData.flashcardId,
+        user_answer: answerData.userAnswer,
+        expected_answer: answerData.expectedAnswer
       });
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || { message: error.message };
     }
   },
 
-  async checkLevelTestEligibility(level) {
+  // Quiz Operations
+  async getQuizForLesson(lessonId) {
     try {
-      const response = await apiClient.get(`/lessons/${level}/test/eligibility`);
+      const response = await apiClient.get(`/lessons/${lessonId}/quiz`);
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || { message: error.message };
     }
   },
 
-  async getLevelTestQuestions(level) {
+  async submitQuizAnswers(lessonId, answers) {
+    try {
+      const response = await apiClient.post(`/lessons/${lessonId}/quiz/submit`, {
+        answers: answers
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: error.message };
+    }
+  },
+
+  // Level Test Operations
+  async getLevelTest(level) {
     try {
       const response = await apiClient.get(`/lessons/${level}/test`);
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || { message: error.message };
     }
   },
 
   async submitLevelTest(level, answers) {
     try {
       const response = await apiClient.post(`/lessons/${level}/test/submit`, {
-        answers
+        answers: answers
       });
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || { message: error.message };
     }
   }
 };

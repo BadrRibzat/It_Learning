@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
@@ -7,18 +8,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#4F46E5',
-        'primary-dark': '#4338CA',
-        secondary: '#10B981',
-        'secondary-dark': '#059669',
-        accent: '#10B981',
-        danger: '#EF4444',
-        warning: '#F59E0B',
-        info: '#3B82F6',
-        success: '#10B981',
+        primary: {
+          DEFAULT: 'var(--color-primary)',
+          dark: 'var(--color-primary-dark)',
+          50: '#eef2ff',
+        },
+        secondary: 'var(--color-secondary)',
+        danger: 'var(--color-danger)',
+        warning: 'var(--color-warning)',
+        info: 'var(--color-info)',
+        success: 'var(--color-success)',
       },
+      animation: {
+        'spin-slow': 'spin 3s linear infinite',
+      }
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+  ],
 }
-

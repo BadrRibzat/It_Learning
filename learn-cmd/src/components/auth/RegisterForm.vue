@@ -125,7 +125,7 @@ export default {
         NotificationService.showSuccess('Registration successful! Please login.');
         router.push('/auth/login');
       } catch (error) {
-        NotificationService.handleAuthError(error);
+        NotificationService.showError(error.message || 'Registration failed');
       } finally {
         loading.value = false;
       }

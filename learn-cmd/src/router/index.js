@@ -50,48 +50,70 @@ const routes = [
   // Protected Profile Route with all features as children
   {
     path: "/profile",
-    name: "profile",
     component: ProfileView,
     meta: { requiresAuth: true },
     children: [
-      // Profile related routes
       {
         path: "",
         name: "profile.dashboard",
         component: () => import("@/components/profile/ProfileComponent.vue"),
       },
       {
-        path: "statistics",
-        name: "profile.statistics",
-        component: () => import("@/components/progress/StatisticsChart.vue"),
+        path: "settings",
+        name: "profile.settings",
+        component: () => import("@/components/profile/ProfileForm.vue"),
       },
       {
         path: "notes",
         name: "profile.notes",
         component: () => import("@/views/user/NotesView.vue"),
       },
-      // Lessons routes as children of profile
       {
         path: "lessons",
-        name: "profile.lessons",
         component: () => import("@/views/lessons/LessonsView.vue"),
+        children: [
+          {
+            path: "",
+            name: "profile.lessons",
+            component: () => import("@/components/lessons/LessonsComponent.vue"),
+          },
+          {
+            path: ":level",
+            name: "profile.lessons.level",
+            component: () => import("@/components/lessons/LessonsComponent.vue"),
+            props: true,
+          },
+          {
+            path: ":level/flashcards",
+            name: "profile.lessons.flashcards",
+            component: () => import("@/components/lessons/FlashcardsComponent.vue"),
+            props: true,
+          },
+          {
+            path: ":level/quiz",
+            name: "profile.lessons.quiz",
+            component: () => import("@/components/lessons/QuizComponent.vue"),
+            props: true,
+          },
+          {
+            path: ":level/test",
+            name: "profile.lessons.test",
+            component: () => import("@/components/lessons/LevelTestComponent.vue"),
+            props: true,
+          }
+        ]
       },
       {
-        path: "lessons/:level/flashcards",
-        name: "profile.lessons.flashcards",
+        path: "flashcards",
+        name: "profile.flashcards",
         component: () => import("@/views/lessons/FlashcardsView.vue"),
       },
       {
-        path: "lessons/:level/quiz",
-        name: "profile.lessons.quiz",
-        component: () => import("@/views/lessons/QuizView.vue"),
-      },
-      {
-        path: "lessons/:level/test",
-        name: "profile.lessons.test",
-        component: () => import("@/views/lessons/LevelTestView.vue"),
+        path: "statistics",
+        name: "profile.statistics",
+        component: () => import("@/components/progress/StatisticsChart.vue"),
       }
-    ],
+    ]
   }
 ];
 
@@ -104,9 +126,13 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const isAuthenticated = store.getters['auth/isAuthenticated'];
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'login' });
-  } else if ((to.name === 'login' || to.name === 'register') && isAuthenticated) {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!isAuthenticated) {
+      next({ name: 'login' });
+    } else {
+      next();
+    }
+  } else if (isAuthenticated && (to.name === 'login' || to.name === 'register')) {
     next({ name: 'profile' });
   } else {
     next();

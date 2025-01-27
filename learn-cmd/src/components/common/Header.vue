@@ -20,19 +20,6 @@
               {{ link.name }}
             </router-link>
           </template>
-
-          <!-- Protected Routes -->
-          <template v-else>
-            <router-link
-              v-for="link in protectedLinks"
-              :key="link.path"
-              :to="link.path"
-              class="text-gray-600 hover:text-primary transition-colors"
-            >
-              <i :class="link.icon" class="mr-2"></i>
-              {{ link.name }}
-            </router-link>
-          </template>
         </div>
 
         <div class="flex items-center space-x-4">
@@ -54,7 +41,7 @@
               to="/auth/login"
               class="text-gray-600 hover:text-primary transition-colors"
             >
-              <i class="fas fa-sign-in-alt mr-2"></i>
+              <i class="fas fa-right-to-bracket mr-2"></i>
               Login
             </router-link>
             <router-link
@@ -74,7 +61,6 @@
 <script>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
 import LanguageSwitcher from './LanguageSwitcher.vue';
 import LogoutButton from '../auth/LogoutButton.vue';
 
@@ -86,8 +72,6 @@ export default {
   },
   setup() {
     const store = useStore();
-    const router = useRouter();
-
     const isAuthenticated = computed(() => store.getters['auth/isAuthenticated']);
 
     const publicLinks = [
@@ -97,17 +81,9 @@ export default {
       { name: 'Contact', path: '/contact', icon: 'fas fa-envelope' },
     ];
 
-    const protectedLinks = [
-      { name: 'Dashboard', path: '/dashboard', icon: 'fas fa-tachometer-alt' },
-      { name: 'Lessons', path: '/lessons', icon: 'fas fa-book' },
-      { name: 'Flashcards', path: '/flashcards', icon: 'fas fa-cards' },
-      { name: 'Progress', path: '/progress', icon: 'fas fa-chart-line' },
-    ];
-
     return {
       isAuthenticated,
-      publicLinks,
-      protectedLinks
+      publicLinks
     };
   }
 };

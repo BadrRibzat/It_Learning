@@ -72,9 +72,8 @@ export default {
       try {
         const response = await store.dispatch('auth/login', formData.value);
         NotificationService.showSuccess('Login successful!');
-        router.push('/profile');
       } catch (error) {
-        NotificationService.handleAuthError(error);
+        NotificationService.showError(error.message || 'Login failed');
         errors.value = error.errors || {};
       } finally {
         loading.value = false;

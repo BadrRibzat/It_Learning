@@ -55,8 +55,10 @@ def create_app():
 
     # Configure CORS
     CORS(app, 
-         resources={r"/*": {"origins": config.CORS_ORIGINS.split(","), "methods": ["GET", "POST", "PUT", "DELETE"]}},
-         supports_credentials=True)
+     resources={r"/*": {"origins": config.CORS_ORIGINS.split(","), 
+                       "methods": ["GET", "POST", "PUT", "DELETE"],
+                       "allow_headers": ["Content-Type", "Authorization"]}},
+     supports_credentials=True)
 
     # Initialize API documentation
     api = Api(

@@ -36,7 +36,7 @@
         <div class="flex items-center justify-between mb-2">
           <div>
             <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-primary-100">
-              {{ statistics.level_progression.current_level }}
+              {{ currentLevel }}
             </span>
           </div>
           <div>
@@ -57,7 +57,8 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch, nextTick, onUnmounted } from 'vue';
+import { useStore } from 'vuex';
 import Chart from 'chart.js/auto';
 import ProgressCircle from './ProgressCircle.vue';
 
@@ -66,88 +67,82 @@ export default {
   components: {
     ProgressCircle
   },
-  props: {
-    statistics: {
-      type: Object,
-      required: true
-    }
-  },
-  setup(props) {
+
+  setup() {
+    const store = useStore();
     const lessonChart = ref(null);
     let chart = null;
 
-    // Computed properties for progress circles
-    const overallProgress = computed(() => {
-      const flashcards = props.statistics.flashcard_progress;
-      if (!flashcards.length) return 0;
-      
-      const total = flashcards.reduce((sum, lesson) => {
-        return sum + (lesson.completed_flashcards / lesson.total_flashcards) * 100;
-      }, 0);
-      
-      return Math.round(total / flashcards.length);
-    });
+    // Computed values from store
+    const statistics = computed(() => store.getters['profile/statistics']);
+    const levelProgression = computed(() => store.getters['profile/levelProgression']);
 
-    const flashcardProgress = computed(() => {
-      const flashcards = props.statistics.flashcard_progress;
+    // Progress calculations
+    const overallProgress = computed(() => {
+      const flashcards = statistics.value?.flashcard_progress || [];
       if (!flashcards.length) return 0;
       
       const completed = flashcards.reduce((sum, lesson) => sum + lesson.completed_flashcards, 0);
       const total = flashcards.reduce((sum, lesson) => sum + lesson.total_flashcards, 0);
+      return total > 0 ? Math.round((completed / total) * 100) : 0;
+    });
+
+    const flashcardProgress = computed(() => {
+      const flashcards = statistics.value?.flashcard_progress || [];
+      if (!flashcards.length) return 0;
       
-      return Math.round((completed / total) * 100);
+      const completed = flashcards.reduce((sum, lesson) => sum + lesson.completed_flashcards, 0);
+      const total = flashcards.reduce((sum, lesson) => sum + lesson.total_flashcards, 0);
+      return total > 0 ? Math.round((completed / total) * 100) : 0;
     });
 
     const quizProgress = computed(() => {
-      const flashcards = props.statistics.flashcard_progress;
+      const flashcards = statistics.value?.flashcard_progress || [];
       if (!flashcards.length) return 0;
       
       const unlockedQuizzes = flashcards.filter(lesson => lesson.quiz_unlocked).length;
-      return Math.round((unlockedQuizzes / flashcards.length) * 100);
+      return flashcards.length > 0 ? Math.round((unlockedQuizzes / flashcards.length) * 100) : 0;
     });
+
+    const currentLevel = computed(() => 
+      levelProgression.value?.current_level || 'Beginner'
+    );
+
+    const nextLevelLabel = computed(() => 
+      levelProgression.value?.next_level || 'Max Level'
+    );
 
     const levelProgress = computed(() => {
-      // This would need to be calculated based on your level progression logic
-      return 75; // Example value
-    });
-
-    const nextLevelLabel = computed(() => {
-      const nextLevel = props.statistics.level_progression.next_level;
-      return nextLevel || 'Max Level';
+      const progression = levelProgression.value;
+      if (!progression) return 0;
+      return Math.round((progression.progress || 0) * 100);
     });
 
     // Chart initialization
     const initChart = () => {
-      const ctx = lessonChart.value.getContext('2d');
-      
-      const labels = props.statistics.flashcard_progress.map(lesson => 
-        lesson.lesson_title.replace('Lesson ', 'L')
-      );
-      
-      const completed = props.statistics.flashcard_progress.map(lesson =>
-        lesson.completed_flashcards
-      );
-      
-      const total = props.statistics.flashcard_progress.map(lesson =>
-        lesson.total_flashcards
-      );
+      if (chart) {
+        chart.destroy();
+      }
 
+      const ctx = lessonChart.value?.getContext('2d');
+      if (!ctx) return;
+
+      const flashcards = statistics.value?.flashcard_progress || [];
+      
       chart = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels,
+          labels: flashcards.map(lesson => lesson.lesson_title),
           datasets: [
             {
-              label: 'Completed',
-              data: completed,
-              backgroundColor: '#4F46E5',
-              borderRadius: 4
+              label: 'Completed Flashcards',
+              data: flashcards.map(lesson => lesson.completed_flashcards),
+              backgroundColor: '#4F46E5'
             },
             {
-              label: 'Total',
-              data: total,
-              backgroundColor: '#E5E7EB',
-              borderRadius: 4
+              label: 'Total Flashcards',
+              data: flashcards.map(lesson => lesson.total_flashcards),
+              backgroundColor: '#E5E7EB'
             }
           ]
         },
@@ -157,14 +152,10 @@ export default {
           scales: {
             y: {
               beginAtZero: true,
-              grid: {
-                display: false
-              }
+              grid: { display: false }
             },
             x: {
-              grid: {
-                display: false
-              }
+              grid: { display: false }
             }
           },
           plugins: {
@@ -176,17 +167,36 @@ export default {
       });
     };
 
-    onMounted(() => {
-      initChart();
+    // Lifecycle hooks and watchers
+    watch(() => statistics.value, () => {
+      nextTick(() => {
+        if (lessonChart.value) {
+          initChart();
+        }
+      });
+    }, { deep: true });
+
+    onMounted(async () => {
+      await store.dispatch('profile/fetchProfile');
+      if (lessonChart.value) {
+        initChart();
+      }
+    });
+
+    onUnmounted(() => {
+      if (chart) {
+        chart.destroy();
+      }
     });
 
     return {
       lessonChart,
+      currentLevel,
+      nextLevelLabel,
+      levelProgress,
       overallProgress,
       flashcardProgress,
-      quizProgress,
-      levelProgress,
-      nextLevelLabel
+      quizProgress
     };
   }
 };

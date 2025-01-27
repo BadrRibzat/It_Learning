@@ -5,7 +5,6 @@
       <router-view />
     </main>
     <Footer />
-    <ChatBot />
     <Notification
       v-if="notificationState.show"
       :message="notificationState.message"
@@ -19,7 +18,6 @@
 <script>
 import Header from '@/components/common/Header.vue';
 import Footer from '@/components/common/Footer.vue';
-import ChatBot from '@/components/common/ChatBot.vue';
 import Notification from '@/components/common/Notification.vue';
 import { notificationState } from '@/utils/NotificationService.js';
 import { mapGetters } from 'vuex';
@@ -29,7 +27,6 @@ export default {
   components: {
     Header,
     Footer,
-    ChatBot,
     Notification,
   },
   computed: {

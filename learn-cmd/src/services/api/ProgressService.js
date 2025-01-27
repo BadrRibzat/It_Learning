@@ -3,55 +3,23 @@ import apiClient from './apiClient';
 export default {
   async getLessonProgress(lessonId) {
     try {
-      const response = await apiClient.get(`/progress/lesson/${lessonId}`);
+      const response = await apiClient.get(`/lessons/${lessonId}/progress`);
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || { message: error.message };
     }
   },
 
-  async getOverallProgress() {
+  async trackFlashcardProgress(progressData) {
     try {
-      const response = await apiClient.get('/progress/overall');
+      const response = await apiClient.post('/progress/track', {
+        lesson_id: progressData.lessonId,
+        flashcard_id: progressData.flashcardId,
+        is_correct: progressData.isCorrect
+      });
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  async getFlashcardProgress() {
-    try {
-      const response = await apiClient.get('/progress/flashcards');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  async getQuizProgress() {
-    try {
-      const response = await apiClient.get('/progress/quizzes');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  async getLevelProgress() {
-    try {
-      const response = await apiClient.get('/progress/levels');
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
-    }
-  },
-
-  async trackProgress(progressData) {
-    try {
-      const response = await apiClient.post('/progress/track', progressData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.response?.data || { message: error.message };
     }
   }
 };
