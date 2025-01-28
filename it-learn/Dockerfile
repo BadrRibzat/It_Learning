@@ -49,4 +49,9 @@ USER appuser
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--worker-class", "sync", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "run:create_app()"]
+# Render uses dynamic ports
+ENV PORT=10000
+EXPOSE ${PORT}
+
+# Update the CMD to use PORT environment variable
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT} --worker-class sync --workers 4 --timeout 120 --access-logfile - --error-logfile - 'run:create_app()'"]
