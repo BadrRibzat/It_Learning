@@ -3,10 +3,10 @@
     <section class="hero bg-primary text-white py-20">
       <div class="container mx-auto px-4 text-center">
         <h1 class="text-4xl md:text-6xl font-bold mb-4">
-          Unlock Your Potential with Interactive English Learning
+          Unlock Your Potential with Interactive Commands Lines Learning
         </h1>
         <p class="text-lg md:text-xl mb-8">
-          Master English through engaging lessons, flashcards, quizzes, and personalized feedback.
+          Master Cammands Lines through engaging lessons, flashcards, quizzes, and personalized feedback.
         </p>
         <router-link to="/auth/register" class="btn-primary inline-block px-8 py-3 text-lg">
           Get Started for Free
@@ -17,7 +17,7 @@
     <section class="features py-16">
       <div class="container mx-auto px-4">
         <h2 class="text-3xl font-bold text-center mb-12">
-          Why Choose Learn English?
+          Why Choose Learn Cammands Lines?
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <!-- Feature 1 -->
@@ -25,7 +25,7 @@
             <i class="fas fa-cards-blank text-4xl text-primary mb-4"></i>
             <h3 class="text-xl font-bold mb-2">Interactive Flashcards</h3>
             <p class="text-gray-600">
-              Boost your vocabulary with our dynamic flashcard system.
+              Boost your knowledges with our dynamic flashcard system.
             </p>
           </div>
 
@@ -70,7 +70,7 @@
           <!-- Testimonial 1 -->
           <div class="card">
             <p class="text-gray-600 mb-4">
-              "Learn English has transformed the way I learn languages. The interactive flashcards and quizzes make it so much fun!"
+              "Learn Commands Lines has transformed the way I learn Engineering. The interactive flashcards and quizzes make it so much fun!"
             </p>
             <div class="flex items-center">
               <i class="fas fa-user-circle text-4xl text-primary mr-4"></i>
@@ -95,7 +95,7 @@
     <section class="call-to-action bg-secondary text-white py-16">
       <div class="container mx-auto px-4 text-center">
         <h2 class="text-3xl font-bold mb-8">
-          Ready to Start Your English Learning Journey?
+          Ready to Start Your Cammands Lines Learning Journey?
         </h2>
         <router-link to="/auth/register" class="btn-primary inline-block px-8 py-3 text-lg">
           Sign Up Now

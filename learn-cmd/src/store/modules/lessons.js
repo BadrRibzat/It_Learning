@@ -5,8 +5,13 @@ export default {
   namespaced: true,
 
   state: {
-    currentLevel: null,
-    levelProgression: null,
+  currentLevel: 'beginner',
+  levelProgression: {
+    current_level: 'beginner',
+    next_level: 'intermediate',
+    progress: 0,
+    unlocked_levels: ['beginner']
+  },
     currentLesson: null,
     lessons: [],
     flashcards: [],
@@ -19,42 +24,47 @@ export default {
   },
 
   mutations: {
-    SET_LEVEL_PROGRESSION(state, progression) {
-      state.levelProgression = progression;
-    },
-    SET_LESSONS(state, lessons) {
-      state.lessons = lessons;
-    },
-    SET_CURRENT_LESSON(state, lesson) {
-      state.currentLesson = lesson;
-    },
-    SET_FLASHCARDS(state, flashcards) {
-      state.flashcards = flashcards;
-    },
-    SET_CURRENT_FLASHCARD(state, flashcard) {
-      state.currentFlashcard = flashcard;
-    },
-    SET_QUIZZES(state, quizzes) {
-      state.quizzes = quizzes;
-    },
-    SET_CURRENT_QUIZ(state, quiz) {
-      state.currentQuiz = quiz;
-    },
-    SET_LEVEL_TEST(state, test) {
-      state.levelTest = test;
-    },
-    SET_LOADING(state, status) {
-      state.loading = status;
-    },
-    SET_ERROR(state, error) {
-      state.error = error;
-    },
-    CLEAR_CURRENT_STATE(state) {
-      state.currentFlashcard = null;
-      state.currentQuiz = null;
-      state.levelTest = null;
-    }
+  SET_LEVEL_PROGRESSION(state, progression) {
+    state.levelProgression = progression || {
+      current_level: 'beginner',
+      next_level: 'intermediate',
+      progress: 0,
+      unlocked_levels: ['beginner']
+    };
   },
+  SET_LESSONS(state, lessons) {
+    state.lessons = lessons;
+  },
+  SET_CURRENT_LESSON(state, lesson) {
+    state.currentLesson = lesson;
+  },
+  SET_FLASHCARDS(state, flashcards) {
+    state.flashcards = flashcards;
+  },
+  SET_CURRENT_FLASHCARD(state, flashcard) {
+    state.currentFlashcard = flashcard;
+  },
+  SET_QUIZZES(state, quizzes) {
+    state.quizzes = quizzes;
+  },
+  SET_CURRENT_QUIZ(state, quiz) {
+    state.currentQuiz = quiz;
+  },
+  SET_LEVEL_TEST(state, test) {
+    state.levelTest = test;
+  },
+  SET_LOADING(state, status) {
+    state.loading = status;
+  },
+  SET_ERROR(state, error) {
+    state.error = error;
+  },
+  CLEAR_CURRENT_STATE(state) {
+    state.currentFlashcard = null;
+    state.currentQuiz = null;
+    state.levelTest = null;
+  }
+},
 
   actions: {
     // Level Progression

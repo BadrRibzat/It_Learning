@@ -96,6 +96,14 @@ def create_app():
         services_status['status'] = 'healthy' if is_healthy else 'unhealthy'
         
         return jsonify(services_status), 200 if is_healthy else 503
+
+    @app.errorhandler(Exception)
+    def handle_unexpected_error(error):
+        logger.error(f"Unexpected error: {str(error)}")
+        return jsonify({
+            "error": "Internal server error",
+            "message": "An unexpected error occurred"
+        }), 500
     
     # Error handlers
     @app.errorhandler(400)

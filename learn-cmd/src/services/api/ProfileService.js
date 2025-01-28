@@ -6,7 +6,30 @@ export default {
       const response = await apiClient.get('/profile/profile');
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: error.message };
+      console.error('Profile fetch error:', error);
+      // Return default profile data
+      return {
+        message: 'Welcome!',
+        profile_data: {
+          bio: '',
+          preferred_language: 'en',
+          profile_picture: null,
+          user: {
+            full_name: 'User',
+            email: ''
+          }
+        },
+        statistics: {
+          flashcard_progress: [],
+          level_progression: {
+            current_level: 'beginner',
+            next_level: 'intermediate',
+            required_score: 0.8,
+            unlocked_levels: ['beginner'],
+            progress: 0
+          }
+        }
+      };
     }
   },
 

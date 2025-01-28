@@ -6,6 +6,10 @@ from utils.redis_cache import cache
 from utils.exceptions import AppError
 from utils.db import get_db
 from config import config
+import logging
+
+# Add logger
+logger = logging.getLogger(__name__)
 
 class LevelService:
     def __init__(self):
@@ -23,29 +27,50 @@ class LevelService:
     @cache(ttl=3600)
     def get_level_progression(self, user_id: str) -> Dict:
         """Get user's current level and unlock requirements"""
-        user = self.db.users.find_one({'_id': ObjectId(user_id)})
-        if not user:
-            raise AppError("User not found", 404)
+        try:
+            user = self.db.users.find_one({'_id': ObjectId(user_id)})
+            if not user:
+                # Return default level progression for new users
+                return {
+                    'current_level': 'beginner',
+                    'next_level': 'intermediate',
+                    'required_score': 0.8,
+                    'unlocked_levels': ['beginner'],
+                    'progress': 0
+                }
 
-        current_level = self.db.levels.find_one({'order': user.get('current_level', 1)})
-        if not current_level:
-            raise AppError("Current level not found", 404)
+            # Get or create current level
+            current_level = self.db.levels.find_one({'order': user.get('current_level', 1)})
+            if not current_level:
+                current_level = {
+                    'name': 'beginner',
+                    'order': 1
+                }
+                
+            unlocked_levels = user.get('unlocked_levels', ['beginner'])
+            if 'beginner' not in unlocked_levels:
+                unlocked_levels.append('beginner')
             
-        unlocked_levels = user.get('unlocked_levels', [])
-        unlocked_level_names = [
-            self.db.levels.find_one({'_id': ObjectId(level)})['name']
-            for level in unlocked_levels
-        ]
-        
-        next_level = self._get_next_level(current_level['order'])
-        next_level_name = next_level['name'] if next_level else None
+            next_level = self._get_next_level(current_level['order'])
+            next_level_name = next_level['name'] if next_level else None
 
-        return {
-            'current_level': current_level['name'],
-            'next_level': next_level_name,
-            'required_score': 0.8,
-            'unlocked_levels': unlocked_level_names
-        }
+            return {
+                'current_level': current_level['name'],
+                'next_level': next_level_name,
+                'required_score': 0.8,
+                'unlocked_levels': unlocked_levels,
+                'progress': user.get('level_progress', 0)
+            }
+        except Exception as e:
+            # Log the error but return default progression
+            logger.error(f"Error getting level progression: {str(e)}")
+            return {
+                'current_level': 'beginner',
+                'next_level': 'intermediate',
+                'required_score': 0.8,
+                'unlocked_levels': ['beginner'],
+                'progress': 0
+            }
     
     def attempt_level_unlock(self, user_id: str, test_id: str) -> Dict:
         """Process level test submission and unlock if criteria met"""
@@ -59,7 +84,7 @@ class LevelService:
         }))
         
         if not submissions:
-          return {'unlocked': False, 'required_score': 0.8}
+            return {'unlocked': False, 'required_score': 0.8}
         
         best_submission = max(submissions, key=lambda x: x.get('score', 0), default=None)
         

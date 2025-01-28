@@ -7,7 +7,14 @@ export default {
       const response = await apiClient.get('/lessons/levels/progression');
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: error.message };
+      console.error('Level progression error:', error);
+      // Return default progression if not found
+      return {
+        current_level: 'beginner',
+        next_level: 'intermediate',
+        progress: 0,
+        unlocked_levels: ['beginner']
+      };
     }
   },
 
@@ -21,7 +28,7 @@ export default {
     }
   },
 
-   // Flashcard Operations
+  // Flashcard Operations
   async getFlashcardsForLesson(lessonId) {
     try {
       const response = await apiClient.get(`/lessons/${lessonId}/flashcards`);

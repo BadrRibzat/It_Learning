@@ -64,6 +64,11 @@ const routes = [
         component: () => import("@/components/profile/ProfileForm.vue"),
       },
       {
+        path: "statistics",
+        name: "profile.statistics",
+        component: () => import("@/components/progress/StatisticsChart.vue"),
+      },
+      {
         path: "notes",
         name: "profile.notes",
         component: () => import("@/views/user/NotesView.vue"),
@@ -84,8 +89,13 @@ const routes = [
             props: true,
           },
           {
-            path: ":level/flashcards",
+            path: "flashcards",
             name: "profile.lessons.flashcards",
+            component: () => import("@/views/lessons/FlashcardsView.vue"),
+          },
+          {
+            path: ":level/flashcards",
+            name: "profile.lessons.level.flashcards",
             component: () => import("@/components/lessons/FlashcardsComponent.vue"),
             props: true,
           },
@@ -102,16 +112,6 @@ const routes = [
             props: true,
           }
         ]
-      },
-      {
-        path: "flashcards",
-        name: "profile.flashcards",
-        component: () => import("@/views/lessons/FlashcardsView.vue"),
-      },
-      {
-        path: "statistics",
-        name: "profile.statistics",
-        component: () => import("@/components/progress/StatisticsChart.vue"),
       }
     ]
   }
@@ -122,7 +122,6 @@ const router = createRouter({
   routes,
 });
 
-// Navigation guard
 router.beforeEach((to, from, next) => {
   const isAuthenticated = store.getters['auth/isAuthenticated'];
 
@@ -133,7 +132,7 @@ router.beforeEach((to, from, next) => {
       next();
     }
   } else if (isAuthenticated && (to.name === 'login' || to.name === 'register')) {
-    next({ name: 'profile' });
+    next({ name: 'profile.dashboard' });
   } else {
     next();
   }

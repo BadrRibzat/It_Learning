@@ -17,12 +17,12 @@
           </span>
         </div>
         <button
-          @click="$emit('toggle-sidebar')"
+          @click="emit('toggle-sidebar')"
           class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           :aria-label="isSidebarOpen ? 'Close sidebar' : 'Open sidebar'"
         >
           <font-awesome-icon
-            :icon="isSidebarOpen ? 'times' : 'bars'"
+            :icon="isSidebarOpen ? 'xmark' : 'bars'"
             class="text-gray-500 dark:text-gray-400"
           />
         </button>
@@ -32,21 +32,30 @@
       <nav class="flex-1 overflow-y-auto p-4">
         <div class="space-y-6">
           <!-- User Section -->
-          <div v-if="profile" class="pb-4 border-b dark:border-gray-700">
+          <div v-if="userProfile" class="pb-4 border-b dark:border-gray-700">
             <div class="flex items-center space-x-3 mb-3">
               <div class="relative">
-                <img
-                  :src="profile.profile_picture || '/default-avatar.png'"
-                  alt="Profile"
-                  class="w-10 h-10 rounded-full object-cover"
-                />
+                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                  <template v-if="userProfile.profile_picture">
+                    <img
+                      :src="userProfile.profile_picture"
+                      alt="Profile"
+                      class="w-full h-full rounded-full object-cover"
+                    />
+                  </template>
+                  <font-awesome-icon 
+                    v-else 
+                    icon="user" 
+                    class="text-gray-400 text-xl"
+                  />
+                </div>
                 <div
                   class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white dark:border-gray-800"
                 ></div>
               </div>
               <div v-if="isSidebarOpen">
                 <h3 class="font-medium text-gray-900 dark:text-white">
-                  {{ profile.user?.full_name }}
+                  {{ userProfile.user?.full_name }}
                 </h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400">
                   {{ currentLevel }}
@@ -73,48 +82,98 @@
           <div class="space-y-2">
             <!-- Main Navigation -->
             <nav-section title="Main" :expanded="isSidebarOpen">
-		  <nav-link
-		    to="/profile"
-		    icon="gauge"
-		    text="Dashboard"
-		    :expanded="isSidebarOpen"
-		  />
-		  <nav-link
-		    to="/profile/settings"
- 		   icon="cog"
-		    text="Settings"
-		    :expanded="isSidebarOpen"
-		  />
+		  <router-link
+		    :to="{ name: 'profile.dashboard' }"
+		    v-slot="{ navigate, isActive }"
+		    custom
+		  >
+		    <nav-link
+		      icon="gauge"
+		      text="Dashboard"
+		      :expanded="isSidebarOpen"
+		      :active="isActive"
+		      @click="navigate"
+		    />
+		  </router-link>
+  
+		  <router-link
+		    :to="{ name: 'profile.settings' }"
+		    v-slot="{ navigate, isActive }"
+		    custom
+		  >
+		    <nav-link
+		      icon="cog"
+		      text="Settings"
+		      :expanded="isSidebarOpen"
+		      :active="isActive"
+		      @click="navigate"
+		    />
+		  </router-link>
 		</nav-section>
 
+		<!-- Learning Section -->
 		<nav-section title="Learning" :expanded="isSidebarOpen">
-		  <nav-link
-		    to="/profile/lessons"
-		    icon="book"
-		    text="Lessons"
-		    :expanded="isSidebarOpen"
-		  />
-		  <nav-link
-		    to="/profile/flashcards"
-		    icon="layer-group"
-		    text="Flashcards"
-		    :expanded="isSidebarOpen"
-		  />
-		  <nav-link
-		    to="/profile/statistics"
-		    icon="chart-bar"
-		    text="Statistics"
-		    :expanded="isSidebarOpen"
-		  />
+		  <router-link
+		    :to="{ name: 'profile.lessons' }"
+		    v-slot="{ navigate, isActive }"
+		    custom
+		  >
+		    <nav-link
+		      icon="book"
+		      text="Lessons"
+		      :expanded="isSidebarOpen"
+		      :active="isActive"
+		      @click="navigate"
+		    />
+		  </router-link>
+  
+		  <router-link
+		     :to="{ name: 'profile.lessons.flashcards' }"
+		     v-slot="{ navigate, isActive }"
+		     custom
+		   >
+		    <nav-link
+		      icon="layer-group"
+		      text="Flashcards"
+		      :expanded="isSidebarOpen"
+		      :active="isActive"
+		      @click="navigate"
+		    />
+		  </router-link>
 		</nav-section>
 
+		<!-- Progress Section -->
+		<nav-section title="Progress" :expanded="isSidebarOpen">
+		  <router-link
+		    :to="{ name: 'profile.statistics' }"
+		    v-slot="{ navigate, isActive }"
+		    custom
+		  >
+		    <nav-link
+		      icon="chart-bar"
+		      text="Statistics"
+		      :expanded="isSidebarOpen"
+		      :active="isActive"
+		      @click="navigate"
+		    />
+		  </router-link>
+		</nav-section>
+
+		<!-- Tools Section -->
 		<nav-section title="Tools" :expanded="isSidebarOpen">
-		  <nav-link
-		    to="/profile/notes"
-		    icon="sticky-note"
-		    text="Notes"
-		    :expanded="isSidebarOpen"
-		  />
+		  <router-link
+		    :to="{ name: 'profile.notes' }"
+		    v-slot="{ navigate, isActive }"
+		    custom
+		  >
+		    <nav-link
+		      icon="sticky-note"
+		      text="Notes"
+		      :expanded="isSidebarOpen"
+ 		     :active="isActive"
+		      @click="navigate"
+		    />
+		  </router-link>
 		</nav-section>
           </div>
         </div>
@@ -134,18 +193,21 @@
   <div
     v-if="isSidebarOpen"
     class="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-    @click="$emit('toggle-sidebar')"
+    @click="emit('toggle-sidebar')"
   ></div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import NavSection from './NavSection.vue';
 import NavLink from './NavLink.vue';
 import ThemeSwitcher from './ThemeSwitcher.vue';
 import LogoutButton from '../auth/LogoutButton.vue';
+
+const store = useStore();
+const route = useRoute();
 
 const props = defineProps({
   isSidebarOpen: {
@@ -154,36 +216,11 @@ const props = defineProps({
   },
 });
 
-const store = useStore();
-const route = useRoute();
+const emit = defineEmits(['toggle-sidebar']);
 
-const profile = computed(() => store.getters['profile/profile']);
-const levelProgression = computed(() => store.getters['lessons/levelProgression']);
-const currentLevel = computed(() => store.getters['lessons/currentLevel']);
-const levelProgress = computed(() => store.getters['lessons/levelProgress']);
-
-const availableLevels = ['beginner', 'intermediate', 'advanced', 'expert'];
-
-const isLevelAccessible = (level) => {
-  if (level === 'beginner') return true;
-  return store.getters['lessons/isLevelUnlocked'](level);
-};
-
-const getLevelIcon = (level) => {
-  const icons = {
-    beginner: 'star',
-    intermediate: 'star-half-alt',
-    advanced: 'star',
-    expert: 'crown'
-  };
-  return icons[level] || 'star';
-};
-
-onMounted(async () => {
-  if (!levelProgression.value) {
-    await store.dispatch('lessons/fetchLevelProgression');
-  }
-});
+const userProfile = computed(() => store.getters['profile/profile']);
+const currentLevel = computed(() => store.getters['lessons/currentLevel'] || 'Beginner');
+const levelProgress = computed(() => store.getters['lessons/levelProgress'] || 0);
 </script>
 
 <style scoped>
@@ -199,7 +236,6 @@ onMounted(async () => {
   }
 }
 
-/* Custom scrollbar */
 .overflow-y-auto {
   scrollbar-width: thin;
   scrollbar-color: theme('colors.gray.400') theme('colors.gray.100');
