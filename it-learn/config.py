@@ -7,7 +7,7 @@ class Config(BaseSettings):
 
     # Application settings
     SECRET_KEY: str = Field(..., description="Secret key for JWT")
-    DEBUG: bool = Field(False, description="Enable debug mode")
+    DEBUG: bool = Field(default=False, description="Enable debug mode")
     
     # Database settings
     MONGODB_URI: str = Field(..., description="MongoDB connection URI")
