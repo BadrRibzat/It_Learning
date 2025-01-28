@@ -13,7 +13,11 @@ services:
       - key: DEBUG
         value: "false"
       - key: MONGODB_URI
-        sync: false
+        value: "mongodb+srv://badrribzat:wzFoMfXhaESdzqog@e-learn.1jzxy.mongodb.net/e-learn?retryWrites=true&w=majority&authSource=admin&ssl=true&tlsAllowInvalidCertificates=true"
+      - key: MONGO_USER
+        value: "badrribzat"
+      - key: MONGO_PASSWORD
+        value: "wzFoMfXhaESdzqog"
       - key: REDIS_HOST
         fromService:
           type: redis
@@ -21,6 +25,8 @@ services:
           property: host
       - key: REDIS_PORT
         value: "6379"
+      - key: REDIS_PASSWORD
+        generateValue: true
       - key: CORS_ORIGINS
         value: "*"
       - key: ML_MODEL_PATH
@@ -37,7 +43,7 @@ services:
       cpu: 0.25
       memory: 512M
       storage: 512M
-      
+
   - type: redis
     name: it-learn-redis
     ipAllowList: []
