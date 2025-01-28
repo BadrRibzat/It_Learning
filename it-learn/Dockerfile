@@ -47,11 +47,19 @@ COPY --chown=appuser:appuser . .
 
 USER appuser
 
-EXPOSE 5000
-
-# Render uses dynamic ports
 ENV PORT=10000
 EXPOSE ${PORT}
 
-# Update the CMD to use PORT environment variable
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT} --worker-class sync --workers 4 --timeout 120 --access-logfile - --error-logfile - 'run:create_app()'"]
+# Update the CMD to use fewer workers and optimize memory
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT} \
+    --workers 2 \
+    --threads 2 \
+    --worker-class=gthread \
+    --worker-tmp-dir /dev/shm \
+    --max-requests 1000 \
+    --max-requests-jitter 50 \
+    --timeout 120 \
+    --log-level info \
+    --access-logfile - \
+    --error-logfile - \
+    'run:create_app()'"]

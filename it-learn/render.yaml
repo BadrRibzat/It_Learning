@@ -7,17 +7,13 @@ services:
     healthCheckPath: /healthcheck
     numInstances: 1
     buildCommand: docker build -t it-learn-app .
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 4 --timeout 120 run:create_app()
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --worker-class=gthread --worker-tmp-dir /dev/shm --max-requests 1000 --max-requests-jitter 50 --timeout 120 run:create_app()
     autoDeploy: true
     envVars:
       - key: DEBUG
         value: "false"
-      - key: MONGO_USER
-        sync: false
-      - key: MONGO_PASSWORD
-        sync: false
       - key: MONGODB_URI
-        value: "mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@e-learn.1jzxy.mongodb.net/e-learn?retryWrites=true&w=majority&authSource=admin&ssl=true&tlsAllowInvalidCertificates=true"
+        sync: false
       - key: REDIS_HOST
         fromService:
           type: redis
@@ -25,32 +21,26 @@ services:
           property: host
       - key: REDIS_PORT
         value: "6379"
-      - key: REDIS_PASSWORD
-        generateValue: true
-      - key: SECRET_KEY
-        generateValue: true
       - key: CORS_ORIGINS
         value: "*"
       - key: ML_MODEL_PATH
         value: "en_core_web_sm"
+      - key: SECRET_KEY
+        generateValue: true
       - key: PORT
         value: "10000"
-      - key: PYTHON_VERSION
-        value: "3.12"
-    disk:
-      name: it-learn-data
-      mountPath: /data
-      sizeGB: 1
-    healthCheck:
-      httpPath: /healthcheck
-      period: 15s
-      timeout: 10s
-      successThreshold: 1
-      failureThreshold: 3
-
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+      targetMemoryPercent: 80
+    resources:
+      cpu: 0.25
+      memory: 512M
+      storage: 512M
+      
   - type: redis
     name: it-learn-redis
     ipAllowList: []
     plan: free
-    maxmemoryPolicy: volatile-lru
-    persistence: false
+    maxmemoryPolicy: allkeys-lru
+    maxmemory: 256mb
