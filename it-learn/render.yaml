@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: it-learn-backend
+    env: docker
+    region: frankfurt  # Choose your preferred region
+    plan: free
+    healthCheckPath: /healthcheck
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: it-learn-redis
+          property: host
+      - key: REDIS_PORT
+        value: 6379
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: ML_MODEL_PATH
+        value: "en_core_web_sm"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false  # You'll set this manually in the dashboard
+    
+  - type: redis
+    name: it-learn-redis
+    ipAllowList: []  # Only allow internal connections
+    plan: free
+
