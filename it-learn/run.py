@@ -13,11 +13,12 @@ from utils.exceptions import AppError
 from bson import ObjectId
 from utils.db import init_db, get_db, mongo_healthcheck
 from utils.redis_cache import redis_healthcheck
-import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 class CustomJSONEncoder(JSONEncoder):
     def default(self, obj):
