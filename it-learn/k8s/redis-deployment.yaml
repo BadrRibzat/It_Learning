@@ -16,7 +16,12 @@ spec:
       containers:
       - name: redis
         image: redis:6-alpine
-        args: ["--requirepass", "$(REDIS_PASSWORD)"]
+        command:
+        - redis-server
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        - --appendonly
+        - "yes"
         env:
         - name: REDIS_PASSWORD
           valueFrom:
@@ -25,3 +30,26 @@ spec:
               key: REDIS_PASSWORD
         ports:
         - containerPort: 6379
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+      volumes:
+      - name: redis-data
+        emptyDir: {}

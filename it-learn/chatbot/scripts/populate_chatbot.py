@@ -1,67 +1,79 @@
 import sys
 import os
-# Project root to the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from pymongo import MongoClient
+from datetime import datetime
 from pathlib import Path
 import logging
+from typing import List, Dict
+from pymongo import MongoClient
 from config import config
-import spacy
+from .command_responses import COMMAND_RESPONSES, LEARNING_PATHS
 
-# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-def populate_chatbot_responses():
-    """Populate chatbot responses in the database."""
-    try:
-        client = MongoClient(config.MONGODB_URI)
-        db = client['e-learn']
-        
-        logging.info("🚀 Starting chatbot population...")
-        
-        # Clean existing responses
-        db.chatbot_response.delete_many({})
-        logging.info("🧹 Cleared existing chatbot responses")
-        
-        # Initialize NLP
-        logging.info("🔧 Loading spaCy model...")
-        nlp = spacy.load(config.ML_MODEL_PATH)
-        
-        # Load conversational prompts from external file
-        prompts_file_path = Path(__file__).resolve().parent / 'conversational_prompts.txt'
-        try:
-            with open(prompts_file_path, 'r') as f:
-                conversational_prompts = [line.strip() for line in f.readlines() if line.strip()]
-            logging.info(f"📝 Loaded {len(conversational_prompts)} prompts from file")
-        except FileNotFoundError:
-             logging.error(f"❌ Could not find prompts file at: {prompts_file_path}")
-             client.close()
-             sys.exit(1)
-        
-        # Generate and insert responses
-        logging.info("🧠 Generating chatbot responses...")
-        for prompt in conversational_prompts:
-            try:
-                doc = nlp(f"Respond to the user in a natural and helpful way, as a bot designed to teach IT skills, and introduce the creator as Badr Ribzat, mention his qualifications, and that he is an IT engineer. User message: {prompt}")
-                
-                response = " ".join([sent.text for sent in doc.sents])
-                
-                db.chatbot_response.insert_one({
-                    'input_text': prompt,
-                    'response_text': response
+class ChatbotPopulator:
+    def __init__(self):
+        self.client = MongoClient(config.MONGODB_URI)
+        self.db = self.client['e-learn']
+
+    def populate_command_content(self) -> List[Dict]:
+        """Populate detailed command information"""
+        content = []
+        for command, data in COMMAND_RESPONSES.items():
+            content.append({
+                'command': command,
+                'data': data,
+                'type': 'command_info',
+                'created_at': datetime.utcnow()
+            })
+        return content
+
+    def populate_learning_paths(self) -> List[Dict]:
+        """Populate learning path content"""
+        content = []
+        for level, paths in LEARNING_PATHS.items():
+            for path in paths:
+                content.append({
+                    'level': level,
+                    'topic': path['topic'],
+                    'content': path,
+                    'type': 'tutorial',
+                    'created_at': datetime.utcnow()
                 })
-                logging.info(f"✅ Created response for: '{prompt}'")
-                
-            except Exception as e:
-                logging.error(f"❌ Error processing '{prompt}': {str(e)}")
-                continue
-        
-        client.close()
-        logging.info("🎉 Chatbot population completed successfully!")
-        
-    except Exception as e:
-        logging.error(f"🔥 Critical error during population: {str(e)}")
-        sys.exit(1)
+        return content
+
+    def populate(self):
+        """Main population process"""
+        try:
+            logger.info("Starting chatbot content population...")
+            
+            # Clear existing content
+            self.db.chatbot_content.delete_many({})
+            logger.info("Cleared existing content")
+            
+            # Populate command content
+            command_content = self.populate_command_content()
+            if command_content:
+                self.db.chatbot_content.insert_many(command_content)
+                logger.info(f"Inserted {len(command_content)} command entries")
+            
+            # Populate learning paths
+            learning_content = self.populate_learning_paths()
+            if learning_content:
+                self.db.chatbot_content.insert_many(learning_content)
+                logger.info(f"Inserted {len(learning_content)} learning path entries")
+            
+            logger.info("Population completed successfully!")
+            
+        except Exception as e:
+            logger.error(f"Error during population: {str(e)}")
+            raise
+        finally:
+            self.client.close()
+
+def main():
+    populator = ChatbotPopulator()
+    populator.populate()
 
 if __name__ == "__main__":
-    populate_chatbot_responses()
+    main()

@@ -15,37 +15,7 @@ from config import config
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-def generate_ml_content(prompt: str) -> str:
-    """Generate content using spaCy NLP."""
-    nlp = spacy.load(config.ML_MODEL_PATH)
-    doc = nlp(prompt)
-    return " ".join([sent.text for sent in doc.sents])
-
-def generate_lesson_content(db, ml: MLContentService, command_list: list):
-    """Generate flashcards and quizzes using ML."""
-    # Generate flashcards with ML
-    for command in command_list:
-        content = ml.generate_flashcard_content(command)
-        db.flashcards.insert_one({
-            'command': command,
-            **content,
-            'formatted_example': content['example'].replace(
-                command,
-                f'<strong style="color:red">{command}</strong>'
-            )
-        })
-
-    # Generate quizzes with ML
-    flashcards = db.flashcards.find()
-    for flashcard in flashcards:
-        question = ml.generate_quiz_question(flashcard['command'])
-        db.questions.insert_one({
-            'type': 'fill_blank',
-            'question': question['question'],
-            'answer': question['answer'],
-            'options': question['distractors']
-        })
+logger = logging.getLogger(__name__)
 
 def populate_initial_data():
     """Populate the database with initial data."""
@@ -57,7 +27,7 @@ def populate_initial_data():
 
         logging.info("Clearing existing data...")
         collections = ['levels', 'lessons', 'flashcards', 'quizzes', 'questions',
-                      'level_tests', 'level_test_questions', 'quiz_submissions']
+                      'level_tests', 'level_test_questions', 'quiz_submissions', 'users']
         for col in collections:
             db[col].delete_many({})
 
@@ -68,7 +38,11 @@ def populate_initial_data():
             {'name': 'advanced', 'order': 3, 'created_at': datetime.utcnow()},
             {'name': 'expert', 'order': 4, 'created_at': datetime.utcnow()}
         ]
-        level_ids = [db.levels.insert_one(level).inserted_id for level in levels]
+        level_ids = []
+        for level in levels:
+            level_id = db.levels.insert_one(level).inserted_id
+            level_ids.append(level_id)
+            logger.info(f"Created level: {level['name']} with ID: {level_id}")
 
         logging.info("Creating lessons and content...")
         command_examples = [
@@ -78,14 +52,19 @@ def populate_initial_data():
         ]
 
         for level_id in level_ids:
+            level_info = db.levels.find_one({"_id": level_id})
+            logger.info(f"Creating lessons for level: {level_info['name']} (ID: {level_id})")
+            
             for lesson_num in range(1, 6):
                 lesson = {
                     'level': level_id,
-                    'title': f'Lesson {lesson_num} for {db.levels.find_one({"_id": level_id})["name"]}',
+                    'title': f"Lesson {lesson_num} for {level_info['name']}",
+                    'description': '',
                     'order': lesson_num,
                     'created_at': datetime.utcnow()
                 }
                 lesson_id = db.lessons.insert_one(lesson).inserted_id
+                logger.info(f"Created lesson {lesson_num} with ID: {lesson_id}")
 
                 # Create flashcards
                 for i in range(10):
@@ -94,42 +73,53 @@ def populate_initial_data():
                     flashcard = {
                         'lesson': lesson_id,
                         'command': cmd,
-                        'explanation': " ".join([sent.text for sent in doc.sents]),
+                        'explanation': f"Explain the {cmd} command for Linux/macOS with example",
                         'example': f"Example usage of {cmd}",
+                        'formatted_example': f"Example usage of {cmd}",
                         'question': f"What does the {cmd} command do?",
                         'answer': cmd,
                         'order': i + 1,
                         'created_at': datetime.utcnow()
                     }
-                    db.flashcards.insert_one(flashcard)
+                    flashcard_id = db.flashcards.insert_one(flashcard).inserted_id
+                    logger.info(f"Created flashcard for {cmd} with ID: {flashcard_id}")
 
                 # Create quiz
-                quiz_id = db.quizzes.insert_one({
+                quiz = {
                     'lesson': lesson_id,
                     'level': level_id,
+                    'passing_score': 0.8,
                     'created_at': datetime.utcnow()
-                }).inserted_id
+                }
+                quiz_id = db.quizzes.insert_one(quiz).inserted_id
+                logger.info(f"Created quiz with ID: {quiz_id}")
 
                 # Create quiz questions
                 flashcards = list(db.flashcards.find({'lesson': lesson_id}))
                 for j in range(5):
                     if flashcards:
                         flashcard = random.choice(flashcards)
-                        db.questions.insert_one({
+                        question = {
                             'quiz': quiz_id,
+                            'type': 'fill_blank',
                             'question': f'What is the purpose of {flashcard["command"]}?',
                             'answer': flashcard["command"],
                             'order': j + 1,
                             'created_at': datetime.utcnow()
-                        })
+                        }
+                        question_id = db.questions.insert_one(question).inserted_id
+                        logger.info(f"Created quiz question with ID: {question_id}")
 
         logging.info("Creating level tests...")
         for level in db.levels.find():
             if level['name'] != 'beginner':
-                test_id = db.level_tests.insert_one({
+                test = {
                     'level': level['_id'],
+                    'passing_score': 0.8,
                     'created_at': datetime.utcnow()
-                }).inserted_id
+                }
+                test_id = db.level_tests.insert_one(test).inserted_id
+                logger.info(f"Created level test for {level['name']} with ID: {test_id}")
 
                 # Add test questions
                 prev_level = db.levels.find_one({'order': level['order'] - 1})
@@ -140,24 +130,43 @@ def populate_initial_data():
 
                 random.shuffle(questions)
                 for k, question in enumerate(questions[:10]):
-                    db.level_test_questions.insert_one({
+                    test_question = {
                         'level_test': test_id,
+                        'type': 'fill_blank',
                         'question': question['question'],
                         'answer': question['answer'],
                         'order': k + 1,
                         'created_at': datetime.utcnow()
-                    })
+                    }
+                    test_question_id = db.level_test_questions.insert_one(test_question).inserted_id
+                    logger.info(f"Created level test question with ID: {test_question_id}")
+
+        logging.info("Creating test user...")
+        test_user = {
+            'email': 'test@example.com',
+            'password': generate_password_hash('Test123!'),
+            'full_name': 'Test User',
+            'is_staff': False,
+            'is_active': True,
+            'current_level': 1,
+            'total_points': 0,
+            'created_at': datetime.utcnow()
+        }
+        user_id = db.users.insert_one(test_user).inserted_id
+        logger.info(f"Created test user with ID: {user_id}")
 
         logging.info("Creating admin user...")
         if not db.users.find_one({'email': 'admin@admin.com'}):
-            db.users.insert_one({
+            admin_user = {
                 'email': 'admin@admin.com',
                 'password': generate_password_hash('admin'),
                 'full_name': 'Admin',
                 'is_staff': True,
                 'is_active': True,
                 'created_at': datetime.utcnow()
-            })
+            }
+            admin_id = db.users.insert_one(admin_user).inserted_id
+            logger.info(f"Created admin user with ID: {admin_id}")
 
         client.close()
         logging.info("Data population completed successfully!")

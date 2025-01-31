@@ -25,6 +25,18 @@ class Config(BaseSettings):
 
     @classmethod
     def create_config(cls):
+        if os.getenv('TESTING'):
+            # Use test configurations
+            return cls(
+                SECRET_KEY='test_secret_key',
+                DEBUG=True,
+                MONGODB_URI='mongodb://localhost:27017/test',
+                REDIS_HOST='localhost',
+                REDIS_PORT=6379,
+                REDIS_PASSWORD=None,
+                CORS_ORIGINS='*',
+                ML_MODEL_PATH='en_core_web_sm'
+            )
         return cls()
 
 # Load configuration

@@ -9,3 +9,4 @@ data:
   REDIS_PORT: "6379"
   CORS_ORIGINS: "*"
   ML_MODEL_PATH: "en_core_web_sm"
+  PORT: "10000"

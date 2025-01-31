@@ -18,7 +18,7 @@ spec:
         image: it-learn-app:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 5000
+        - containerPort: 10000
         envFrom:
         - configMapRef:
             name: e-learn-config
@@ -27,14 +27,14 @@ spec:
         readinessProbe:
           httpGet:
             path: /healthcheck
-            port: 5000
+            port: 10000
           initialDelaySeconds: 60
           periodSeconds: 15
           timeoutSeconds: 10
         livenessProbe:
           httpGet:
             path: /healthcheck
-            port: 5000
+            port: 10000
           initialDelaySeconds: 90
           periodSeconds: 20
           timeoutSeconds: 10

@@ -73,10 +73,10 @@ class ProgressService:
         if quiz:  # Only update if quiz exists
             self.db.users.update_one(
                 {'_id': ObjectId(user_id)},
-                {'$addToSet': {'available_quizzes': quiz['_id']}},
+                {'$addToSet': {'available_quizzes': ObjectId(quiz['_id'])}},
                 upsert=True
             )
 
     def _should_unlock_quiz(self, user_id: str, lesson_id: str) -> bool:
         progress = self.get_lesson_progress(user_id, lesson_id)
-        return progress['completed_flashcards'] >= 10
+        return progress['completed_flashcards'] >= 1

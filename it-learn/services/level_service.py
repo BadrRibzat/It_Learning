@@ -74,10 +74,12 @@ class LevelService:
     
     def attempt_level_unlock(self, user_id: str, test_id: str) -> Dict:
         """Process level test submission and unlock if criteria met"""
+        if not ObjectId.is_valid(test_id):
+             raise AppError("Invalid level test ID format", 400)
         test = self.db.level_tests.find_one({'_id': ObjectId(test_id)})
         if not test:
             raise AppError("Test not found", 404)
-
+    
         submissions = list(self.db.level_test_submissions.find({
             'user': ObjectId(user_id),
             'level_test': ObjectId(test_id)
@@ -91,7 +93,7 @@ class LevelService:
         if best_submission and best_submission['score'] >= 0.8 * test['total_questions']:
             self.db.users.update_one(
                 {'_id': ObjectId(user_id)},
-                {'$addToSet': {'unlocked_levels': test['target_level']}}
+                {'$addToSet': {'unlocked_levels': ObjectId(test['level'])}}
             )
             return {'unlocked': True, 'score': best_submission['score']}
         

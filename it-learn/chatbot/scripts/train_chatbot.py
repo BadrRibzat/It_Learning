@@ -1,76 +1,83 @@
 import sys
 import os
-# Project root to the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from pymongo import MongoClient
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 import logging
+from typing import List, Dict
+from pymongo import MongoClient
 from config import config
-import spacy
+from .command_responses import COMMAND_RESPONSES, CONVERSATION_PATTERNS, LEARNING_PATHS
 
-# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
-def train_chatbot_model():
-    """Train the chatbot model and store training data."""
-    try:
-        client = MongoClient(config.MONGODB_URI)
-        db = client['e-learn']
+class ChatbotTrainer:
+    def __init__(self):
+        self.client = MongoClient(config.MONGODB_URI)
+        self.db = self.client['e-learn']
         
-        logging.info("🧠 Starting chatbot model training...")
-        
-        # Clear existing training data
-        db.chatbot_training_data.delete_many({})
-        logging.info("🧹 Cleared existing training data")
-        
-        # Initialize NLP
-        logging.info("🔧 Loading spaCy model...")
-        nlp = spacy.load(config.ML_MODEL_PATH)
-        
-        # Load training prompts from external file
-        prompts_file_path = Path(__file__).resolve().parent / 'conversational_prompts.txt'
-        try:
-            with open(prompts_file_path, 'r') as f:
-                training_prompts = [line.strip() for line in f.readlines() if line.strip()]
-            logging.info(f"📝 Loaded {len(training_prompts)} prompts from file")
-        except FileNotFoundError:
-            logging.error(f"❌ Could not find prompts file at: {prompts_file_path}")
-            client.close()
-            sys.exit(1)
-
-        
-        # Generate and store training data
-        logging.info("📚 Generating training examples...")
+    def generate_training_data(self) -> List[Dict]:
+        """Generate training data from predefined responses"""
         training_data = []
         
-        for prompt in training_prompts:
-            try:
-                doc = nlp(f"Respond to the user in a natural and helpful way, as a bot designed to teach IT skills, and introduce the creator as Badr Ribzat, mention his qualifications, and that he is an IT engineer. User message: {prompt}")
-                
-                response = " ".join([sent.text for sent in doc.sents])
-                
-                training_data.append({
-                    'input_text': prompt,
-                    'response_text': response,
-                    'created_at': datetime.utcnow(),
-                    'model_version': '1.0'
-                })
-                
-            except Exception as e:
-                logging.error(f"❌ Error processing '{prompt}': {str(e)}")
-                continue
+        # Add command responses
+        for command, data in COMMAND_RESPONSES.items():
+            training_data.append({
+                'type': 'command',
+                'command': command,
+                'data': data,
+                'created_at': datetime.utcnow(),
+                'model_version': '1.0'
+            })
         
-        if training_data:
-            db.chatbot_training_data.insert_many(training_data)
-            logging.info(f"📥 Inserted {len(training_data)} training examples")
+        # Add conversation patterns
+        for intent, responses in CONVERSATION_PATTERNS.items():
+            training_data.append({
+                'type': 'conversation',
+                'intent': intent,
+                'responses': responses,
+                'created_at': datetime.utcnow(),
+                'model_version': '1.0'
+            })
+        
+        # Add learning paths
+        for level, path in LEARNING_PATHS.items():
+            training_data.append({
+                'type': 'learning_path',
+                'level': level,
+                'content': path,
+                'created_at': datetime.utcnow(),
+                'model_version': '1.0'
+            })
+        
+        return training_data
+
+    def train(self):
+        """Train the chatbot with predefined responses"""
+        try:
+            logger.info("Starting chatbot training...")
             
-        client.close()
-        logging.info("🎉 Chatbot training completed successfully!")
-        
-    except Exception as e:
-        logging.error(f"🔥 Critical error during training: {str(e)}")
-        sys.exit(1)
+            # Clear existing data
+            self.db.chatbot_training.delete_many({})
+            logger.info("Cleared existing training data")
+            
+            # Generate and store new training data
+            training_data = self.generate_training_data()
+            if training_data:
+                self.db.chatbot_training.insert_many(training_data)
+                logger.info(f"Inserted {len(training_data)} training examples")
+            
+            logger.info("Training completed successfully!")
+            
+        except Exception as e:
+            logger.error(f"Error during training: {str(e)}")
+            raise
+        finally:
+            self.client.close()
+
+def main():
+    trainer = ChatbotTrainer()
+    trainer.train()
 
 if __name__ == "__main__":
-    train_chatbot_model()
+    main()

@@ -7,17 +7,20 @@ services:
     healthCheckPath: /healthcheck
     numInstances: 1
     buildCommand: docker build -t it-learn-app .
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --worker-class=gthread --worker-tmp-dir /dev/shm --max-requests 1000 --max-requests-jitter 50 --timeout 120 run:create_app()
+    startCommand: gunicorn --bind 0.0.0.0:${PORT} --workers 2 --threads 2 --worker-class=gthread --worker-tmp-dir /dev/shm --max-requests 1000 --max-requests-jitter 50 --timeout 120 --log-level info --access-logfile - --error-logfile - 'run:create_app()'
     autoDeploy: true
     envVars:
       - key: DEBUG
         value: "false"
       - key: MONGODB_URI
-        value: "mongodb+srv://badrribzat:wzFoMfXhaESdzqog@e-learn.1jzxy.mongodb.net/e-learn?retryWrites=true&w=majority&authSource=admin&ssl=true&tlsAllowInvalidCertificates=true"
+        sync: false
+        value: ${MONGODB_URI}
       - key: MONGO_USER
-        value: "badrribzat"
+        sync: false
+        value: ${MONGO_USER}
       - key: MONGO_PASSWORD
-        value: "wzFoMfXhaESdzqog"
+        sync: false
+        value: ${MONGO_PASSWORD}
       - key: REDIS_HOST
         fromService:
           type: redis
@@ -43,6 +46,19 @@ services:
       cpu: 0.25
       memory: 512M
       storage: 512M
+    healthcheck:
+      httpGet:
+        path: /healthcheck
+        port: ${PORT}
+      initialDelaySeconds: 60
+      periodSeconds: 15
+      timeoutSeconds: 10
+      successThreshold: 1
+      failureThreshold: 3
+    logging:
+      json: true
+      level: info
+      destination: papertrail
 
   - type: redis
     name: it-learn-redis
@@ -50,3 +66,27 @@ services:
     plan: free
     maxmemoryPolicy: allkeys-lru
     maxmemory: 256mb
+    args: ["--requirepass", "${REDIS_PASSWORD}"]
+
+# Rate Limiting (matching K8s ingress configuration)
+services:
+  - type: web
+    name: it-learn-backend
+    rateLimit:
+      requests: 1000
+      period: 1m
+
+# Additional configurations
+services:
+  - type: web
+    name: it-learn-backend
+    docker:
+      dockerfile: Dockerfile
+      context: .
+    envVars:
+      - key: PYTHONPATH
+        value: /app
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"
+      - key: PYTHONUNBUFFERED
+        value: "1"

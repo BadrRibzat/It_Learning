@@ -105,3 +105,8 @@ dist-ssr/
 **/pip-*.dist-info/
 **/pip/_vendor/
 **/pip/_internal/
+
+# .gitignore
+uploads/profile_pictures/*
+!uploads/profile_pictures/.gitkeep
+!uploads/profile_pictures/test/
