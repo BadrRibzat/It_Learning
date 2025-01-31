@@ -1,19 +1,11 @@
-import json
-from bson import ObjectId
+import os
 from pymongo import MongoClient, errors
 from utils.exceptions import AppError
-from config import config
 import logging
+from config import config
+import dns.resolver
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-class CustomJSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, ObjectId):
-            return str(o)
-        return super().default(o)
 
 class Database:
     _instance = None
@@ -24,20 +16,38 @@ class Database:
         if cls._instance is None:
             cls._instance = super(Database, cls).__new__(cls)
             try:
-                # Configure MongoDB client with proper settings
+                # For testing environment
+                if os.getenv('TESTING'):
+                    from mongomock import MongoClient as MockMongoClient
+                    cls._client = MockMongoClient()
+                    cls._db = cls._client.test_db
+                    logger.info("Using mock database for testing")
+                    return cls._instance
+
+                # Production connection with DNS settings
+                dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+                dns.resolver.default_resolver.nameservers = ['8.8.8.8', '8.8.4.4']
+
+                # MongoDB Atlas connection
                 cls._client = MongoClient(
                     config.MONGODB_URI,
                     serverSelectionTimeoutMS=5000,
                     connectTimeoutMS=10000,
                     socketTimeoutMS=45000,
                     maxPoolSize=50,
-                    retryWrites=True
+                    retryWrites=True,
+                    ssl=True,
+                    tls=True,
+                    tlsAllowInvalidCertificates=True
                 )
-                cls._db = cls._client['e-learn']
+                
+                # Get the database name from the URI or use default
+                db_name = config.MONGODB_URI.split('/')[-1].split('?')[0] or 'e-learn'
+                cls._db = cls._client[db_name]
                 
                 # Test connection
                 cls._client.admin.command('ping')
-                logger.info("Successfully connected to MongoDB")
+                logger.info("Successfully connected to MongoDB Atlas")
                 
             except errors.ConnectionFailure as e:
                 logger.error(f"MongoDB connection failed: {e}")
