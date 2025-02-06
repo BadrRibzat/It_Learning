@@ -3,8 +3,8 @@
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/Flask-3.0.2-green.svg)](https://flask.palletsprojects.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-blue.svg)](https://www.mongodb.com/atlas)
-[![Vue.js](https://img.shields.io/badge/Vue.js-3.3.4-brightgreen.svg)](https://vuejs.org/)
-[![Vite](https://img.shields.io/badge/Vite-4.4.6-yellow.svg)](https://vitejs.dev/)
+[![Vue.js](https://img.shields.io/badge/Vue.js-3.5.13-brightgreen.svg)](https://vuejs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.1.0-yellow.svg)](https://vitejs.dev/)
 
 ## 🚀 Tech Stack
 
