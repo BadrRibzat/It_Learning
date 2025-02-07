@@ -1,21 +1,22 @@
 <template>
-  <DefaultLayout>
-    <RouterView v-slot="{ Component }">
-      <component :is="Component" />
-    </RouterView>
-  </DefaultLayout>
+  <router-view></router-view>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import DefaultLayout from './components/layout/DefaultLayout.vue';
-import './assets/main.css';
-import './style.css';
+<script setup lang="ts">
+import { useAuthStore } from '@/stores/auth';
+import { onMounted } from 'vue';
+import '@/assets/main.css';
 
-export default defineComponent({
-  name: 'App',
-  components: {
-    DefaultLayout,
-  },
+const authStore = useAuthStore();
+
+onMounted(() => {
+  // Initialize auth state if needed
+  if (authStore.isAuthenticated) {
+    authStore.initializeAuth();
+  }
 });
 </script>
+
+<style>
+@import '@/assets/base.css';
+</style>

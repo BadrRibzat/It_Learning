@@ -273,7 +273,7 @@ export default defineComponent({
       try {
         await authStore.register(formData);
         toast.success('Registration successful! Welcome to IT Learning Platform.');
-        router.push('/dashboard');
+        router.push('/login');
       } catch (error: any) {
         console.error('Registration error:', error);
         toast.error(error.response?.data?.message || 'Registration failed. Please try again.');

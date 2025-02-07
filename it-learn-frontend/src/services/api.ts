@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { notifyError } from '@/utils/notifications';
 
 export const API_URL = import.meta.env.VITE_APP_API_URL || 'https://it-learn-backend.onrender.com';
 
@@ -7,6 +8,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  maxContentLength: Infinity,
+  maxBodyLength: Infinity,
 });
 
 // Request interceptor for API calls
@@ -16,9 +19,16 @@ api.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
+
+    // Handle FormData for file uploads
+    if (config.data instanceof FormData) {
+      config.headers['Content-Type'] = 'multipart/form-data';
+    }
+
     return config;
   },
   (error) => {
+    notifyError('Request error. Please try again.');
     return Promise.reject(error);
   }
 );
@@ -29,6 +39,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Handle specific error cases
+    if (error.response?.status === 431) {
+      notifyError('File size too large or header fields exceed limit');
+    }
+
     // Handle 401 errors (unauthorized)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -36,6 +51,7 @@ api.interceptors.response.use(
       window.location.href = '/login';
     }
 
+    notifyError('Response error. Please try again.');
     return Promise.reject(error);
   }
 );

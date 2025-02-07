@@ -176,14 +176,13 @@ export default defineComponent({
           password: formData.password
         });
         
-        // If remember me is checked, we could store some data in localStorage
         if (formData.rememberMe) {
           localStorage.setItem('rememberedEmail', formData.email);
         } else {
           localStorage.removeItem('rememberedEmail');
         }
 
-        router.push('/dashboard');
+        router.push('/profile');
       } catch (error: any) {
         console.error('Login error:', error);
         toast.error(error.response?.data?.message || 'Login failed. Please try again.');

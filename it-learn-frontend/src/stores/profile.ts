@@ -1,0 +1,310 @@
+import { defineStore } from 'pinia';
+import ProfileService from '@/services/profile.service';
+import type {
+  ProfileResponse,
+  ProfileUpdate,
+  LearningStats,
+  PointsResponse,
+  ProgressCircle,
+  ActivityFeed,
+  Achievement,
+  ProfileSettings,
+  NotificationPreferences,
+  PrivacySettings
+} from '@/types/profile';
+
+interface ProfileState {
+  profile: ProfileResponse | null;
+  statistics: LearningStats | null;
+  points: PointsResponse | null;
+  progressCircle: ProgressCircle | null;
+  activityFeed: ActivityFeed | null;
+  achievements: Achievement[];
+  settings: {
+    notifications: NotificationPreferences;
+    privacy: PrivacySettings;
+  };
+  loading: boolean;
+  error: string | null;
+  lastUpdate: string | null;
+}
+
+export const useProfileStore = defineStore('profile', {
+  state: (): ProfileState => ({
+    profile: null,
+    statistics: null,
+    points: null,
+    progressCircle: null,
+    activityFeed: null,
+    achievements: [],
+    settings: {
+      notifications: {
+        achievements: true,
+        progress: true,
+        streaks: true
+      },
+      privacy: {
+        public_profile: true,
+        show_achievements: true,
+        show_activity: true
+      }
+    },
+    loading: false,
+    error: null,
+    lastUpdate: null
+  }),
+
+  getters: {
+    isLoading: (state) => state.loading,
+    hasError: (state) => state.error !== null,
+    profileData: (state) => state.profile?.profile_data ?? null,
+    learningStats: (state) => state.profile?.learning_stats ?? null,
+    unlockedAchievements: (state) => 
+      state.achievements.filter(a => a.unlocked).map(a => a.id),
+    currentStreak: (state) => 
+      state.statistics?.streak?.current_streak ?? 0,
+    completionRate: (state) => {
+      if (!state.achievements.length) return 0;
+      const unlocked = state.achievements.filter(a => a.unlocked).length;
+      return Math.round((unlocked / state.achievements.length) * 100);
+    },
+    recentActivities: (state) => 
+      state.activityFeed?.activities ?? [],
+    hasMoreActivities: (state) => 
+      state.activityFeed?.summary?.has_more ?? false,
+    userSettings: (state) => state.settings,
+  },
+
+  actions: {
+    async fetchProfile() {
+      this.loading = true;
+      this.error = null;
+      try {
+        this.profile = await ProfileService.getProfile();
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Failed to load profile';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchStatistics() {
+      this.loading = true;
+      this.error = null;
+      try {
+        this.statistics = await ProfileService.getStatistics();
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Failed to load statistics';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async updateProfile(data: ProfileUpdate) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await ProfileService.updateProfile(data);
+        this.profile = response;
+        return response;
+      } catch (error) {
+        this.error = 'Failed to update profile';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async uploadProfilePicture(file: File) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await ProfileService.uploadProfilePicture(file);
+        if (this.profile?.profile_data) {
+          this.profile.profile_data.profile_picture = response.profile_picture;
+        }
+        return response;
+      } catch (error) {
+        this.error = 'Failed to upload profile picture';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchPoints() {
+      this.loading = true;
+      this.error = null;
+      try {
+        this.points = await ProfileService.getPoints();
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Failed to load points';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchProgressCircle() {
+      this.loading = true;
+      this.error = null;
+      try {
+        this.progressCircle = await ProfileService.getProgressCircle();
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Failed to load progress data';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchActivityFeed(limit: number = 20, offset: number = 0) {
+      this.loading = true;
+      this.error = null;
+      try {
+        this.activityFeed = await ProfileService.getActivityFeed(limit, offset);
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Failed to load activity feed';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async deleteAccount() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await ProfileService.deleteAccount();
+        // Clear all store data
+        this.profile = null;
+        this.statistics = null;
+        this.points = null;
+        this.progressCircle = null;
+        this.activityFeed = null;
+        return response;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Failed to delete account';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchAchievements() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await ProfileService.getAchievements();
+        this.achievements = response.achievements;
+        return response;
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Failed to load achievements';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async updateSettings(settings: ProfileSettings) {
+    try {
+      this.loading = true;
+      this.error = null;
+      const response = await ProfileService.updateSettings(settings);
+      if (this.profile) {
+        this.profile.settings = response.settings;
+      }
+      return response;
+    } catch (error) {
+      this.error = 'Failed to update settings';
+      throw error;
+    } finally {
+      this.loading = false;
+    }
+  },
+
+  async fetchSettings() {
+    try {
+      this.loading = true;
+      this.error = null;
+      const response = await ProfileService.getSettings();
+      if (this.profile) {
+        this.profile.settings = response.settings;
+      }
+      return response;
+    } catch (error) {
+      this.error = 'Failed to fetch settings';
+      throw error;
+    } finally {
+      this.loading = false;
+    }
+  },
+
+    async loadInitialData() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const [profile, stats, achievements] = await Promise.all([
+          this.fetchProfile(),
+          this.fetchStatistics(),
+          this.fetchAchievements()
+        ]);
+        this.lastUpdate = new Date().toISOString();
+        return { profile, stats, achievements };
+      } catch (error) {
+        this.error = 'Failed to load profile data';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Add method to handle achievement unlocks
+    async handleAchievementUnlock(achievementId: string) {
+      const achievement = this.achievements.find(a => a.id === achievementId);
+      if (achievement && !achievement.unlocked) {
+        achievement.unlocked = true;
+        achievement.earned_at = new Date().toISOString();
+        // Update statistics if needed
+        await this.fetchStatistics();
+      }
+    },
+
+    // Add method to update user activity
+    async trackActivity(activityType: string, data: any) {
+      try {
+        await ProfileService.trackActivity(activityType, data);
+        await this.fetchActivityFeed();
+      } catch (error) {
+        console.error('Failed to track activity:', error);
+      }
+    },
+
+    // Enhanced reset state method
+    resetState() {
+      this.profile = null;
+      this.statistics = null;
+      this.points = null;
+      this.progressCircle = null;
+      this.activityFeed = null;
+      this.achievements = [];
+      this.settings = {
+        notifications: {
+          achievements: true,
+          progress: true,
+          streaks: true
+        },
+        privacy: {
+          public_profile: true,
+          show_achievements: true,
+          show_activity: true
+        }
+      };
+      this.loading = false;
+      this.error = null;
+      this.lastUpdate = null;
+    },
+  },
+}); 

@@ -1,0 +1,59 @@
+import axios from '@/utils/axios';
+import type {
+  ProfileResponse,
+  ProfileUpdate,
+  ProfileUploadResponse,
+  PointsResponse,
+  ProgressCircle,
+  ActivityFeed
+} from '@/types/profile';
+
+const API_URL = '/profile';
+
+class ProfileService {
+  static async getProfile(): Promise<ProfileResponse> {
+    const response = await axios.get<ProfileResponse>(`${API_URL}/profile`);
+    return response.data;
+  }
+
+  static async getStatistics(): Promise<LearningStats> {
+    const response = await axios.get<LearningStats>(`${API_URL}/statistics`);
+    return response.data;
+  }
+
+  static async updateProfile(data: ProfileUpdate): Promise<ProfileResponse> {
+    const response = await axios.put<ProfileResponse>(`${API_URL}/update`, data);
+    return response.data;
+  }
+
+  static async uploadProfilePicture(file: File): Promise<ProfileUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axios.post<ProfileUploadResponse>(`${API_URL}/upload-picture`, formData);
+    return response.data;
+  }
+
+  static async getPoints(): Promise<PointsResponse> {
+    const response = await axios.get<PointsResponse>(`${API_URL}/points`);
+    return response.data;
+  }
+
+  static async getProgressCircle(): Promise<ProgressCircle> {
+    const response = await axios.get<ProgressCircle>(`${API_URL}/progress-circle`);
+    return response.data;
+  }
+
+  static async getActivityFeed(limit: number = 20, offset: number = 0): Promise<ActivityFeed> {
+    const response = await axios.get<ActivityFeed>(`${API_URL}/activity`, {
+      params: { limit, offset }
+    });
+    return response.data;
+  }
+
+  static async deleteAccount(): Promise<{ message: string }> {
+    const response = await axios.delete<{ message: string }>(`${API_URL}/delete`);
+    return response.data;
+  }
+}
+
+export default ProfileService;

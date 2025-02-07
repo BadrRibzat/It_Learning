@@ -28,13 +28,13 @@
           <!-- Auth Buttons - Desktop -->
           <div class="hidden lg:flex lg:items-center lg:space-x-6">
             <template v-if="isAuthenticated">
-              <button
-                @click="openUserMenu"
-                class="flex items-center text-sm font-medium text-gray-700 hover:text-primary-600"
-              >
-                <span>{{ user?.full_name || 'User' }}</span>
-                <ChevronDownIcon class="ml-2 h-5 w-5" aria-hidden="true" />
-              </button>
+              <div class="relative">
+                <UserMenu 
+                  :user="user"
+                  @logout="handleLogout"
+                  @delete-account="handleDeleteAccount"
+                />
+              </div>
             </template>
             <template v-else>
               <RouterLink
@@ -58,9 +58,10 @@
               type="button"
               class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
               aria-controls="mobile-menu"
-              @click="mobileMenuOpen = !mobileMenuOpen"
+              :aria-expanded="mobileMenuOpen"
+              @click="toggleMobileMenu"
             >
-              <span class="sr-only">Open main menu</span>
+              <span class="sr-only">{{ mobileMenuOpen ? 'Close menu' : 'Open menu' }}</span>
               <Bars3Icon v-if="!mobileMenuOpen" class="h-6 w-6" aria-hidden="true" />
               <XMarkIcon v-else class="h-6 w-6" aria-hidden="true" />
             </button>
@@ -69,87 +70,100 @@
       </div>
 
       <!-- Mobile Navigation -->
-      <div
-        v-show="mobileMenuOpen"
-        class="lg:hidden"
-        id="mobile-menu"
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform scale-95 opacity-0"
+        enter-to-class="transform scale-100 opacity-100"
+        leave-active-class="transition duration-100 ease-in"
+        leave-from-class="transform scale-100 opacity-100"
+        leave-to-class="transform scale-95 opacity-0"
       >
-        <div class="space-y-1 px-2 pb-3 pt-2">
-          <RouterLink
-            v-for="item in navigation"
-            :key="item.name"
-            :to="item.href"
-            class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600"
-            :class="{ 'bg-gray-50 text-primary-600': isCurrentRoute(item.href) }"
-            @click="mobileMenuOpen = false"
-          >
-            {{ item.name }}
-          </RouterLink>
-          
-          <!-- Mobile Auth Links -->
-          <template v-if="!isAuthenticated">
+        <div
+          v-show="mobileMenuOpen"
+          class="lg:hidden"
+          id="mobile-menu"
+        >
+          <div class="space-y-1 px-2 pb-3 pt-2">
             <RouterLink
-              to="/login"
+              v-for="item in navigation"
+              :key="item.name"
+              :to="item.href"
               class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600"
-              @click="mobileMenuOpen = false"
+              :class="{ 'bg-gray-50 text-primary-600': isCurrentRoute(item.href) }"
+              @click="closeMobileMenu"
             >
-              Sign in
+              {{ item.name }}
             </RouterLink>
-            <RouterLink
-              to="/register"
-              class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600"
-              @click="mobileMenuOpen = false"
-            >
-              Get started
-            </RouterLink>
-          </template>
-          <template v-else>
-            <button
-              @click="handleLogout"
-              class="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600"
-            >
-              Sign out
-            </button>
-          </template>
+            
+            <!-- Mobile Auth Links -->
+            <template v-if="!isAuthenticated">
+              <RouterLink
+                to="/login"
+                class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+                @click="closeMobileMenu"
+              >
+                Sign in
+              </RouterLink>
+              <RouterLink
+                to="/register"
+                class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+                @click="closeMobileMenu"
+              >
+                Get started
+              </RouterLink>
+            </template>
+            <template v-else>
+              <RouterLink
+                to="/profile"
+                class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+                @click="closeMobileMenu"
+              >
+                Profile
+              </RouterLink>
+              <RouterLink
+                to="/profile/settings"
+                class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+                @click="closeMobileMenu"
+              >
+                Settings
+              </RouterLink>
+              <button
+                @click="handleLogout"
+                class="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+              >
+                Sign out
+              </button>
+            </template>
+          </div>
         </div>
-      </div>
+      </Transition>
     </nav>
-
-    <!-- User Menu Dropdown -->
-    <div v-if="showUserMenu" class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-      <RouterLink
-        to="/profile"
-        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-        @click="showUserMenu = false"
-      >
-        Your Profile
-      </RouterLink>
-      <RouterLink
-        to="/dashboard"
-        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-        @click="showUserMenu = false"
-      >
-        Dashboard
-      </RouterLink>
-      <button
-        @click="handleLogout"
-        class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-      >
-        Sign out
-      </button>
-    </div>
   </header>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue';
+<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useProfileStore } from '@/stores/profile';
+import { useToast } from 'vue-toastification';
 import {
   Bars3Icon,
   XMarkIcon,
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline';
+import UserMenu from './UserMenu.vue';
+
+const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
+const profileStore = useProfileStore();
+const toast = useToast();
+
+const mobileMenuOpen = ref(false);
+
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+const user = computed(() => authStore.user);
 
 const navigation = [
   { name: 'Home', href: '/' },
@@ -157,69 +171,73 @@ const navigation = [
   { name: 'Contact', href: '/contact' },
 ];
 
-export default defineComponent({
-  name: 'AppHeader',
-  components: {
-    RouterLink,
-    Bars3Icon,
-    XMarkIcon,
-    ChevronDownIcon,
-  },
-  setup() {
-    const route = useRoute();
-    const router = useRouter();
-    const authStore = useAuthStore();
-    
-    const mobileMenuOpen = ref(false);
-    const showUserMenu = ref(false);
+const isCurrentRoute = (path: string) => route.path === path;
 
-    const isAuthenticated = computed(() => authStore.isAuthenticated);
-    const user = computed(() => authStore.user);
+const toggleMobileMenu = () => {
+  mobileMenuOpen.value = !mobileMenuOpen.value;
+};
 
-    const isCurrentRoute = (path: string) => route.path === path;
+const closeMobileMenu = () => {
+  mobileMenuOpen.value = false;
+};
 
-    const openUserMenu = () => {
-      showUserMenu.value = !showUserMenu.value;
-    };
+const handleLogout = async () => {
+  try {
+    await authStore.logout();
+    profileStore.resetState();
+    closeMobileMenu();
+    router.push('/login');
+    toast.success('Successfully logged out');
+  } catch (error) {
+    toast.error('Failed to log out');
+  }
+};
 
-    const handleLogout = async () => {
-      try {
-        await authStore.logout();
-        showUserMenu.value = false;
-        mobileMenuOpen.value = false;
-        router.push('/');
-      } catch (error) {
-        console.error('Logout error:', error);
-      }
-    };
+const handleDeleteAccount = async () => {
+  if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+    try {
+      await profileStore.deleteAccount();
+      await authStore.logout();
+      closeMobileMenu();
+      router.push('/');
+      toast.success('Your account has been successfully deleted');
+    } catch (error) {
+      toast.error('Failed to delete account');
+    }
+  }
+};
 
-    // Close menus when clicking outside
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.user-menu') && !target.closest('.mobile-menu')) {
-        showUserMenu.value = false;
-        mobileMenuOpen.value = false;
-      }
-    };
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (!target.closest('#mobile-menu') && !target.closest('button')) {
+    closeMobileMenu();
+  }
+};
 
-    onMounted(() => {
-      document.addEventListener('click', handleClickOutside);
-    });
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
 
-    onBeforeUnmount(() => {
-      document.removeEventListener('click', handleClickOutside);
-    });
-
-    return {
-      navigation,
-      mobileMenuOpen,
-      showUserMenu,
-      isAuthenticated,
-      user,
-      isCurrentRoute,
-      openUserMenu,
-      handleLogout,
-    };
-  },
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
 });
 </script>
+
+<style scoped>
+.router-link-active {
+  @apply text-primary-600;
+}
+
+@media (max-width: 1024px) {
+  .mobile-menu-enter-active,
+  .mobile-menu-leave-active {
+    transition: all 0.3s ease;
+  }
+
+  .mobile-menu-enter-from,
+  .mobile-menu-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+</style>

@@ -1,26 +1,58 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import DefaultLayout from '@/components/layout/DefaultLayout.vue';
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: () => import('../views/public/HomeView.vue'),
-      meta: { layout: 'default' }
-    },
-    {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/public/AboutView.vue'),
-      meta: { layout: 'default' }
-    },
-    {
-      path: '/contact',
-      name: 'contact',
-      component: () => import('../views/public/ContactView.vue'),
-      meta: { layout: 'default' }
+      component: DefaultLayout,
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: () => import('../views/public/HomeView.vue')
+        },
+        {
+          path: 'about',
+          name: 'about',
+          component: () => import('../views/public/AboutView.vue')
+        },
+        {
+          path: 'contact',
+          name: 'contact',
+          component: () => import('../views/public/ContactView.vue')
+        },
+        // Protected profile routes
+        {
+          path: 'profile',
+          component: () => import('../views/user/ProfileView.vue'),
+          meta: { requiresAuth: true },
+          children: [
+            {
+              path: '',
+              name: 'profile-overview',
+              component: () => import('../components/profile/ProfileOverview.vue')
+            },
+            {
+              path: 'settings',
+              name: 'profile-settings',
+              component: () => import('../components/profile/ProfileSettings.vue')
+            },
+            {
+              path: 'achievements',
+              name: 'achievements',
+              component: () => import('../views/user/AchievementsView.vue')
+            },
+            {
+              path: 'stats',
+              name: 'learning-stats',
+              component: () => import('../views/user/LearningStatsView.vue')
+            }
+          ]
+        }
+      ]
     },
     {
       path: '/login',
@@ -34,22 +66,37 @@ const router = createRouter({
       component: () => import('../views/auth/RegisterView.vue'),
       meta: { requiresGuest: true }
     },
-    // Add more routes as needed
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/public/NotFoundView.vue')
+    }
   ]
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
   const isAuthenticated = authStore.isAuthenticated;
 
-  // Check if route requires authentication
+  // Handle authentication
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'login', query: { redirect: to.fullPath } });
+    next({ 
+      name: 'login', 
+      query: { 
+        redirect: to.fullPath,
+        message: 'Please log in to access your learning space.'
+      }
+    });
   }
-  // Check if route requires guest access
+  // Handle guest only routes
   else if (to.meta.requiresGuest && isAuthenticated) {
-    next({ name: 'home' });
+    next({ name: 'profile-overview' });
   }
+  // Redirect authenticated users from home to profile
+  else if (isAuthenticated && to.name === 'home') {
+    next({ name: 'profile-overview' });
+  }
+  // Allow all other routes
   else {
     next();
   }

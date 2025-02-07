@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import type { User, LoginRequest, RegisterRequest } from '../types/auth';
 import AuthService from '../services/auth.service';
-import { useToast } from 'vue-toastification';
+import { useNotificationStore } from './notification';
 
 interface AuthState {
   user: User | null;
@@ -18,17 +18,16 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     async login(credentials: LoginRequest) {
-      const toast = useToast();
+      const notificationStore = useNotificationStore();
       this.loading = true;
       try {
         const response = await AuthService.login(credentials);
-        this.isAuthenticated = true;
-        this.user = response.user || null;
-        toast.success('Successfully logged in');
-        return response;
-      } catch (error: any) {
-        const message = error.response?.data?.error || 'Login failed';
-        toast.error(message);
+        this.setUser(response.user);
+        this.setToken(response.access_token);
+        notificationStore.success('Welcome back! Redirecting to your learning space...');
+        return true;
+      } catch (error) {
+        notificationStore.error('Login failed. Please check your credentials.');
         throw error;
       } finally {
         this.loading = false;
@@ -36,17 +35,17 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async register(userData: RegisterRequest) {
-      const toast = useToast();
+      const notificationStore = useNotificationStore();
       this.loading = true;
       try {
         const response = await AuthService.register(userData);
         this.isAuthenticated = true;
         this.user = response.user || null;
-        toast.success('Successfully registered');
+        notificationStore.success('Successfully registered');
         return response;
       } catch (error: any) {
         const message = error.response?.data?.error || 'Registration failed';
-        toast.error(message);
+        notificationStore.error(message);
         throw error;
       } finally {
         this.loading = false;
@@ -54,16 +53,30 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async logout() {
-      const toast = useToast();
+      const notificationStore = useNotificationStore();
       try {
         await AuthService.logout();
-        this.user = null;
-        this.isAuthenticated = false;
-        toast.success('Successfully logged out');
-      } catch (error: any) {
-        toast.error('Logout failed');
+        this.clearAuth();
+        notificationStore.info('You have been successfully logged out.');
+      } catch (error) {
+        notificationStore.error('There was a problem logging out.');
         throw error;
       }
+    },
+
+    setUser(user: User | null) {
+      this.user = user;
+    },
+
+    setToken(token: string) {
+      localStorage.setItem('access_token', token);
+      this.isAuthenticated = !!token;
+    },
+
+    clearAuth() {
+      this.user = null;
+      this.isAuthenticated = false;
+      localStorage.removeItem('access_token');
     },
   },
 });
