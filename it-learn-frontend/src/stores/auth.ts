@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import type { User, LoginRequest, RegisterRequest } from '../types/auth';
+import type { AxiosError } from 'axios';
 import AuthService from '../services/auth.service';
 import { useNotificationStore } from './notification';
 
@@ -7,6 +8,13 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
+}
+
+interface ApiErrorResponse {
+  error?: string;
+  data?: {
+    error?: string;
+  };
 }
 
 export const useAuthStore = defineStore('auth', {
@@ -17,12 +25,19 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   actions: {
+    initializeAuth() {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        this.setToken(token);
+        console.log('Auth initialized');
+      }
+    },
     async login(credentials: LoginRequest) {
       const notificationStore = useNotificationStore();
       this.loading = true;
       try {
         const response = await AuthService.login(credentials);
-        this.setUser(response.user);
+        this.setUser(response.user ?? null);
         this.setToken(response.access_token);
         notificationStore.success('Welcome back! Redirecting to your learning space...');
         return true;
@@ -43,8 +58,9 @@ export const useAuthStore = defineStore('auth', {
         this.user = response.user || null;
         notificationStore.success('Successfully registered');
         return response;
-      } catch (error: any) {
-        const message = error.response?.data?.error || 'Registration failed';
+      } catch (error) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+        const message = axiosError.response?.data?.error || 'Registration failed';
         notificationStore.error(message);
         throw error;
       } finally {

@@ -1,17 +1,18 @@
 import axios from '@/utils/axios';
+import { AxiosError } from 'axios';
+import type { AxiosResponse } from '@/utils/axios';
+import { notifyError } from '@/utils/notifications';
+
 import type {
-  ProfileData,
   Achievement,
-  PointsHistory,
-  LearningStreak,
-  Activity,
   ProfileResponse,
   ProfileUpdate,
   ProfileUploadResponse,
   PointsResponse,
   ProgressCircle,
   ActivityFeed,
-  LearningStats
+  LearningStats,
+  ProfileSettings
 } from '@/types/profile';
 
 const API_URL = '/profile';
@@ -19,177 +20,143 @@ const API_URL = '/profile';
 class ProfileService {
   static async getProfile(): Promise<ProfileResponse> {
     try {
-      const response = await axios.get<ProfileResponse>(`${API_URL}/profile`);
+      const response: AxiosResponse<ProfileResponse> = await axios.get(`${API_URL}/profile`);
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Failed to fetch profile');
+      this.handleError(error, 'Failed to fetch profile');
+      throw error;
     }
   }
 
   static async getStatistics(): Promise<LearningStats> {
     try {
-      const response = await axios.get<LearningStats>(`${API_URL}/statistics`);
+      const response: AxiosResponse<LearningStats> = await axios.get(`${API_URL}/statistics`);
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Failed to fetch statistics');
+      this.handleError(error, 'Failed to fetch statistics');
+      throw error;
     }
   }
 
   static async updateProfile(data: ProfileUpdate): Promise<ProfileResponse> {
     try {
-      const response = await axios.put<ProfileResponse>(`${API_URL}/update`, data);
+      const response: AxiosResponse<ProfileResponse> = await axios.put(`${API_URL}/update`, data);
       return response.data;
     } catch (error) {
-      console.error('Error updating profile:', error);
+      this.handleError(error, 'Failed to update profile');
       throw error;
     }
   }
 
   static async uploadProfilePicture(file: File): Promise<ProfileUploadResponse> {
     try {
+      // Validate file before upload
       this.validateFile(file);
-      // Compress image before upload if it's too large
-      let compressedFile = file;
-      if (file.size > 1024 * 1024) { // If larger than 1MB
-        compressedFile = await this.compressImage(file);
-      }
 
       const formData = new FormData();
-      formData.append('file', compressedFile);
+      formData.append('file', file);
 
-      const response = await axios.post<ProfileUploadResponse>(
+      const response: AxiosResponse<ProfileUploadResponse> = await axios.post(
         `${API_URL}/upload-picture`,
         formData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          maxBodyLength: Infinity,
-          maxContentLength: Infinity,
+            'Accept': 'application/json',
+          }
         }
       );
+      
       return response.data;
     } catch (error) {
-      console.error('Error uploading profile picture:', error);
+      console.error('Upload error:', error);
+      this.handleError(error, 'Failed to upload profile picture');
       throw error;
     }
   }
 
-  private static async compressImage(file: File): Promise<File> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Could not get canvas context'));
-          return;
-        }
+  private static validateFile(file: File): void {
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
 
-        // Calculate new dimensions while maintaining aspect ratio
-        let width = img.width;
-        let height = img.height;
-        const maxSize = 800;
+    if (file.size > maxSize) {
+      throw new Error('File size exceeds 5MB limit');
+    }
 
-        if (width > height) {
-          if (width > maxSize) {
-            height *= maxSize / width;
-            width = maxSize;
-          }
-        } else {
-          if (height > maxSize) {
-            width *= maxSize / height;
-            height = maxSize;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error('Could not compress image'));
-              return;
-            }
-            const compressedFile = new File([blob], file.name, {
-              type: 'image/jpeg',
-              lastModified: Date.now(),
-            });
-            resolve(compressedFile);
-          },
-          'image/jpeg',
-          0.7
-        );
-      };
-      img.onerror = reject;
-    });
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('Invalid file type. Only JPEG, PNG, and GIF are allowed');
+    }
   }
 
   static async getPoints(): Promise<PointsResponse> {
     try {
-      const response = await axios.get<PointsResponse>(`${API_URL}/points`);
+      const response: AxiosResponse<PointsResponse> = await axios.get(`${API_URL}/points`);
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Failed to fetch points');
+      this.handleError(error, 'Failed to fetch points');
+      throw error;
     }
   }
 
   static async getProgressCircle(): Promise<ProgressCircle> {
     try {
-      const response = await axios.get<ProgressCircle>(`${API_URL}/progress-circle`);
+      const response: AxiosResponse<ProgressCircle> = await axios.get(`${API_URL}/progress-circle`);
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Failed to fetch progress data');
+      this.handleError(error, 'Failed to fetch progress data');
+      throw error;
     }
   }
 
-  static async getActivityFeed(limit: number = 20, offset: number = 0): Promise<ActivityFeed> {
+  static async getActivityFeed(limit = 20, offset = 0): Promise<ActivityFeed> {
     try {
-      const response = await axios.get<ActivityFeed>(`${API_URL}/activity`, {
+      const response: AxiosResponse<ActivityFeed> = await axios.get(`${API_URL}/activity`, {
         params: { limit, offset }
       });
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Failed to fetch activity feed');
+      this.handleError(error, 'Failed to fetch activity feed');
+      throw error;
     }
   }
 
   static async getAchievements(): Promise<{ achievements: Achievement[] }> {
     try {
-      const response = await axios.get<{ achievements: Achievement[] }>(
+      const response: AxiosResponse<{ achievements: Achievement[] }> = await axios.get(
         `${API_URL}/achievements`
       );
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Failed to fetch achievements');
+      this.handleError(error, 'Failed to fetch achievements');
+      throw error;
     }
   }
 
   static async getSettings(): Promise<{ settings: ProfileSettings }> {
     try {
-      const response = await axios.get<{ settings: ProfileSettings }>(`${API_URL}/settings`);
+      const response: AxiosResponse<{ settings: ProfileSettings }> = await axios.get(
+        `${API_URL}/settings`
+      );
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Failed to fetch settings');
+      this.handleError(error, 'Failed to fetch settings');
+      throw error;
     }
   }
 
   static async updateSettings(settings: ProfileSettings): Promise<{ settings: ProfileSettings }> {
     try {
-      const response = await axios.put<{ settings: ProfileSettings }>(
+      const response: AxiosResponse<{ settings: ProfileSettings }> = await axios.put(
         `${API_URL}/settings`,
         settings
       );
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Failed to update settings');
+      this.handleError(error, 'Failed to update settings');
+      throw error;
     }
   }
 
-  static async trackActivity(activityType: string, data: any): Promise<void> {
+  static async trackActivity(activityType: string, data: Record<string, unknown>): Promise<void> {
     try {
       await axios.post(`${API_URL}/activity/track`, {
         type: activityType,
@@ -197,14 +164,39 @@ class ProfileService {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      throw this.handleError(error, 'Failed to track activity');
+      this.handleError(error, 'Failed to track activity');
+      throw error;
     }
   }
 
-  // Add method to handle file validation before upload
-  private static validateFile(file: File): boolean {
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+  static async deleteAccount(): Promise<{ message: string }> {
+    try {
+      const response: AxiosResponse<{ message: string }> = await axios.delete(`${API_URL}/delete`);
+      return response.data;
+    } catch (error) {
+      this.handleError(error, 'Failed to delete account');
+      throw error;
+    }
+  }
+
+  private static handleError(error: unknown, defaultMessage: string): void {
+    const errorMessage = this.getErrorMessage(error, defaultMessage);
+    notifyError(errorMessage);
+  }
+
+  private static getErrorMessage(error: unknown, defaultMessage: string): string {
+    if (error instanceof AxiosError) {
+      return error.response?.data?.message || error.message || defaultMessage;
+    }
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return defaultMessage;
+  }
+
+  private static validateFile(file: File): void {
+    const maxSize = 5 * 1024 * 1024;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
 
     if (file.size > maxSize) {
       throw new Error('File size exceeds 5MB limit');
@@ -213,26 +205,7 @@ class ProfileService {
     if (!allowedTypes.includes(file.type)) {
       throw new Error('Invalid file type. Only JPEG, PNG and GIF are allowed');
     }
-
-    return true;
   }
-
-  static async deleteAccount(): Promise<{ message: string }> {
-    try {
-      const response = await axios.delete<{ message: string }>(`${API_URL}/delete`);
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error, 'Failed to delete account');
-    }
-  }
-
-  private static handleError(error: any, defaultMessage: string): Error {
-    if (axios.isAxiosError(error)) {
-      const message = error.response?.data?.message || defaultMessage;
-      throw new Error(message);
-    }
-    throw error;
-  }
-}
+};
 
 export default ProfileService;

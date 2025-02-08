@@ -1,19 +1,19 @@
 import { defineStore } from 'pinia';
-import NotificationService from '@/services/notification.service';
+import { notifySuccess, notifyError, notifyInfo, notifyWarning } from '@/utils/notifications';
 
 export const useNotificationStore = defineStore('notification', {
   actions: {
     success(message: string): void {
-      NotificationService.success(message);
+      notifySuccess(message);
     },
     error(message: string): void {
-      NotificationService.error(message);
+      notifyError(message);
     },
     info(message: string): void {
-      NotificationService.info(message);
+      notifyInfo(message);
     },
     warning(message: string): void {
-      NotificationService.warning(message);
+      notifyWarning(message);
     }
   }
 });

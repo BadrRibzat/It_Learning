@@ -4,7 +4,7 @@ export interface Achievement {
   name: string;
   description: string;
   icon: string;
-  earned_at: Date;
+  earned_at: Date | null;
 }
 
 export interface PointsHistory {
@@ -54,17 +54,6 @@ export interface LearningStats {
   achievements: Achievement[] | null;
   streak: LearningStreak;
   points_history: PointsHistory[];
-  achievements: Achievement[] | null;
-  streak: LearningStreak;
-  points_history: PointsHistory[];
-  completion_rate: number;
-  recent_achievements: Achievement[];
-  level_info: {
-    current_level: number;
-    next_level: number;
-    progress: number;
-    points_needed: number;
-  };
 }
 
 export interface ProfileData {
@@ -92,8 +81,6 @@ export interface CurrentLevel {
   points_progress: number;
   streak: number;
   animations: CircleAnimations;
-  milestones: Milestone[];
-  next_milestone?: Milestone;
 }
 
 // Response interfaces
@@ -103,8 +90,6 @@ export interface ProfileResponse {
   learning_stats: LearningStats;
   recent_activities: Activity[];
   current_level: CurrentLevel;
-  settings: ProfileSettings;
-  loading: boolean;
 }
 
 export interface ProfileUpdate {
@@ -116,6 +101,13 @@ export interface ProfileUpdate {
 export interface ProfileUploadResponse {
   message: string;
   profile_picture: string;
+  success: boolean;
+}
+
+export interface ProfilePictureState {
+  url: string | null;
+  loading: boolean;
+  error: string | null;
 }
 
 export interface PointsResponse {
@@ -149,6 +141,7 @@ export interface ProgressCircle {
 // State interfaces
 export interface ProfileState {
   profile: ProfileResponse | null;
+  profilePictureUrl: string | null;
   statistics: LearningStats | null;
   points: PointsResponse | null;
   progressCircle: ProgressCircle | null;
@@ -157,20 +150,6 @@ export interface ProfileState {
   settings: {
     notifications: NotificationPreferences;
     privacy: PrivacySettings;
-  };
-  loading: boolean;
-  error: string | null;
-  lastUpdate: string | null;
-}
-
-export interface ProfileDebugData {
-  profile: {
-    message: string;
-    profile_data: ProfileData;
-    learning_stats: LearningStats;
-    recent_activities: Activity[];
-    current_level: CurrentLevel;
-    settings: ProfileSettings;
   };
   loading: boolean;
   error: string | null;
@@ -198,20 +177,6 @@ export interface ActivityTrackingResponse {
   activity: Activity;
   points_earned: number;
   achievements_unlocked?: Achievement[];
-}
-
-export interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  earned_at: Date | null;
-  category_id: string;
-  category_name: string;
-  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
-  unlocked: boolean;
-  progress?: number;
-  required: number;
 }
 
 export interface AchievementCategory {

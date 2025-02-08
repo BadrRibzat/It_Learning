@@ -1,14 +1,14 @@
-import { createApp } from 'vue';
-import { createPinia } from 'pinia';
+import { createApp, type Component } from 'vue';
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 import './style.css';
 import App from './App.vue';
 import router from './router';
-import Chart from 'chart.js/auto';
+import { createPinia } from 'pinia';
 
-const app = createApp(App);
+// Create the Pinia store
 const pinia = createPinia();
+const app = createApp(App as Component);
 
 // Toast configuration
 const toastOptions = {

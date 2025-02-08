@@ -1,6 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
-import DefaultLayout from '@/components/layout/DefaultLayout.vue';
+import { createRouter, createWebHistory, type RouteLocationNormalized, type NavigationGuardNext } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
+import { levelGuard } from '../utils/levelGuard';
+import DefaultLayout from '../components/layout/DefaultLayout.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -49,6 +50,49 @@ const router = createRouter({
               path: 'stats',
               name: 'learning-stats',
               component: () => import('../views/user/LearningStatsView.vue')
+            },
+            // Learning routes
+            {
+              path: 'learning',
+              children: [
+                {
+                  path: '',
+                  name: 'learning-dashboard',
+                  component: () => import('../views/user/learning/LearningDashboard.vue')
+                },
+                {
+                  path: 'level/:levelId',
+                  name: 'level',
+                  component: () => import('../views/user/learning/LevelView.vue'),
+                  beforeEnter: levelGuard,
+                  props: true
+                },
+                {
+                  path: 'level/:levelId/lesson/:lessonId',
+                  name: 'lesson',
+                  component: () => import('../views/user/learning/LessonView.vue'),
+                  props: true
+                },
+                {
+                  path: 'level/:levelId/lesson/:lessonId/flashcards',
+                  name: 'flashcards',
+                  component: () => import('../views/user/learning/FlashcardsView.vue'),
+                  props: true
+                },
+                {
+                  path: 'level/:levelId/lesson/:lessonId/quiz',
+                  name: 'quiz',
+                  component: () => import('../views/user/learning/QuizView.vue'),
+                  props: true
+                },
+                {
+                  path: 'level/:levelId/test',
+                  name: 'level-test',
+                  component: () => import('../views/user/learning/LevelTestView.vue'),
+                  beforeEnter: levelGuard,
+                  props: true
+                }
+              ]
             }
           ]
         }
@@ -74,7 +118,7 @@ const router = createRouter({
   ]
 });
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   const authStore = useAuthStore();
   const isAuthenticated = authStore.isAuthenticated;
 

@@ -15,6 +15,10 @@ import type {
 
 interface ProfileState {
   profile: ProfileResponse | null;
+  profilePicture: {
+    data: string | null;
+    timestamp: number;
+  },
   statistics: LearningStats | null;
   points: PointsResponse | null;
   progressCircle: ProgressCircle | null;
@@ -32,6 +36,10 @@ interface ProfileState {
 export const useProfileStore = defineStore('profile', {
   state: (): ProfileState => ({
     profile: null,
+    profilePicture: {
+      data: null,
+      timestamp: 0
+    },
     statistics: null,
     points: null,
     progressCircle: null,
@@ -58,6 +66,12 @@ export const useProfileStore = defineStore('profile', {
     isLoading: (state) => state.loading,
     hasError: (state) => state.error !== null,
     profileData: (state) => state.profile?.profile_data ?? null,
+    profilePictureUrl: (state) => {
+      if (state.profile?.profile_data?.profile_picture) {
+        return `data:image/png;base64,${state.profile.profile_data.profile_picture}`;
+      }
+      return null;
+    },
     learningStats: (state) => state.profile?.learning_stats ?? null,
     unlockedAchievements: (state) => 
       state.achievements.filter(a => a.unlocked).map(a => a.id),
@@ -117,14 +131,15 @@ export const useProfileStore = defineStore('profile', {
       }
     },
 
-    async uploadProfilePicture(file: File) {
+    async uploadProfilePicture(data: string) {
       try {
         this.loading = true;
         this.error = null;
-        const response = await ProfileService.uploadProfilePicture(file);
-        if (this.profile?.profile_data) {
-          this.profile.profile_data.profile_picture = response.profile_picture;
-        }
+        const response = await ProfileService.uploadProfilePicture(data);
+        this.profilePicture = {
+          data: response.profile_picture,
+          timestamp: Date.now()
+        };
         return response;
       } catch (error) {
         this.error = 'Failed to upload profile picture';
@@ -261,7 +276,6 @@ export const useProfileStore = defineStore('profile', {
       }
     },
 
-    // Add method to handle achievement unlocks
     async handleAchievementUnlock(achievementId: string) {
       const achievement = this.achievements.find(a => a.id === achievementId);
       if (achievement && !achievement.unlocked) {
@@ -272,7 +286,6 @@ export const useProfileStore = defineStore('profile', {
       }
     },
 
-    // Add method to update user activity
     async trackActivity(activityType: string, data: any) {
       try {
         await ProfileService.trackActivity(activityType, data);
@@ -282,7 +295,6 @@ export const useProfileStore = defineStore('profile', {
       }
     },
 
-    // Enhanced reset state method
     resetState() {
       this.profile = null;
       this.statistics = null;
@@ -307,4 +319,4 @@ export const useProfileStore = defineStore('profile', {
       this.lastUpdate = null;
     },
   },
-}); 
+});

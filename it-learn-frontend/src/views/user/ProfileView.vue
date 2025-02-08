@@ -1,11 +1,9 @@
 <template>
   <div class="profile-page container mx-auto px-4 py-8">
-    <!-- Loading State -->
     <div v-if="loading" class="flex justify-center items-center min-h-screen">
       <LoadingSpinner />
     </div>
     
-    <!-- Error State -->
     <div v-else-if="error" class="text-center py-8">
       <p class="text-red-600">{{ error }}</p>
       <button 
@@ -16,12 +14,37 @@
       </button>
     </div>
     
-    <!-- Content State -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <!-- Profile Header -->
-      <div class="lg:col-span-12">
-        <div class="bg-white rounded-lg shadow p-6 mb-8">
-          <div class="flex items-center justify-between">
+    <div v-else>
+      <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-6">
+            <div class="relative group">
+              <div class="profile-picture-container">
+                <Avatar
+                  :src="profile?.profile_data?.profile_picture"
+                  :name="profile?.profile_data?.full_name"
+                  size="xl"
+                  class="mb-4"
+                />
+                <div class="profile-picture-overlay">
+                  <label class="cursor-pointer w-full h-full flex items-center justify-center">
+                    <span class="text-white text-sm">
+                      {{ updating ? 'Uploading...' : 'Change Picture' }}
+                    </span>
+                    <input
+                      type="file"
+                      class="hidden"
+                      accept="image/*"
+                      @change="handlePictureUpload"
+                      :disabled="updating"
+                    />
+                  </label>
+                </div>
+              </div>
+              <p v-if="pictureError" class="mt-2 text-sm text-red-600 text-center">
+                {{ pictureError }}
+              </p>
+            </div>
             <div>
               <h1 class="text-2xl font-bold text-gray-900">
                 Welcome back, {{ profile?.profile_data?.full_name || 'User' }}!
@@ -30,127 +53,87 @@
                 Last active: {{ formatDate(profile?.profile_data?.last_active) }}
               </p>
             </div>
-            <div class="flex items-center space-x-4">
-              <router-link 
-                to="/profile/achievements" 
-                class="text-primary-600 hover:text-primary-700"
-              >
-                View Achievements
-              </router-link>
-              <router-link 
-                to="/profile/stats" 
-                class="text-primary-600 hover:text-primary-700"
-              >
-                Learning Stats
-              </router-link>
-              <button
-                @click="showSettings = true"
-                class="text-gray-600 hover:text-gray-800"
-              >
-                <cog-icon class="w-6 h-6" />
-              </button>
-            </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Left Column -->
-      <div class="lg:col-span-4 space-y-8">
-        <!-- Profile Info -->
-        <ProfileInfo 
-          :profile="profile?.profile_data"
-          :loading="updating"
-          @update="handleProfileUpdate"
-          @upload-picture="handlePictureUpload"
-          @delete-account="handleDeleteAccount"
-        />
-
-        <!-- Level & Progress -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-semibold mb-4">Current Level</h2>
-          <div class="space-y-4">
-            <ProgressCircle
-              title="Overall Progress"
-              :progress="profile?.current_level?.overall_progress || 0"
-              :color="profile?.current_level?.animations?.circle_color"
-            />
-            <div class="text-center">
-              <p class="text-sm text-gray-600">
-                Points to next level: {{ pointsToNextLevel }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick Stats -->
-        <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-semibold mb-4">Quick Stats</h2>
-          <div class="space-y-4">
-            <QuickStat
-              label="Total Points"
-              :value="profile?.learning_stats?.total_points || 0"
-              icon="TrophyIcon"
-            />
-            <QuickStat
-              label="Current Streak"
-              :value="profile?.learning_stats?.streak?.current_streak || 0"
-              icon="FireIcon"
-              suffix="days"
-            />
-            <QuickStat
-              label="Achievements"
-              :value="(profile?.learning_stats?.achievements || []).length"
-              icon="StarIcon"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column -->
-      <div class="lg:col-span-8 space-y-8">
-        <!-- Progress Overview -->
-        <LearningProgress 
-          :stats="profile?.learning_stats"
-          :current-level="profile?.current_level"
-          :loading="loading"
-        />
-        
-        <!-- Learning Statistics -->
-        <LearningStatistics 
-          :stats="profile?.learning_stats"
-          :loading="loading"
-        />
-        
-        <!-- Recent Activities -->
-        <ActivityFeed 
-          :activities="profile?.recent_activities"
-          :loading="loading"
-          :has-more="hasMoreActivities"
-          @load-more="loadMoreActivities"
-        />
-
-        <!-- Recent Achievements -->
-        <div v-if="profile?.learning_stats?.achievements?.length" class="bg-white rounded-lg shadow p-6">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-semibold">Recent Achievements</h2>
+          <div class="flex items-center space-x-4">
             <router-link 
-              to="/profile/achievements"
-              class="text-sm text-primary-600 hover:text-primary-700"
+              to="/profile/learning" 
+              class="text-primary-600 hover:text-primary-700"
             >
-              View All
+              Start Learning
             </router-link>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Achievement
-              v-for="achievement in recentAchievements"
-              :key="achievement.id"
-              :achievement="achievement"
-            />
+            <router-link 
+              to="/profile/achievements" 
+              class="text-primary-600 hover:text-primary-700"
+            >
+              Achievements
+            </router-link>
+            <router-link 
+              to="/profile/stats" 
+              class="text-primary-600 hover:text-primary-700"
+            >
+              Stats
+            </router-link>
+            <button
+              @click="showSettings = true"
+              class="text-gray-600 hover:text-gray-800"
+            >
+              <CogIcon class="w-6 h-6" />
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Settings Modal -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4 space-y-8">
+          <ProfileInfo 
+            :profile="profile?.profile_data"
+            :loading="updating"
+            @update="handleProfileUpdate"
+            @delete-account="handleDeleteAccount"
+          />
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Current Level</h2>
+            <div class="space-y-4">
+              <ProgressCircle
+                title="Overall Progress"
+                :progress="profile?.current_level?.overall_progress || 0"
+                :color="profile?.current_level?.animations?.circle_color"
+              />
+              <div class="text-center">
+                <p class="text-sm text-gray-600">
+                  Points to next level: {{ pointsToNextLevel }}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Quick Stats</h2>
+            <div class="space-y-4">
+              <QuickStat
+                label="Total Points"
+                :value="profile?.learning_stats?.total_points || 0"
+                icon="TrophyIcon"
+              />
+              <QuickStat
+                label="Current Streak"
+                :value="profile?.learning_stats?.streak?.current_streak || 0"
+                icon="FireIcon"
+                suffix="days"
+              />
+              <QuickStat
+                label="Achievements"
+                :value="(profile?.learning_stats?.achievements || []).length"
+                icon="StarIcon"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-8">
+          <router-view></router-view>
+        </div>
+      </div>
+
       <ProfileSettingsModal
         v-if="showSettings"
         :profile="profile?.profile_data"
@@ -159,51 +142,45 @@
         @update="handleSettingsUpdate"
       />
 
-      <!-- Debug Component -->
-      <div v-if="isDevelopment" class="lg:col-span-12">
-        <DebugComponent :data="debugData" />
-      </div>
-    </div>
+      <TransitionRoot appear :show="showCelebration" as="template">
+        <Dialog as="div" @close="closeCelebration" class="relative z-50">
+          <TransitionChild
+            enter="ease-out duration-300"
+            enter-from="opacity-0"
+            enter-to="opacity-100"
+            leave="ease-in duration-200"
+            leave-from="opacity-100"
+            leave-to="opacity-0"
+          >
+            <div class="fixed inset-0 bg-black bg-opacity-25" />
+          </TransitionChild>
 
-    <!-- Celebration Modal -->
-    <TransitionRoot appear :show="showCelebration" as="template">
-      <Dialog as="div" @close="closeCelebration" class="relative z-50">
-        <TransitionChild
-          enter="ease-out duration-300"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="ease-in duration-200"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black bg-opacity-25" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              enter="ease-out duration-300"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
-                  🎉 Achievement Unlocked!
-                </DialogTitle>
-                <div class="mt-2">
-                  <p class="text-sm text-gray-500">
-                    Congratulations! You've reached a new milestone.
-                  </p>
-                </div>
-              </DialogPanel>
-            </TransitionChild>
+          <div class="fixed inset-0 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+              <TransitionChild
+                enter="ease-out duration-300"
+                enter-from="opacity-0 scale-95"
+                enter-to="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leave-from="opacity-100 scale-100"
+                leave-to="opacity-0 scale-95"
+              >
+                <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
+                    🎉 Achievement Unlocked!
+                  </DialogTitle>
+                  <div class="mt-2">
+                    <p class="text-sm text-gray-500">
+                      Congratulations! You've reached a new milestone.
+                    </p>
+                  </div>
+                </DialogPanel>
+              </TransitionChild>
+            </div>
           </div>
-        </div>
-      </Dialog>
-    </TransitionRoot>
+        </Dialog>
+      </TransitionRoot>
+    </div>
   </div>
 </template>
 
@@ -218,51 +195,28 @@ import { useAuthStore } from '@/stores/auth';
 import type { 
   ProfileResponse, 
   ProfileUpdate,
-  ProfileDebugData,
-  Achievement as AchievementType
+  ProfileSettings
 } from '@/types/profile';
 
-// Component imports
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import ProfileInfo from '@/components/profile/ProfileInfo.vue';
-import LearningProgress from '@/components/profile/LearningProgress.vue';
-import LearningStatistics from '@/components/profile/LearningStatistics.vue';
-import ActivityFeed from '@/components/profile/ActivityFeed.vue';
-import Achievement from '@/components/achievements/Achievement.vue';
 import ProgressCircle from '@/components/profile/ProgressCircle.vue';
 import QuickStat from '@/components/profile/QuickStat.vue';
 import ProfileSettingsModal from '@/components/profile/ProfileSettingsModal.vue';
-import DebugComponent from '@/components/common/DebugComponent.vue';
+import Avatar from '@/components/common/Avatar.vue';
 
-// Store and router setup
 const router = useRouter();
 const toast = useToast();
 const profileStore = useProfileStore();
 const authStore = useAuthStore();
 
-// State
 const loading = ref(true);
 const updating = ref(false);
 const error = ref<string | null>(null);
 const profile = ref<ProfileResponse | null>(null);
-const activitiesPage = ref(1);
 const showSettings = ref(false);
 const showCelebration = ref(false);
-
-// Computed properties
-const isDevelopment = computed(() => import.meta.env.MODE === 'development');
-
-const debugData = computed<ProfileDebugData>(() => ({
-  profile: profile.value,
-  loading: loading.value,
-  error: error.value,
-  updating: updating.value
-}));
-
-const hasMoreActivities = computed(() => {
-  if (!profile.value?.recent_activities) return false;
-  return profile.value.recent_activities.length >= 20 * activitiesPage.value;
-});
+const pictureError = ref<string | null>(null);
 
 const pointsToNextLevel = computed(() => {
   if (!profile.value?.learning_stats?.total_points) return 0;
@@ -271,11 +225,6 @@ const pointsToNextLevel = computed(() => {
   return nextLevelPoints - currentPoints;
 });
 
-const recentAchievements = computed(() => {
-  return profile.value?.learning_stats?.achievements?.slice(0, 4) || [];
-});
-
-// Methods
 const formatDate = (date: string | Date | undefined, showTime = false) => {
   if (!date) return 'N/A';
   
@@ -300,8 +249,6 @@ const loadProfile = async () => {
     error.value = null;
     await profileStore.fetchProfile();
     profile.value = profileStore.profile;
-
-    // Check for celebrations
     if (profile.value?.current_level?.animations?.celebration) {
       showCelebration.value = true;
     }
@@ -326,16 +273,44 @@ const handleProfileUpdate = async (data: ProfileUpdate) => {
   }
 };
 
-const handlePictureUpload = async (file: File) => {
+const handlePictureUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  
+  if (!file) return;
+
+  pictureError.value = null;
+
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+  if (!allowedTypes.includes(file.type)) {
+    pictureError.value = 'Please upload a valid image file (JPEG, PNG, or GIF)';
+    input.value = '';
+    return;
+  }
+
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    pictureError.value = 'File size must be less than 5MB';
+    input.value = '';
+    return;
+  }
+
   try {
     updating.value = true;
-    await profileStore.uploadProfilePicture(file);
-    profile.value = profileStore.profile;
-    toast.success('Profile picture updated successfully');
+    const response = await profileStore.uploadProfilePicture(file);
+    if (response.success) {
+      profile.value = await profileStore.fetchProfile();
+      toast.success('Profile picture updated successfully');
+    } else {
+      throw new Error('Failed to update profile picture');
+    }
   } catch (err) {
+    console.error('Upload error:', err);
+    pictureError.value = err instanceof Error ? err.message : 'Failed to upload profile picture';
     toast.error('Failed to upload profile picture');
   } finally {
     updating.value = false;
+    input.value = '';
   }
 };
 
@@ -371,19 +346,6 @@ const handleDeleteAccount = async () => {
   }
 };
 
-const loadMoreActivities = async () => {
-  try {
-    activitiesPage.value++;
-    await profileStore.fetchActivityFeed(20, (activitiesPage.value - 1) * 20);
-    if (profileStore.profile) {
-      profile.value = profileStore.profile;
-    }
-  } catch (err) {
-    toast.error('Failed to load more activities');
-    activitiesPage.value--;
-  }
-};
-
 const retryLoading = () => {
   loadProfile();
 };
@@ -392,12 +354,10 @@ const closeCelebration = () => {
   showCelebration.value = false;
 };
 
-// Lifecycle hooks
 onMounted(() => {
   loadProfile();
 });
 
-// Watch for profile changes
 watch(() => profile.value?.current_level?.animations?.celebration, (newValue) => {
   if (newValue) {
     showCelebration.value = true;
@@ -407,18 +367,31 @@ watch(() => profile.value?.current_level?.animations?.celebration, (newValue) =>
 
 <style scoped>
 .profile-page {
-  min-height: calc(100vh - 64px); /* Adjust based on your header height */
+  min-height: calc(100vh - 64px);
 }
 
-.celebration-modal {
-  @apply fixed inset-0 z-50 overflow-y-auto;
+.profile-picture-container {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  margin: 0 auto;
 }
 
-.modal-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-25;
+.profile-picture-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 0.75rem;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-.modal-content {
-  @apply relative bg-white rounded-lg mx-auto mt-10 max-w-md p-6;
+.profile-picture-container:hover .profile-picture-overlay {
+  opacity: 1;
 }
 </style>

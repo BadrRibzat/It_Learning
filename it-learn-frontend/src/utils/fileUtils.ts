@@ -48,7 +48,7 @@ export const compressImage = async (file: File, maxSize: number = MAX_FILE_SIZE)
           0.7
         );
       };
-      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onerror = () => { reject(new Error('Failed to load image')); };
     };
     reader.onerror = () => reject(new Error('Failed to read file'));
   });

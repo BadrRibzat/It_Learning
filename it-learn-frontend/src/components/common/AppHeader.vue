@@ -2,14 +2,12 @@
   <header class="bg-white shadow-sm">
     <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
       <div class="flex h-16 items-center justify-between">
-        <!-- Logo and Main Navigation -->
         <div class="flex items-center">
           <RouterLink to="/" class="flex items-center">
             <span class="sr-only">IT Learning</span>
             <img class="h-8 w-auto" src="@/assets/logo.svg" alt="IT Learning" />
           </RouterLink>
           
-          <!-- Main Navigation - Desktop -->
           <div class="ml-10 hidden space-x-8 lg:block">
             <RouterLink
               v-for="item in navigation"
@@ -23,17 +21,64 @@
           </div>
         </div>
 
-        <!-- Right Navigation -->
         <div class="flex items-center">
-          <!-- Auth Buttons - Desktop -->
           <div class="hidden lg:flex lg:items-center lg:space-x-6">
             <template v-if="isAuthenticated">
               <div class="relative">
-                <UserMenu 
-                  :user="user"
-                  @logout="handleLogout"
-                  @delete-account="handleDeleteAccount"
-                />
+                <Menu as="div" class="relative inline-block text-left">
+                  <MenuButton
+                    class="flex items-center space-x-2 text-sm text-gray-700 hover:text-primary-600 focus:outline-none"
+                  >
+                    <span>{{ user?.full_name }}</span>
+                    <ChevronDownIcon class="h-4 w-4" />
+                  </MenuButton>
+                  <transition
+                    enter-active-class="transition ease-out duration-100"
+                    enter-from-class="transform opacity-0 scale-95"
+                    enter-to-class="transform opacity-100 scale-100"
+                    leave-active-class="transition ease-in duration-75"
+                    leave-from-class="transform opacity-100 scale-100"
+                    leave-to-class="transform opacity-0 scale-95"
+                  >
+                    <MenuItems
+                      class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    >
+                      <MenuItem v-slot="{ active }">
+                        <RouterLink
+                          to="/profile"
+                          :class="[
+                            active ? 'bg-gray-100' : '',
+                            'block px-4 py-2 text-sm text-gray-700'
+                          ]"
+                        >
+                          Profile
+                        </RouterLink>
+                      </MenuItem>
+                      <MenuItem v-slot="{ active }">
+                        <RouterLink
+                          to="/profile/settings"
+                          :class="[
+                            active ? 'bg-gray-100' : '',
+                            'block px-4 py-2 text-sm text-gray-700'
+                          ]"
+                        >
+                          Settings
+                        </RouterLink>
+                      </MenuItem>
+                      <MenuItem v-slot="{ active }">
+                        <button
+                          @click="handleLogout"
+                          :class="[
+                            active ? 'bg-gray-100' : '',
+                            'block w-full px-4 py-2 text-left text-sm text-gray-700'
+                          ]"
+                        >
+                          Sign out
+                        </button>
+                      </MenuItem>
+                    </MenuItems>
+                  </transition>
+                </Menu>
               </div>
             </template>
             <template v-else>
@@ -52,7 +97,6 @@
             </template>
           </div>
 
-          <!-- Mobile menu button -->
           <div class="flex lg:hidden">
             <button
               type="button"
@@ -69,7 +113,6 @@
         </div>
       </div>
 
-      <!-- Mobile Navigation -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform scale-95 opacity-0"
@@ -95,7 +138,6 @@
               {{ item.name }}
             </RouterLink>
             
-            <!-- Mobile Auth Links -->
             <template v-if="!isAuthenticated">
               <RouterLink
                 to="/login"
@@ -152,7 +194,7 @@ import {
   XMarkIcon,
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline';
-import UserMenu from './UserMenu.vue';
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -190,20 +232,6 @@ const handleLogout = async () => {
     toast.success('Successfully logged out');
   } catch (error) {
     toast.error('Failed to log out');
-  }
-};
-
-const handleDeleteAccount = async () => {
-  if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-    try {
-      await profileStore.deleteAccount();
-      await authStore.logout();
-      closeMobileMenu();
-      router.push('/');
-      toast.success('Your account has been successfully deleted');
-    } catch (error) {
-      toast.error('Failed to delete account');
-    }
   }
 };
 
