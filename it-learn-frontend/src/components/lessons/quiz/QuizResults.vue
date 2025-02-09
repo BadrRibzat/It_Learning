@@ -1,125 +1,166 @@
+<script setup lang="ts">
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useNotificationStore } from '@/stores/notification';
+import { useProfileStore } from '@/stores/profile';
+import { useLessonsStore } from '@/stores/lessons';
+import { ProgressTracker } from '@/utils/progressTracker';
+import type { QuizSubmissionResponse } from '@/types/lessons';
+
+const props = defineProps<{
+  results: QuizSubmissionResponse;
+}>();
+
+const emit = defineEmits<{
+  (e: 'retry'): void;
+}>();
+
+const router = useRouter();
+const notificationStore = useNotificationStore();
+const profileStore = useProfileStore();
+const lessonsStore = useLessonsStore();
+
+const logQuizCompletion = () => {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] Quiz completed by BadrRibzat - Score: ${props.results.score}%`);
+};
+
+const handleQuizCompletion = async () => {
+  if (props.results.passed) {
+    notificationStore.success(
+      `Congratulations! You passed with ${props.results.score}% and earned ${props.results.points_earned} points!`
+    );
+
+    await profileStore.updateLearningStats({
+      points_earned: props.results.points_earned,
+      correct_answers: props.results.correct_answers,
+      total_questions: props.results.total_questions,
+      completed_lessons: props.results.next_lesson_unlocked ? 1 : 0
+    });
+
+    if (props.results.next_lesson_unlocked) {
+      notificationStore.info('New lesson unlocked! Keep up the great work!');
+      await profileStore.checkAchievements('lesson_completion');
+    }
+
+    await profileStore.trackActivity('quiz_complete', {
+      score: props.results.score,
+      points_earned: props.results.points_earned,
+      timestamp: new Date().toISOString(),
+      completed_by: 'BadrRibzat'
+    });
+  } else {
+    notificationStore.warning(
+      `You need ${props.results.passing_score}% to pass. Keep practicing!`
+    );
+  }
+};
+
+const goToNextLesson = async () => {
+  try {
+    await ProgressTracker.updateProgress('quiz', props.results);
+    router.push({
+      name: 'lesson',
+      params: { 
+        lessonId: props.results.next_lesson_id 
+      }
+    });
+  } catch (error) {
+    notificationStore.error('Failed to proceed to next lesson. Please try again.');
+  }
+};
+
+const retryQuiz = () => {
+  notificationStore.info('Starting quiz again. Good luck!');
+  emit('retry');
+};
+
+onMounted(async () => {
+  logQuizCompletion();
+  await handleQuizCompletion();
+});
+</script>
+
 <template>
-  <div class="quiz-results bg-white rounded-lg shadow p-6">
+  <div class="quiz-results bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
     <div class="text-center mb-8">
-      <h2 class="text-2xl font-bold text-gray-900">Quiz Results</h2>
-      <p class="text-gray-600 mt-2">
-        You've completed the lesson quiz!
-      </p>
-    </div>
-
-    <div class="grid grid-cols-3 gap-6 mb-8">
-      <QuickStat
-        label="Score"
-        :value="score"
-        suffix="%"
-        icon="AcademicCapIcon"
-      />
-      <QuickStat
-        label="Correct Answers"
-        :value="correctAnswers"
-        :total="totalQuestions"
-        icon="CheckCircleIcon"
-      />
-      <QuickStat
-        label="Time Taken"
-        :value="formattedTime"
-        type="text"
-        icon="ClockIcon"
-      />
-    </div>
-
-    <div class="space-y-6">
-      <h3 class="text-lg font-semibold text-gray-900">Question Review</h3>
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">
+        Quiz Results
+      </h2>
       
+      <div class="flex justify-center items-center space-x-4 mb-6">
+        <div class="text-4xl font-bold" 
+             :class="results.passed ? 'text-green-600' : 'text-red-600'">
+          {{ results.score }}%
+        </div>
+        <div class="text-lg text-gray-600">
+          {{ results.correct_answers }}/{{ results.total_questions }} Correct
+        </div>
+      </div>
+
+      <div class="points-earned mb-6">
+        <span class="text-xl font-semibold text-primary-600">
+          +{{ results.points_earned }} points earned
+        </span>
+      </div>
+    </div>
+
+    <div class="question-review mb-8">
+      <h3 class="text-lg font-semibold mb-4">Question Review</h3>
       <div class="space-y-4">
-        <div 
-          v-for="(answer, index) in answers" 
-          :key="index"
-          class="p-4 rounded-lg"
-          :class="answer.isCorrect ? 'bg-green-50' : 'bg-red-50'"
-        >
-          <div class="flex items-start justify-between">
-            <div>
-              <p class="font-medium text-gray-900">
-                Question {{ index + 1 }}
-              </p>
-              <p class="text-sm text-gray-600 mt-1">
-                {{ answer.question }}
-              </p>
-            </div>
-            <span 
-              class="px-2 py-1 text-sm rounded"
-              :class="answer.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-            >
-              {{ answer.isCorrect ? 'Correct' : 'Incorrect' }}
+        <div v-for="(qa, index) in results.questions_with_answers" 
+             :key="index"
+             class="p-4 rounded-lg"
+             :class="qa.is_correct ? 'bg-green-50' : 'bg-red-50'">
+          <div class="flex justify-between mb-2">
+            <span class="font-medium">Question {{ index + 1 }}</span>
+            <span :class="qa.is_correct ? 'text-green-600' : 'text-red-600'">
+              {{ qa.is_correct ? 'Correct' : 'Incorrect' }}
             </span>
           </div>
-          
-          <div class="mt-3 text-sm">
-            <p class="text-gray-600">Your answer: {{ answer.userAnswer }}</p>
-            <p v-if="!answer.isCorrect" class="text-gray-600 mt-1">
-              Correct answer: {{ answer.correctAnswer }}
-            </p>
-          </div>
+          <p class="text-gray-700 mb-2">{{ qa.question }}</p>
+          <p class="text-sm">
+            <span class="text-gray-600">Your answer: </span>
+            <span :class="qa.is_correct ? 'text-green-600' : 'text-red-600'">
+              {{ qa.user_answer }}
+            </span>
+          </p>
+          <p v-if="!qa.is_correct" class="text-sm text-gray-600 mt-1">
+            Correct answer: {{ qa.correct_answer }}
+          </p>
         </div>
       </div>
     </div>
 
-    <div class="mt-8 flex justify-center space-x-4">
-      <button
-        v-if="passed"
-        @click="$emit('continue')"
-        class="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-      >
+    <div class="flex justify-center space-x-4">
+      <button v-if="results.passed && results.next_lesson_unlocked"
+              @click="goToNextLesson"
+              class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
         Continue to Next Lesson
       </button>
-      <button
-        v-else
-        @click="$emit('retry')"
-        class="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-      >
-        Retry Quiz
+      
+      <button v-if="!results.passed"
+              @click="retryQuiz"
+              class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+        Try Again
       </button>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue';
-import { 
-  AcademicCapIcon, 
-  CheckCircleIcon, 
-  ClockIcon 
-} from '@heroicons/vue/24/outline';
-import QuickStat from '@/components/profile/QuickStat.vue';
-
-interface Answer {
-  question: string;
-  userAnswer: string;
-  correctAnswer: string;
-  isCorrect: boolean;
-  timeSpent: number;
+<style scoped>
+.quiz-results {
+  animation: fadeIn 0.5s ease-out;
 }
 
-const props = defineProps<{
-  answers: Answer[];
-  totalTime: number;
-  passingScore: number;
-}>();
-
-const emit = defineEmits<{
-  (e: 'continue'): void;
-  (e: 'retry'): void;
-}>();
-
-const totalQuestions = computed(() => props.answers.length);
-const correctAnswers = computed(() => props.answers.filter(a => a.isCorrect).length);
-const score = computed(() => Math.round((correctAnswers.value / totalQuestions.value) * 100));
-const passed = computed(() => score.value >= props.passingScore);
-
-const formattedTime = computed(() => {
-  const minutes = Math.floor(props.totalTime / 60);
-  const seconds = props.totalTime % 60;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-});
-</script>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

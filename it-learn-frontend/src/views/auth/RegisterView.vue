@@ -15,14 +15,6 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
 import RegisterForm from '@/components/auth/RegisterForm.vue';
-
-export default defineComponent({
-  name: 'RegisterView',
-  components: {
-    RegisterForm
-  }
-});
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="lesson-view space-y-8">
+  <div class="lesson-view space-y-8" v-if="currentLesson">
     <div v-if="loading" class="flex justify-center items-center py-12">
       <LoadingSpinner />
     </div>

@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6">
+  <div class="bg-white rounded-lg shadow p-6" v-if="totalSteps > 0">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-xl font-bold text-gray-900">Lesson Content</h2>
       <LearningTimer 
