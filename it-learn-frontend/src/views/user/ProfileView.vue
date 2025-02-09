@@ -83,6 +83,14 @@
         </div>
       </div>
 
+      <router-link
+  to="/profile/settings"
+  class="text-primary-600 hover:text-primary-700 flex items-center space-x-2"
+>
+  <CogIcon class="h-5 w-5" />
+  <span>Settings</span>
+</router-link>
+
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4 space-y-8">
           <ProfileInfo 

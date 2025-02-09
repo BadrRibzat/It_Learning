@@ -104,6 +104,8 @@ def populate_initial_data():
                             'type': 'fill_blank',
                             'question': f'What is the purpose of {flashcard["command"]}?',
                             'answer': flashcard["command"],
+                            'command': flashcard["command"],
+                            'flashcard_id': str(flashcard["_id"]),
                             'order': j + 1,
                             'created_at': datetime.utcnow()
                         }

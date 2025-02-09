@@ -1,4 +1,13 @@
 // Base Types
+export interface Level {
+  id: string;
+  name: string;
+  order: number;
+  is_unlocked: boolean;
+  is_current: boolean;
+ }
+
+
 export interface Flashcard {
   id: string;
   command: string;
@@ -23,14 +32,6 @@ export interface Lesson {
   };
 }
 
-export interface Question {
-  id: string;
-  type: 'fill_blank' | 'multiple_choice';
-  question: string;
-  answer?: string;
-  order: number;
-}
-
 export interface Quiz {
   id: string;
   lesson_id: string;
@@ -39,17 +40,14 @@ export interface Quiz {
   passing_score: number;
 }
 
-export interface Level {
+export interface Question {
   id: string;
-  name: string;
+  type: 'fill_blank';
+  question: string;
+  answer: string;
+  command: string;
+  flashcard_id: string;
   order: number;
-  is_unlocked: boolean;
-  is_current: boolean;
-}
-
-// Request/Response Types
-export interface QuizSubmission {
-  answers: string[];
 }
 
 export interface QuizSubmissionResponse {
@@ -59,6 +57,33 @@ export interface QuizSubmissionResponse {
   passed: boolean;
   next_lesson_unlocked: boolean;
   points_earned: number;
+  quiz_completed: boolean;
+  quiz_score: number;
+  questions_with_answers: Array<{
+    question_id: string;
+    question: string;
+    user_answer: string;
+    correct_answer: string;
+    is_correct: boolean;
+  }>;
+}
+
+export interface QuizSubmission {
+  answers: string[];
+  total_time?: number;
+  score?: number;
+}
+
+export interface QuizProgress {
+  current_question: number;
+  time_spent: number;
+  answers: Array<{
+    question: string;
+    userAnswer: string;
+    correctAnswer: string;
+    isCorrect: boolean;
+    timeSpent: number;
+  }>;
 }
 
 export interface FlashcardAnswer {

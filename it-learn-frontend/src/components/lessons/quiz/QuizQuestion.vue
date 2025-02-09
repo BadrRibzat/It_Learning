@@ -1,55 +1,42 @@
 <template>
-  <div class="quiz-question bg-white rounded-lg shadow p-6">
-    <div class="space-y-6">
-      <div class="question-header flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900">
-          Question {{ order }} of {{ total }}
-        </h3>
-        <span 
-          class="px-3 py-1 text-sm rounded-full"
-          :class="statusClass"
-        >
-          {{ timeRemaining }}
-        </span>
+  <div class="quiz-question space-y-6 bg-white rounded-lg shadow p-6">
+    <div class="flex items-center justify-between">
+      <span class="text-sm text-gray-500">
+        Question {{ order }} of {{ total }}
+      </span>
+      <div class="text-sm text-gray-500">
+        Time remaining: {{ formattedTimeLeft }}
       </div>
+    </div>
 
-      <div class="question-content space-y-4">
-        <p class="text-gray-700">{{ question.question }}</p>
-        
-        <div class="answer-input space-y-2">
-          <input
-            v-model="userAnswer"
-            type="text"
-            class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500"
-            :placeholder="'Type your answer...'"
-            :disabled="isSubmitted || isTimeUp"
-            @keyup.enter="submitAnswer"
-          />
-          
-          <div v-if="showFeedback" class="feedback-message">
-            <p :class="feedbackClass" class="mt-2 text-sm font-medium">
-              {{ feedbackMessage }}
-            </p>
-            <p v-if="isSubmitted && !isCorrect" class="mt-1 text-sm text-gray-600">
-              Correct answer: {{ question.answer }}
-            </p>
-          </div>
-        </div>
-      </div>
+    <div class="question-content space-y-4">
+      <h3 class="text-lg font-semibold text-gray-900">
+        {{ question.question }}
+      </h3>
 
-      <div class="flex justify-end space-x-4">
+      <div class="answer-input space-y-2">
+        <input
+          v-model="answer"
+          type="text"
+          class="w-full p-3 border border-gray-300 rounded-md"
+          placeholder="Type your answer..."
+          :disabled="hasSubmitted"
+          @keyup.enter="submitAnswer"
+        />
+
         <button
-          v-if="!isSubmitted && !isTimeUp"
+          v-if="!hasSubmitted"
           @click="submitAnswer"
-          class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50"
-          :disabled="!userAnswer"
+          class="w-full mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+          :disabled="!answer.trim()"
         >
           Submit Answer
         </button>
+
         <button
           v-else
-          @click="$emit('next')"
-          class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+          @click="handleNext"
+          class="w-full mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
         >
           Next Question
         </button>
@@ -59,14 +46,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import type { Question } from '@/types/lessons';
 
 const props = defineProps<{
   question: Question;
   order: number;
   total: number;
-  timeLimit?: number;
+  timeLimit: number;
 }>();
 
 const emit = defineEmits<{
@@ -75,61 +62,46 @@ const emit = defineEmits<{
   (e: 'timeout'): void;
 }>();
 
-const userAnswer = ref('');
-const isSubmitted = ref(false);
-const isCorrect = ref(false);
-const startTime = ref(Date.now());
-const remainingTime = ref(props.timeLimit || 60);
+const answer = ref('');
+const hasSubmitted = ref(false);
+const timeLeft = ref(props.timeLimit);
 let timer: number;
 
-const isTimeUp = computed(() => remainingTime.value <= 0);
-
-const timeRemaining = computed(() => {
-  if (isTimeUp.value) return 'Time\'s up!';
-  return `${remainingTime.value}s remaining`;
-});
-
-const statusClass = computed(() => {
-  if (isTimeUp.value) return 'bg-red-100 text-red-600';
-  if (remainingTime.value <= 10) return 'bg-yellow-100 text-yellow-600';
-  return 'bg-gray-100 text-gray-600';
-});
-
-const showFeedback = computed(() => isSubmitted.value || isTimeUp.value);
-
-const feedbackClass = computed(() => {
-  if (!showFeedback.value) return '';
-  return isCorrect.value ? 'text-green-600' : 'text-red-600';
-});
-
-const feedbackMessage = computed(() => {
-  if (!showFeedback.value) return '';
-  if (isTimeUp.value && !isSubmitted.value) return 'Time\'s up!';
-  return isCorrect.value ? 'Correct! Well done!' : 'Incorrect answer.';
+const formattedTimeLeft = computed(() => {
+  const minutes = Math.floor(timeLeft.value / 60);
+  const seconds = timeLeft.value % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 });
 
 const submitAnswer = () => {
-  if (isSubmitted.value || isTimeUp.value || !userAnswer.value) return;
+  if (!answer.value.trim() || hasSubmitted.value) return;
   
-  isSubmitted.value = true;
-  isCorrect.value = userAnswer.value.trim().toLowerCase() === props.question.answer.toLowerCase();
-  
-  const timeSpent = Math.round((Date.now() - startTime.value) / 1000);
-  emit('submit', userAnswer.value, timeSpent);
+  const timeSpent = props.timeLimit - timeLeft.value;
+  hasSubmitted.value = true;
+  emit('submit', answer.value, timeSpent);
+};
+
+const handleNext = () => {
+  emit('next');
+  hasSubmitted.value = false;
+  answer.value = '';
+  timeLeft.value = props.timeLimit;
 };
 
 onMounted(() => {
   timer = window.setInterval(() => {
-    if (remainingTime.value > 0 && !isSubmitted.value) {
-      remainingTime.value--;
-      if (remainingTime.value === 0) {
+    if (timeLeft.value > 0) {
+      timeLeft.value--;
+    } else {
+      clearInterval(timer);
+      if (!hasSubmitted.value) {
         emit('timeout');
       }
     }
   }, 1000);
 });
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   clearInterval(timer);
 });
 </script>

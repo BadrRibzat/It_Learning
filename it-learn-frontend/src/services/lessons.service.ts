@@ -82,26 +82,50 @@ class LessonService {
     try {
       const response: AxiosResponse<Quiz> = 
         await axios.get(`${API_URL}/lessons/${lessonId}/quiz`);
-      return response.data;
+    
+      // Also fetch flashcards if needed
+      const flashcardsResponse: AxiosResponse<Flashcard[]> = 
+        await axios.get(`${API_URL}/lessons/${lessonId}/flashcards`);
+    
+      // Merge quiz questions with flashcard answers
+      const quiz = response.data;
+      const flashcards = flashcardsResponse.data;
+    
+      quiz.questions = quiz.questions.map(question => {
+        const flashcard = flashcards.find(f => f.command === question.command);
+        return {
+          ...question,
+          answer: flashcard?.answer || question.answer
+        };
+      });
+    
+      return quiz;
     } catch (error) {
       this.handleError(error, 'Failed to fetch quiz');
       throw error;
     }
   }
 
-  static async submitQuiz(
-    lessonId: string, 
-    submission: QuizSubmission
-  ): Promise<QuizSubmissionResponse> {
-    try {
-      const response: AxiosResponse<QuizSubmissionResponse> = 
-        await axios.post(`${API_URL}/lessons/${lessonId}/quiz`, submission);
-      return response.data;
-    } catch (error) {
-      this.handleError(error, 'Failed to submit quiz');
-      throw error;
+    static async submitQuiz(
+      lessonId: string, 
+      submission: QuizSubmission
+    ): Promise<QuizSubmissionResponse> {
+      try {
+        const response: AxiosResponse<QuizSubmissionResponse> = 
+          await axios.post(`${API_URL}/lessons/${lessonId}/quiz`, {
+            answers: submission.answers,
+            total_time: submission.total_time,
+            score: submission.score
+          });
+        return response.data;
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          const message = error.response?.data?.message || 'Failed to submit quiz';
+          throw new Error(message);
+        }
+        throw error;
+      }
     }
-  }
 
   // Level Test Management
   static async getLevelTest(levelId: string): Promise<LevelTest> {

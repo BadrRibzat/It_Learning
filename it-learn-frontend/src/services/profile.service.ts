@@ -74,19 +74,6 @@ class ProfileService {
     }
   }
 
-  private static validateFile(file: File): void {
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
-
-    if (file.size > maxSize) {
-      throw new Error('File size exceeds 5MB limit');
-    }
-
-    if (!allowedTypes.includes(file.type)) {
-      throw new Error('Invalid file type. Only JPEG, PNG, and GIF are allowed');
-    }
-  }
-
   static async getPoints(): Promise<PointsResponse> {
     try {
       const response: AxiosResponse<PointsResponse> = await axios.get(`${API_URL}/points`);

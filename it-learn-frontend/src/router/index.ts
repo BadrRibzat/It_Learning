@@ -37,9 +37,13 @@ const router = createRouter({
               component: () => import('../components/profile/ProfileOverview.vue')
             },
             {
-              path: 'settings',
-              name: 'profile-settings',
-              component: () => import('../components/profile/ProfileSettings.vue')
+              path: '/profile/settings',
+              name: 'ProfileSettings',
+              component: () => import('@/views/user/ProfileSettingsView.vue'),
+              meta: {
+              requiresAuth: true,
+              title: 'Profile Settings'
+              }
             },
             {
               path: 'achievements',

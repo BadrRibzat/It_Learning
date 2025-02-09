@@ -103,6 +103,16 @@ def init_models(api):
         'animations': fields.Raw(description='Animation settings')
     })
 
+    settings_model = api.model('Settings', {
+        'notifications': fields.Raw(description='Notification preferences'),
+        'privacy': fields.Raw(description='Privacy settings'),
+        'preferred_language': fields.String(description='Preferred language')
+    })
+
+    settings_response = api.model('SettingsResponse', {
+        'settings': fields.Nested(settings_model)
+    })
+
     return {
         'achievement': achievement_model,
         'points_history': points_history_model,
@@ -115,5 +125,7 @@ def init_models(api):
         'profile_update': profile_update_model,
         'profile_upload_response': profile_upload_response,
         'points_response': points_response_model,
-        'progress_circle': progress_circle_model
+        'progress_circle': progress_circle_model,
+        'settings_response': settings_response,
+        'settings_update': settings_model
     }

@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
 import { useToast } from 'vue-toastification';
@@ -144,17 +144,38 @@ const handleAnswerSubmit = async (answer: string, questionTimeSpent: number) => 
   const question = currentQuestion.value;
   if (!question) return;
 
+  const correctAnswer = lessonsStore.findFlashcardAnswer(
+    question.command,
+    lessonId.value
+  );
+
+  const isCorrect = correctAnswer ? 
+    answer.trim().toLowerCase() === correctAnswer.toLowerCase() : 
+    false;
+
   userAnswers.value.push({
     question: question.question,
     userAnswer: answer,
-    correctAnswer: question.answer,
-    isCorrect: answer.trim().toLowerCase() === question.answer.toLowerCase(),
+    correctAnswer: correctAnswer || 'Not available',
+    isCorrect: isCorrect,
     timeSpent: questionTimeSpent
   });
 
   if (currentQuestionIndex.value === totalQuestions.value - 1) {
     showResults.value = true;
     await submitQuiz();
+  }
+};
+
+const getCorrectAnswer = async (questionId: string) => {
+  try {
+    const flashcard = lessonsStore.flashcards.find(f => 
+      f.question === currentQuestion.value?.question
+    );
+    return flashcard?.answer || null;
+  } catch (error) {
+    console.error('Error getting correct answer:', error);
+    return null;
   }
 };
 

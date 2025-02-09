@@ -17,6 +17,7 @@ export const useLessonsStore = defineStore('lessons', {
   state: (): LessonState => ({
     currentLevel: null,
     levels: [],
+    lessonFlashcards: new Map<string, Flashcard[]>(),
     currentLesson: null,
     lessons: [],
     currentFlashcard: null,
@@ -113,9 +114,11 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         this.loading = true;
         this.error = null;
-        this.flashcards = await LessonService.getFlashcards(lessonId);
-        if (this.flashcards.length > 0) {
-          this.currentFlashcard = this.flashcards[0];
+        const flashcards = await LessonService.getFlashcards(lessonId);
+        this.flashcards = flashcards;
+        this.lessonFlashcards.set(lessonId, flashcards);
+        if (flashcards.length > 0) {
+          this.currentFlashcard = flashcards[0];
         }
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Failed to fetch flashcards';
@@ -149,7 +152,17 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         this.loading = true;
         this.error = null;
+        if (!this.lessonFlashcards.has(lessonId)) {
+          await this.fetchFlashcards(lessonId);
+        }
         this.currentQuiz = await LessonService.getQuiz(lessonId);
+        
+        if (this.currentQuiz) {
+          this.currentQuiz.questions = this.currentQuiz.questions.map(q => ({
+            ...q,
+            answer: this.findFlashcardAnswer(q.command, lessonId) || q.answer
+          }));
+        }
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Failed to fetch quiz';
         throw error;
@@ -158,26 +171,71 @@ export const useLessonsStore = defineStore('lessons', {
       }
     },
 
-    async submitQuiz(lessonId: string, submission: QuizSubmission) {
+    findFlashcardAnswer(command: string, lessonId: string): string | null {
+      const flashcards = this.lessonFlashcards.get(lessonId);
+      const flashcard = flashcards?.find(f => f.command === command);
+      return flashcard?.answer || null;
+    }
+  },
+
+    async submitQuizResults(lessonId: string, results: {
+      answers: Array<{
+        question: string;
+        userAnswer: string;
+        correctAnswer: string;
+        isCorrect: boolean;
+        timeSpent: number;
+      }>;
+      total_time: number;
+      score: number;
+      passed: boolean;
+    }) {
       try {
         this.loading = true;
         this.error = null;
-        const response = await LessonService.submitQuiz(lessonId, submission);
-        
-        if (response.next_lesson_unlocked) {
-          await this.fetchLessons(this.currentLevel?.id || '');
+    
+        const submission = {
+          answers: results.answers.map(a => a.userAnswer),
+          total_time: results.total_time,
+          score: results.score
+        };
+
+        await LessonService.submitQuiz(lessonId, submission);
+
+        // Update local progress
+        if (this.currentLesson) {
+          this.currentLesson.progress = {
+            ...this.currentLesson.progress,
+            quiz_completed: true,
+            quiz_score: results.score
+          };
         }
-        
-        return response;
+
+        return true;
       } catch (error) {
-        this.error = error instanceof Error ? error.message : 'Failed to submit quiz';
+        this.error = error instanceof Error ? error.message : 'Failed to submit quiz results';
         throw error;
       } finally {
         this.loading = false;
       }
     },
 
-    // Add this method to src/stores/lessons.ts
+    async saveQuizProgress(lessonId: string, progress: {
+      current_question: number;
+      time_spent: number;
+      answers: Array<{
+        question: string;
+        userAnswer: string;
+        correctAnswer: string;
+        isCorrect: boolean;
+        timeSpent: number;
+      }>;
+    }) {
+      // This can be implemented if you want to save progress
+      // For now, we'll just return true
+      return true;
+    },
+
     async completeLesson(lessonId: string) {
       try {
         this.loading = true;

@@ -448,3 +448,74 @@ class DeleteAccount(Resource):
         except Exception as e:
             logger.error(f"Account deletion error: {str(e)}")
             raise AppError("Failed to delete account", 500)
+
+@profile_ns.route('/settings')
+class Settings(Resource):
+    @jwt_required()
+    @profile_ns.marshal_with(profile_models['settings_response'])
+    @profile_ns.doc(
+        description='Get user settings',
+        security='Bearer Auth',
+        responses={
+            200: 'Success',
+            401: 'Unauthorized',
+            404: 'Settings not found',
+            500: 'Server error'
+        }
+    )
+    def get(self):
+        """Get user's settings"""
+        try:
+            user_id = get_jwt_identity()
+            profile = db.profiles.find_one({'user_id': ObjectId(user_id)})
+            
+            if not profile:
+                raise AppError("Profile not found", 404)
+            
+            settings = profile.get('settings', {
+                'notifications': {
+                    'achievements': True,
+                    'progress': True,
+                    'streaks': True
+                },
+                'privacy': {
+                    'public_profile': True,
+                    'show_achievements': True,
+                    'show_activity': True
+                },
+                'preferred_language': profile.get('preferred_language', 'en')
+            })
+            
+            return {'settings': settings}
+            
+        except AppError as e:
+            raise e
+        except Exception as e:
+            logger.error(f"Error fetching settings: {str(e)}")
+            raise AppError("Failed to fetch settings", 500)
+
+    @jwt_required()
+    @profile_ns.expect(profile_models['settings_update'])
+    @profile_ns.marshal_with(profile_models['settings_response'])
+    def put(self):
+        """Update user settings"""
+        try:
+            user_id = get_jwt_identity()
+            settings = profile_ns.payload
+            
+            result = db.profiles.update_one(
+                {'user_id': ObjectId(user_id)},
+                {'$set': {'settings': settings}},
+                upsert=True
+            )
+            
+            if not result.acknowledged:
+                raise AppError("Failed to update settings", 500)
+            
+            return {'settings': settings}
+            
+        except AppError as e:
+            raise e
+        except Exception as e:
+            logger.error(f"Error updating settings: {str(e)}")
+            raise AppError("Failed to update settings", 500)
