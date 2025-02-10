@@ -84,6 +84,19 @@
               Complete Lesson
             </button>
           </div>
+          <div v-else-if="isLastCard" class="text-center">
+            <p>All flashcards completed!</p>
+            <p>Final Score: {{ accuracy }}% accuracy, {{ totalPoints }} points earned</p>
+            <button
+              @click="router.push({
+                name: 'quiz',
+                params: { levelId: levelId.value, lessonId: lessonId.value },
+              })"
+              class="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+            >
+              Go to Quiz
+            </button>
+          </div>
         </div>
       </div>
     </template>
@@ -102,7 +115,7 @@ import { useLessonsStore } from '@/stores/lessons';
 import { useToast } from 'vue-toastification';
 import { 
     ArrowLeftIcon,
-    ClipboardListIcon,
+    ClipboardIcon,
     ClockIcon,
     ChartBarIcon
 } from '@heroicons/vue/24/outline';
@@ -136,6 +149,7 @@ const timeSpent = ref(0);
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 const levelId = computed(() => route.params.levelId as string);
 const lessonId = computed(() => route.params.lessonId as string);
+const accuracy = computed(() => (correctAnswers.value / totalFlashcards.value) * 100);
 const currentFlashcard = computed(() => lessonsStore.flashcards[currentIndex.value]);
 const totalFlashcards = computed(() => lessonsStore.flashcards.length);
 const isLastCard = computed(() => currentIndex.value === totalFlashcards.value - 1);

@@ -13,6 +13,7 @@
         </p>
         <div class="mt-4 flex items-center space-x-4">
           <div class="text-primary-600">
+            <svg v-for="achievement in achievements" :key="achievement.id" :src="require(`@/assets/achievements/${achievement.icon}.svg`).default" class="animated-svg"></svg>
             <span class="text-3xl font-bold">{{ totalAchievements }}</span>
             <span class="text-sm ml-2">Achievements Earned</span>
           </div>
@@ -25,38 +26,19 @@
 
       <!-- Achievement Categories -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div 
-          v-for="category in achievementCategories" 
-          :key="category.id"
-          class="bg-white rounded-lg shadow p-6"
-        >
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">
-            {{ category.name }}
-          </h2>
+        <div v-for="category in achievementCategories" :key="category.id" class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ category.name }}</h2>
           <div class="space-y-4">
-            <Achievement
-              v-for="achievement in category.achievements"
-              :key="achievement.id"
-              :achievement="achievement"
-              :unlocked="unlockedAchievements.includes(achievement.id)"
-            />
+            <Achievement v-for="achievement in category.achievements" :key="achievement.id" :achievement="achievement" :unlocked="unlockedAchievements.includes(achievement.id)" />
           </div>
         </div>
       </div>
 
       <!-- Recent Unlocks -->
       <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">
-          Recently Unlocked
-        </h2>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Recently Unlocked</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Achievement
-            v-for="achievement in recentUnlocks"
-            :key="achievement.id"
-            :achievement="achievement"
-            :unlocked="true"
-            :show-date="true"
-          />
+          <Achievement v-for="achievement in recentUnlocks" :key="achievement.id" :achievement="achievement" :unlocked="true" :show-date="true" />
         </div>
       </div>
     </div>
@@ -69,11 +51,7 @@ import { useProfileStore } from '@/stores/profile';
 import type { Achievement as AchievementType } from '@/types/profile';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import Achievement from '@/components/achievements/Achievement.vue';
-import {
-  ClipboardListIcon,
-  ClockIcon,
-  ChartBarIcon
-} from '@heroicons/vue/24/outline';
+import { notifyError } from '@/utils/notifications';
 
 const profileStore = useProfileStore();
 const loading = ref(true);
@@ -94,7 +72,6 @@ const recentUnlocks = computed(() => {
 });
 
 const achievementCategories = computed(() => {
-  // Group achievements by category
   const categories = achievements.value.reduce((acc, achievement) => {
     const category = acc.find(c => c.id === achievement.category_id);
     if (category) {
@@ -102,7 +79,7 @@ const achievementCategories = computed(() => {
     } else {
       acc.push({
         id: achievement.category_id,
-        name: achievement.category_name,
+        name: achievement.category_name || "Category Placeholder",
         achievements: [achievement]
       });
     }
@@ -117,6 +94,9 @@ onMounted(async () => {
     await profileStore.fetchAchievements();
     achievements.value = profileStore.achievements;
     unlockedAchievements.value = profileStore.unlockedAchievements;
+  } catch (error) {
+    console.error('Failed to fetch achievements:', error);
+    notifyError('Failed to load achievements. Please try again later.');
   } finally {
     loading.value = false;
   }

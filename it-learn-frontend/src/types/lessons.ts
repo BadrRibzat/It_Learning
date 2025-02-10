@@ -90,6 +90,7 @@ export interface FlashcardAnswer {
   flashcard_id: string;
   user_answer: string;
   expected_answer: string;
+  time_spent?: number;
 }
 
 export interface FlashcardSubmissionResponse {
@@ -150,7 +151,7 @@ export interface LevelProgress {
 }
 
 // Additional Types for Frontend
-interface LessonState {
+export interface StoreState {
   currentLevel: Level | null;
   levels: Level[];
   lessonFlashcards: Map<string, Flashcard[]>;

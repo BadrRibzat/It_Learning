@@ -12,14 +12,15 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { ClockIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps<{
-  startTime?: number;
+  totalTime: number;
 }>();
 
 const emit = defineEmits<{
   (e: 'time-update', seconds: number): void;
+  (e: 'time-expired'): void;
 }>();
 
-const elapsedTime = ref(0);
+const elapsedTime = ref(props.totalTime);
 let timer: number;
 
 const formattedTime = computed(() => {
@@ -29,10 +30,14 @@ const formattedTime = computed(() => {
 });
 
 onMounted(() => {
-  const start = props.startTime || Date.now();
   timer = window.setInterval(() => {
-    elapsedTime.value = Math.floor((Date.now() - start) / 1000);
+    elapsedTime.value--;
     emit('time-update', elapsedTime.value);
+
+    if (elapsedTime.value <= 0) {
+      clearInterval(timer);
+      emit('time-expired');
+    }
   }, 1000);
 });
 

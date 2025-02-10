@@ -12,12 +12,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Level } from '@/types/lessons';
+import type { Level, LevelProgress } from '@/types/lessons';
 import { useLessonsStore } from '@/stores/lessons';
 import LevelCard from './LevelCard.vue';
 
 const props = defineProps<{
   levels: Level[];
+  progress: { [levelId: string]: LevelProgress };
 }>();
 
 defineEmits<{
@@ -27,6 +28,6 @@ defineEmits<{
 const lessonsStore = useLessonsStore();
 
 const getLevelProgress = (levelId: string) => {
-  return lessonsStore.levels.find(level => level.id === levelId)?.progress;
+  return props.progress[levelId];
 };
 </script>

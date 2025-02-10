@@ -7,14 +7,15 @@ import type {
   Quiz,
   LevelTest,
   LevelProgress,
-  LessonState,
+  StoreState,
   FlashcardAnswer,
   QuizSubmission,
-  TestSubmission
+  TestSubmission,
+  Question
 } from '@/types/lessons';
 
 export const useLessonsStore = defineStore('lessons', {
-  state: (): LessonState => ({
+  state: (): StoreState => ({
     currentLevel: null,
     levels: [],
     lessonFlashcards: new Map<string, Flashcard[]>(),
@@ -30,20 +31,20 @@ export const useLessonsStore = defineStore('lessons', {
   }),
 
   getters: {
-    isLoading: (state) => state.loading,
-    hasError: (state) => state.error !== null,
-    availableLevels: (state) => state.levels.filter(level => level.is_unlocked),
-    lessonProgress: (state) => (lessonId: string) => {
+    isLoading: (state: StoreState) => state.loading,
+    hasError: (state: StoreState) => state.error !== null,
+    availableLevels: (state: StoreState) => state.levels,
+    lessonProgress: (state: StoreState) => (lessonId: string) => {
       if (!state.levelProgress) return null;
-      const lesson = state.lessons.find(l => l.id === lessonId);
+      const lesson = state.lessons.find((l: Lesson) => l.id === lessonId);
       return lesson?.progress || null;
     },
-    canAccessQuiz: (state) => {
+    canAccessQuiz: (state: StoreState) => {
       if (!state.currentLesson) return false;
       return state.currentLesson.progress.quiz_unlocked;
     },
-    canTakeLevelTest: (state) => state.levelProgress?.level_test_available || false,
-    nextLesson: (state) => {
+    canTakeLevelTest: (state: StoreState) => state.levelProgress?.level_test_available || false,
+    nextLesson: (state: StoreState) => {
       if (!state.currentLesson || !state.lessons.length) return null;
       const currentIndex = state.lessons.findIndex(lesson => lesson.id === state.currentLesson?.id);
       return currentIndex < state.lessons.length - 1 ? state.lessons[currentIndex + 1] : null;
@@ -51,47 +52,47 @@ export const useLessonsStore = defineStore('lessons', {
   },
 
   actions: {
-    async fetchLevels() {
+    async fetchLevels(this: any) {
       try {
         this.loading = true;
         this.error = null;
         this.levels = await LessonService.getLevels();
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to fetch levels';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    async fetchCurrentLevel() {
+    async fetchCurrentLevel(this: any) {
       try {
         this.loading = true;
         this.error = null;
         this.currentLevel = await LessonService.getCurrentLevel();
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to fetch current level';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    async fetchLessons(levelId: string) {
+    async fetchLessons(this: any, levelId: string) {
       try {
         this.loading = true;
         this.error = null;
         this.lessons = await LessonService.getLessons(levelId);
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to fetch lessons';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    async setCurrentLesson(lesson: Lesson) {
+    async setCurrentLesson(this: any, lesson: Lesson) {
       this.currentLesson = lesson;
       await this.fetchFlashcards(lesson.id);
     },
-    async fetchFlashcards(lessonId: string) {
+    async fetchFlashcards(this: any, lessonId: string) {
       try {
         this.loading = true;
         this.error = null;
@@ -101,14 +102,14 @@ export const useLessonsStore = defineStore('lessons', {
         if (flashcards.length > 0) {
           this.currentFlashcard = flashcards[0];
         }
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to fetch flashcards';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    async submitFlashcardAnswer(lessonId: string, answer: FlashcardAnswer) {
+    async submitFlashcardAnswer(this: any, lessonId: string, answer: FlashcardAnswer) {
       try {
         this.loading = true;
         this.error = null;
@@ -117,14 +118,14 @@ export const useLessonsStore = defineStore('lessons', {
           this.currentLesson.progress = response.progress;
         }
         return response;
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to submit answer';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    async fetchQuiz(lessonId: string) {
+    async fetchQuiz(this: any, lessonId: string) {
       try {
         this.loading = true;
         this.error = null;
@@ -133,24 +134,24 @@ export const useLessonsStore = defineStore('lessons', {
         }
         this.currentQuiz = await LessonService.getQuiz(lessonId);
         if (this.currentQuiz) {
-          this.currentQuiz.questions = this.currentQuiz.questions.map(q => ({
+          this.currentQuiz.questions = this.currentQuiz.questions.map((q: Question) => ({
             ...q,
             answer: this.findFlashcardAnswer(q.command, lessonId) || q.answer
           }));
         }
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to fetch quiz';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    findFlashcardAnswer(command: string, lessonId: string): string | null {
+    findFlashcardAnswer(this: any, command: string, lessonId: string): string | null {
       const flashcards = this.lessonFlashcards.get(lessonId);
-      const flashcard = flashcards?.find(f => f.command === command);
+      const flashcard = flashcards?.find((f: Flashcard) => f.command === command);
       return flashcard?.answer || null;
     },
-    async submitQuizResults(lessonId: string, results: {
+    async submitQuizResults(this: any, lessonId: string, results: {
       answers: Array<{
         question: string;
         userAnswer: string;
@@ -179,14 +180,14 @@ export const useLessonsStore = defineStore('lessons', {
           };
         }
         return true;
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to submit quiz results';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    async saveQuizProgress(lessonId: string, progress: {
+    async saveQuizProgress(this: any, lessonId: string, progress: {
       current_question: number;
       time_spent: number;
       answers: Array<{
@@ -199,7 +200,7 @@ export const useLessonsStore = defineStore('lessons', {
     }) {
       return true;
     },
-    async completeLesson(lessonId: string) {
+    async completeLesson(this: any, lessonId: string) {
       try {
         this.loading = true;
         this.error = null;
@@ -208,26 +209,26 @@ export const useLessonsStore = defineStore('lessons', {
           this.currentLesson.progress.quiz_unlocked = true;
         }
         return true;
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to complete lesson';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    async fetchLevelTest(levelId: string) {
+    async fetchLevelTest(this: any, levelId: string) {
       try {
         this.loading = true;
         this.error = null;
         this.levelTest = await LessonService.getLevelTest(levelId);
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to fetch level test';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    async submitLevelTest(levelId: string, submission: TestSubmission) {
+    async submitLevelTest(this: any, levelId: string, submission: TestSubmission) {
       try {
         this.loading = true;
         this.error = null;
@@ -237,26 +238,26 @@ export const useLessonsStore = defineStore('lessons', {
           await this.fetchCurrentLevel();
         }
         return response;
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to submit level test';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    async fetchLevelProgress(levelId: string) {
+    async fetchLevelProgress(this: any, levelId: string) {
       try {
         this.loading = true;
         this.error = null;
         this.levelProgress = await LessonService.getLevelProgress(levelId);
-      } catch (error) {
+      } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to fetch progress';
         throw error;
       } finally {
         this.loading = false;
       }
     },
-    resetState() {
+    resetState(this: any) {
       this.currentLevel = null;
       this.levels = [];
       this.currentLesson = null;

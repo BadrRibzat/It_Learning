@@ -27,7 +27,7 @@
             </p>
           </div>
           <LearningTimer
-            :start-time="startTime"
+            :total-time="timeSpent"
             @time-update="handleTimeUpdate"
           />
         </div>
@@ -99,7 +99,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
 import { useToast } from 'vue-toastification';
-import type { LevelTestQuestion, Level } from '@/types/lessons';
+import type { Level } from '@/types/lessons';
 
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LevelTestQuestion from '@/components/lessons/level/LevelTestQuestion.vue';
@@ -138,6 +138,11 @@ const currentQuestion = computed(() =>
   levelTest.value?.questions[currentQuestionIndex.value]
 );
 const totalQuestions = computed(() => levelTest.value?.questions.length || 0);
+
+const currentScore = computed(() => {
+  const totalPoints = userAnswers.value.reduce((sum, a) => sum + a.points, 0);
+  return Math.round((totalPoints / (totalQuestions.value * 100)) * 100);
+});
 
 const unlockedAchievements = computed(() => {
   const achievements = [];
@@ -196,7 +201,7 @@ const initializeTest = async () => {
     error.value = null;
 
     await Promise.all([
-      lessonsStore.fetchLevel(levelId.value),
+      lessonsStore.fetchLevels(),
       lessonsStore.fetchLevelTest(levelId.value)
     ]);
 
@@ -263,13 +268,10 @@ const submitTestResults = async () => {
     const totalPoints = userAnswers.value.reduce((sum, a) => sum + a.points, 0);
     const score = Math.round((totalPoints / (totalQuestions.value * 100)) * 100);
     const passed = score >= (levelTest.value?.passing_score || 80);
+    const answers = userAnswers.value.map(a => a.userAnswer);
 
-    await lessonsStore.submitLevelTestResults(levelId.value, {
-      answers: userAnswers.value,
-      total_time: timeSpent.value,
-      score: score,
-      passed: passed,
-      achievements: unlockedAchievements.value
+    await lessonsStore.submitLevelTest(levelId.value, {
+      answers: answers,
     });
 
     if (passed) {
@@ -285,8 +287,9 @@ const submitTestResults = async () => {
 const handleContinue = async () => {
   const totalPoints = userAnswers.value.reduce((sum, a) => sum + a.points, 0);
   const score = Math.round((totalPoints / (totalQuestions.value * 100)) * 100);
+  const passingScore = levelTest.value?.passing_score || 80;
 
-  if (score >= (levelTest.value?.passing_score || 80)) {
+  if (score >= passingScore) {
     try {
       await lessonsStore.advanceToNextLevel(levelId.value);
       router.push({ name: 'profile' });

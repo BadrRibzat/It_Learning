@@ -85,7 +85,7 @@ const buttonClass = computed(() => {
 const buttonText = computed(() => {
   if (!props.isUnlocked) return 'Locked';
   if (props.lesson.completed) return 'Review';
-  if (props.lesson.progress.quiz_unlocked) return 'Take Quiz';
+  if (props.lesson.progress.quiz_unlocked && props.lesson.progress.completed_flashcards === props.lesson.progress.total_flashcards) return 'Take Quiz';
   if (props.lesson.progress.completed_flashcards > 0) return 'Continue';
   return 'Start Lesson';
 });

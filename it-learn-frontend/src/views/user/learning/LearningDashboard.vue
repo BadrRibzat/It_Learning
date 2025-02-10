@@ -58,6 +58,25 @@
       </div>
     </div>
 
+    <!-- Overall Progress -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-6">Overall Progress</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <QuickStat
+          title="Total Points"
+          label="Total Points Earned"
+          :value="totalPoints"
+          icon="StarIcon"
+        />
+        <QuickStat
+          title="Lessons Completed"
+          label="Total Lessons Completed"
+          :value="totalLessonsCompleted"
+          icon="BookOpenIcon"
+        />
+      </div>
+    </div>
+
     <!-- Available Levels -->
     <div class="space-y-6">
       <div class="flex items-center justify-between">
@@ -80,6 +99,7 @@
 
       <LevelList
         :levels="availableLevels"
+        :progress="levelProgressMap"
         @select-level="handleLevelSelect"
       />
     </div>
@@ -111,7 +131,7 @@ import {
     ClockIcon,
     ChartBarIcon
   } from '@heroicons/vue/24/outline';
-import type { Level } from '@/types/lessons';
+import type { Level, LevelProgress } from '@/types/lessons';
 
 import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
 import QuickStat from '@/components/profile/QuickStat.vue';
@@ -129,6 +149,23 @@ const currentLevel = computed(() => lessonsStore.currentLevel);
 const availableLevels = computed(() => lessonsStore.availableLevels);
 const levelProgress = computed(() => lessonsStore.levelProgress);
 const canTakeLevelTest = computed(() => lessonsStore.canTakeLevelTest);
+const levelProgressMap = ref<{[levelId: string]: LevelProgress}>({});
+
+const totalPoints = computed(() => {
+  let total = 0;
+  for (const levelId in levelProgressMap.value) {
+    total += levelProgressMap.value[levelId]?.total_points || 0;
+  }
+  return total;
+});
+
+const totalLessonsCompleted = computed(() => {
+  let total = 0;
+  for (const levelId in levelProgressMap.value) {
+    total += levelProgressMap.value[levelId]?.completed_lessons || 0;
+  }
+  return total;
+});
 
 const debugData = computed(() => ({
   currentLevel: currentLevel.value,
@@ -156,6 +193,18 @@ onMounted(async () => {
       lessonsStore.fetchLevels(),
       lessonsStore.fetchCurrentLevel()
     ]);
+
+    // Fetch level progress for all available levels
+    if (availableLevels.value) {
+      await Promise.all(availableLevels.value.map(async (level) => {
+        try {
+          const progress = await lessonsStore.fetchLevelProgress(level.id);
+          levelProgressMap.value[level.id] = lessonsStore.levelProgress;
+        } catch (error) {
+          console.error(`Failed to fetch level progress for level ${level.id}:`, error);
+        }
+      }));
+    }
     
     if (currentLevel.value) {
       await lessonsStore.fetchLevelProgress(currentLevel.value.id);

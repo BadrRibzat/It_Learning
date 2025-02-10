@@ -27,6 +27,15 @@
         <div class="flex items-center justify-between text-sm text-gray-600">
           <span>{{ progress?.completed_lessons || 0 }}/{{ progress?.total_lessons || 0 }} Lessons</span>
           <span>{{ progress?.total_points || 0 }} Points</span>
+          <span v-if="progress?.quiz_scores?.length > 0">
+            Avg. Quiz Score: {{ averageQuizScore }}%
+          </span>
+          <span v-if="progress?.level_test_available">
+            Level Test: Available
+          </span>
+          <span v-else-if="progress">
+            Level Test: Completed
+          </span>
         </div>
 
         <button
@@ -86,4 +95,10 @@ const handleLevelSelect = () => {
     emit('select', props.level);
   }
 };
+
+const averageQuizScore = computed(() => {
+  if (!props.progress?.quiz_scores?.length) return 0;
+  const sum = props.progress.quiz_scores.reduce((a, b) => a + b, 0);
+  return Math.round(sum / props.progress.quiz_scores.length);
+});
 </script>
