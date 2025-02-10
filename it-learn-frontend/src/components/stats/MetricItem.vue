@@ -9,11 +9,11 @@
       class="flex items-center"
       :class="changeColor"
     >
-      <arrow-up-icon 
+      <ArrowUpIcon 
         v-if="change > 0"
         class="w-4 h-4 mr-1"
       />
-      <arrow-down-icon
+      <ArrowDownIcon
         v-else-if="change < 0"
         class="w-4 h-4 mr-1"
       />

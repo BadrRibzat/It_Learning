@@ -84,12 +84,12 @@
       </div>
 
       <router-link
-  to="/profile/settings"
-  class="text-primary-600 hover:text-primary-700 flex items-center space-x-2"
->
-  <CogIcon class="h-5 w-5" />
-  <span>Settings</span>
-</router-link>
+        to="/profile/settings"
+        class="text-primary-600 hover:text-primary-700 flex items-center space-x-2"
+      >
+        <CogIcon class="h-5 w-5" />
+        <span>Settings</span>
+      </router-link>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4 space-y-8">
@@ -118,17 +118,20 @@
             <h2 class="text-xl font-semibold mb-4">Quick Stats</h2>
             <div class="space-y-4">
               <QuickStat
+                title="Total Points"
                 label="Total Points"
                 :value="profile?.learning_stats?.total_points || 0"
                 icon="TrophyIcon"
               />
               <QuickStat
+                title="Current Streak"
                 label="Current Streak"
                 :value="profile?.learning_stats?.streak?.current_streak || 0"
                 icon="FireIcon"
                 suffix="days"
               />
               <QuickStat
+                title="Achievements"
                 label="Achievements"
                 :value="(profile?.learning_stats?.achievements || []).length"
                 icon="StarIcon"
@@ -197,7 +200,7 @@ import { onMounted, ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
-import { CogIcon, TrophyIcon, FireIcon, StarIcon } from '@heroicons/vue/24/outline';
+import { CogIcon, TrophyIcon, FireIcon, StarIcon, ClipboardListIcon, ClockIcon, ChartBarIcon } from '@heroicons/vue/24/outline';
 import { useProfileStore } from '@/stores/profile';
 import { useAuthStore } from '@/stores/auth';
 import type { 

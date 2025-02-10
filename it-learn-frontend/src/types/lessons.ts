@@ -150,9 +150,10 @@ export interface LevelProgress {
 }
 
 // Additional Types for Frontend
-export interface LessonState {
+interface LessonState {
   currentLevel: Level | null;
   levels: Level[];
+  lessonFlashcards: Map<string, Flashcard[]>;
   currentLesson: Lesson | null;
   lessons: Lesson[];
   currentFlashcard: Flashcard | null;

@@ -101,6 +101,17 @@
                   </div>
                 </div>
 
+                <!-- Delete Account -->
+                <div class="mt-6">
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-sm font-medium text-red-600 bg-red-100 hover:bg-red-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    @click="handleDeleteAccount"
+                  >
+                    Delete Account
+                  </button>
+                </div>
+
                 <div class="mt-6 flex justify-end space-x-3">
                   <button
                     type="button"
@@ -130,6 +141,8 @@
 import { ref, reactive } from 'vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
 import type { ProfileData, LearningStats } from '@/types/profile';
+import { useProfileStore } from '@/stores/profile';
+import { useToast } from 'vue-toastification';
 
 const props = defineProps<{
   profile?: ProfileData;
@@ -141,6 +154,8 @@ const emit = defineEmits<{
   (e: 'update', data: any): void;
 }>();
 
+const profileStore = useProfileStore();
+const toast = useToast();
 const updating = ref(false);
 
 const formData = reactive({
@@ -169,5 +184,19 @@ const handleSubmit = async () => {
 
 const handleClose = () => {
   emit('close');
+};
+
+const handleDeleteAccount = async () => {
+  try {
+    updating.value = true;
+    await profileStore.deleteAccount();
+    toast.success('Account deleted successfully');
+    emit('close');
+  } catch (error) {
+    toast.error('Failed to delete account');
+    console.error('Failed to delete account:', error);
+  } finally {
+    updating.value = false;
+  }
 };
 </script>

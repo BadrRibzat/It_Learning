@@ -1,121 +1,3 @@
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
-import { ChevronDownIcon } from '@heroicons/vue/20/solid';
-import { RouterLink } from 'vue-router';
-import { logUserActivity } from '@/utils/logger';
-import { useProfileStore } from '@/stores/profile';
-import { useNotificationStore } from '@/stores/notification';
-import Avatar from './Avatar.vue';
-
-const TIMESTAMP = '2025-02-09 14:56:43';
-const USER_LOGIN = 'BadrRibzat';
-
-interface User {
-  id: string;
-  full_name: string;
-  email: string;
-  avatar_url?: string;
-  role: string;
-  last_active?: string;
-}
-
-interface MenuAction {
-  label: string;
-  icon?: any;
-  href?: string;
-  action?: () => void;
-  danger?: boolean;
-}
-
-const props = defineProps<{
-  user: User;
-  customActions?: MenuAction[];
-}>();
-
-const emit = defineEmits<{
-  (e: 'logout'): void;
-  (e: 'delete-account'): void;
-  (e: 'menu-action', action: string): void;
-}>();
-
-const profileStore = useProfileStore();
-const notificationStore = useNotificationStore();
-const menuOpen = ref(false);
-
-const defaultMenuItems: MenuAction[] = [
-  {
-    label: 'Profile',
-    href: '/profile'
-  },
-  {
-    label: 'Settings',
-    href: '/profile/settings'
-  },
-  {
-    label: 'Learning Progress',
-    href: '/profile/progress'
-  },
-  {
-    label: 'Achievements',
-    href: '/profile/achievements'
-  }
-];
-
-const handleMenuAction = async (action: MenuAction) => {
-  try {
-    await logUserActivity('menu_action_clicked', {
-      action: action.label,
-      timestamp: TIMESTAMP,
-      user: USER_LOGIN
-    });
-
-    if (action.action) {
-      action.action();
-    }
-    emit('menu-action', action.label);
-  } catch (error) {
-    console.error('Menu action error:', error);
-    notificationStore.error('Failed to perform action');
-  }
-};
-
-const handleLogout = async () => {
-  try {
-    await logUserActivity('user_logout', {
-      timestamp: TIMESTAMP,
-      user: USER_LOGIN
-    });
-    
-    await profileStore.updateLastActive(TIMESTAMP);
-    emit('logout');
-  } catch (error) {
-    console.error('Logout error:', error);
-    notificationStore.error('Failed to logout. Please try again.');
-  }
-};
-
-const handleDeleteAccount = async () => {
-  try {
-    await logUserActivity('account_deletion_initiated', {
-      timestamp: TIMESTAMP,
-      user: USER_LOGIN
-    });
-    emit('delete-account');
-  } catch (error) {
-    console.error('Delete account error:', error);
-    notificationStore.error('Failed to initiate account deletion');
-  }
-};
-
-onMounted(() => {
-  logUserActivity('user_menu_mounted', {
-    timestamp: TIMESTAMP,
-    user: USER_LOGIN
-  });
-});
-</script>
-
 <template>
   <Menu as="div" class="relative inline-block text-left z-50">
     <MenuButton
@@ -218,19 +100,76 @@ onMounted(() => {
   </Menu>
 </template>
 
-<style scoped>
-.menu-enter-active,
-.menu-leave-active {
-  transition: all 0.2s ease;
+<script setup lang="ts">
+import { ref } from 'vue';
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
+import { ChevronDownIcon } from '@heroicons/vue/20/solid';
+import { RouterLink } from 'vue-router';
+import { useProfileStore } from '@/stores/profile';
+import Avatar from './Avatar.vue';
+
+interface User {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url?: string;
+  role: string;
+  last_active?: string;
 }
 
-.menu-enter-from,
-.menu-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
+interface MenuAction {
+  label: string;
+  icon?: any;
+  href?: string;
+  action?: () => void;
+  danger?: boolean;
 }
 
-.router-link-active {
-  @apply bg-primary-50 text-primary-600;
-}
-</style>
+const props = defineProps<{
+  user: User;
+  customActions?: MenuAction[];
+}>();
+
+const emit = defineEmits<{
+  (e: 'logout'): void;
+  (e: 'delete-account'): void;
+  (e: 'menu-action', action: string): void;
+}>();
+
+const profileStore = useProfileStore();
+const menuOpen = ref(false);
+
+const defaultMenuItems: MenuAction[] = [
+  {
+    label: 'Profile',
+    href: '/profile'
+  },
+  {
+    label: 'Settings',
+    href: '/profile/settings'
+  },
+  {
+    label: 'Learning Progress',
+    href: '/profile/progress'
+  },
+  {
+    label: 'Achievements',
+    href: '/profile/achievements'
+  }
+];
+
+const handleMenuAction = (action: MenuAction) => {
+  if (action.action) {
+    action.action();
+  }
+  emit('menu-action', action.label);
+};
+
+const handleLogout = () => {
+  emit('logout');
+};
+
+const handleDeleteAccount = () => {
+  emit('delete-account');
+};
+</script>

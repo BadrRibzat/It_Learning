@@ -22,21 +22,31 @@
       />
 
       <!-- Lesson Content -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div class="lg:col-span-8">
-          <router-view></router-view>
-        </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="lg:col-span-8">
+        <router-view></router-view>
+      </div>
 
-        <div class="lg:col-span-4 space-y-6">
-          <LessonContent
-            :current-step="currentStep"
-            :total-steps="totalSteps"
-            :can-navigate="canNavigate"
-            :is-active="isActive"
-            @previous="handlePrevious"
-            @next="handleNext"
-            @time-update="handleTimeUpdate"
-          />
+      <div class="lg:col-span-4 space-y-6">
+        <LessonContent
+          :current-step="currentStep"
+          :total-steps="totalSteps"
+          :can-navigate="canNavigate"
+          :is-active="isActive"
+          @previous="handlePrevious"
+          @next="handleNext"
+          @time-update="handleTimeUpdate"
+        />
+        
+        <QuickStat
+          title="Progress"
+          label="Lesson Progress"
+          :value="currentStep"
+          :total="totalSteps"
+          icon="ChartBarIcon"
+        />
+      </div>
+    </div>
 
           <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-semibold mb-4">Next Steps</h3>
@@ -64,6 +74,7 @@
             </div>
           </div>
         </div>
+        </div>
       </div>
     </template>
 
@@ -79,7 +90,11 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
 import { useToast } from 'vue-toastification';
-
+import {
+  ClipboardListIcon,
+  ClockIcon,
+  ChartBarIcon
+} from '@heroicons/vue/24/outline';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LessonHeader from '@/components/lessons/common/LessonHeader.vue';
 import LessonContent from '@/components/lessons/common/LessonContent.vue';
@@ -119,17 +134,17 @@ const initializeLesson = async () => {
   try {
     loading.value = true;
     error.value = null;
-    
+
     await lessonsStore.fetchLessons(levelId.value);
     const lesson = lessonsStore.lessons.find(l => l.id === lessonId.value);
-    
+
     if (!lesson) {
       throw new Error('Lesson not found');
     }
 
     await lessonsStore.setCurrentLesson(lesson);
     currentStep.value = lesson.progress.completed_flashcards + 1;
-    
+
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load lesson';
     toast.error('Failed to load lesson');

@@ -63,13 +63,11 @@ class LessonService {
     }
   }
 
-  static async submitFlashcardAnswer(
-    lessonId: string, 
-    answer: FlashcardAnswer
-  ): Promise<FlashcardSubmissionResponse> {
+  static async submitFlashcardAnswer(lessonId: string, answer: FlashcardAnswer): Promise<FlashcardSubmissionResponse> {
     try {
       const response: AxiosResponse<FlashcardSubmissionResponse> = 
         await axios.post(`${API_URL}/flashcards/${lessonId}/submit`, answer);
+      await ProgressTracker.updateProgress('flashcard', response.data);
       return response.data;
     } catch (error) {
       this.handleError(error, 'Failed to submit flashcard answer');
@@ -106,10 +104,7 @@ class LessonService {
     }
   }
 
-    static async submitQuiz(
-      lessonId: string, 
-      submission: QuizSubmission
-    ): Promise<QuizSubmissionResponse> {
+    static async submitQuiz(lessonId: string, submission: QuizSubmission): Promise<QuizSubmissionResponse> {
       try {
         const response: AxiosResponse<QuizSubmissionResponse> = 
           await axios.post(`${API_URL}/lessons/${lessonId}/quiz`, {
@@ -117,6 +112,7 @@ class LessonService {
             total_time: submission.total_time,
             score: submission.score
           });
+        await ProgressTracker.updateProgress('quiz', response.data);
         return response.data;
       } catch (error) {
         if (axios.isAxiosError(error)) {

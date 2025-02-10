@@ -1,3 +1,29 @@
+<template>
+  <div 
+    class="chart-container relative"
+    :style="{ height: `${height || 300}px`, width: `${width || '100%'}` }"
+  >
+    <canvas 
+      ref="chartRef"
+      :aria-label="chartData.datasets[0]?.label || 'Chart'"
+      role="img"
+    />
+    
+    <div 
+      v-if="!chartData.datasets[0]?.data.length"
+      class="absolute inset-0 flex items-center justify-center bg-gray-50"
+    >
+      <p class="text-gray-500 text-sm">
+        No data available
+      </p>
+    </div>
+
+    <div class="chart-overlay absolute top-2 right-2 space-x-2">
+      <slot name="controls" />
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, onMounted, watch, onBeforeUnmount } from 'vue';
 import Chart from 'chart.js/auto';
@@ -132,32 +158,6 @@ onBeforeUnmount(() => {
   }
 });
 </script>
-
-<template>
-  <div 
-    class="chart-container relative"
-    :style="{ height: `${height || 300}px`, width: `${width || '100%'}` }"
-  >
-    <canvas 
-      ref="chartRef"
-      :aria-label="chartData.datasets[0]?.label || 'Chart'"
-      role="img"
-    />
-    
-    <div 
-      v-if="!chartData.datasets[0]?.data.length"
-      class="absolute inset-0 flex items-center justify-center bg-gray-50"
-    >
-      <p class="text-gray-500 text-sm">
-        No data available
-      </p>
-    </div>
-
-    <div class="chart-overlay absolute top-2 right-2 space-x-2">
-      <slot name="controls" />
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .chart-container {

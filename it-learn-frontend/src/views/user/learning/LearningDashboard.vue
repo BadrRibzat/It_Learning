@@ -21,18 +21,21 @@
 
         <div class="grid grid-cols-3 gap-4">
           <QuickStat
+            title="Lessons Completed"
             label="Lessons Completed"
             :value="levelProgress.completed_lessons"
             :total="levelProgress.total_lessons"
             icon="BookOpenIcon"
           />
           <QuickStat
+            title="Quiz Score Average"
             label="Quiz Score Average"
             :value="averageQuizScore"
             suffix="%"
             icon="AcademicCapIcon"
           />
           <QuickStat
+            title="Points Earned"
             label="Points Earned"
             :value="levelProgress.total_points"
             icon="StarIcon"
@@ -100,7 +103,14 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
-import { StarIcon, BookOpenIcon, AcademicCapIcon } from '@heroicons/vue/24/outline';
+import { 
+    StarIcon, 
+    BookOpenIcon, 
+    AcademicCapIcon,
+    ClipboardListIcon,
+    ClockIcon,
+    ChartBarIcon
+  } from '@heroicons/vue/24/outline';
 import type { Level } from '@/types/lessons';
 
 import ProgressBar from '@/components/lessons/common/ProgressBar.vue';

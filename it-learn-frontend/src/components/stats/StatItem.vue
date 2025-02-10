@@ -1,96 +1,3 @@
-<script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
-import { useNotificationStore } from '@/stores/notification';
-
-interface Props {
-  label: string;
-  value: number | null;
-  format: 'number' | 'percentage' | 'time' | 'days' | 'points';
-  previousValue?: number;
-  goal?: number;
-  variant?: 'default' | 'success' | 'warning' | 'danger';
-  showTrend?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  variant: 'default',
-  showTrend: true
-});
-
-const emit = defineEmits<{
-  (e: 'goal-reached'): void;
-  (e: 'value-changed', change: { previous: number; current: number }): void;
-}>();
-
-const notificationStore = useNotificationStore();
-
-// Format the stat value based on type
-const formattedValue = computed(() => {
-  if (props.value === null) return 'N/A';
-
-  switch (props.format) {
-    case 'percentage':
-      return `${(props.value * 100).toFixed(1)}%`;
-    case 'time':
-      const hours = Math.floor(props.value / 60);
-      const minutes = props.value % 60;
-      return `${hours}h ${minutes}m`;
-    case 'days':
-      return `${props.value} ${props.value === 1 ? 'day' : 'days'}`;
-    case 'points':
-      return `${props.value.toLocaleString()} pts`;
-    default:
-      return props.value.toLocaleString();
-  }
-});
-
-// Calculate trend percentage
-const trendPercentage = computed(() => {
-  if (!props.previousValue || props.value === null) return null;
-  const change = ((props.value - props.previousValue) / props.previousValue) * 100;
-  return change.toFixed(1);
-});
-
-// Get trend classes
-const trendClasses = computed(() => {
-  if (!trendPercentage.value) return '';
-  const trend = Number(trendPercentage.value);
-  return {
-    'text-green-600': trend > 0,
-    'text-red-600': trend < 0,
-    'text-gray-600': trend === 0
-  };
-});
-
-// Get variant classes
-const variantClasses = computed(() => {
-  const variants = {
-    default: 'text-gray-900 dark:text-gray-100',
-    success: 'text-green-600 dark:text-green-400',
-    warning: 'text-yellow-600 dark:text-yellow-400',
-    danger: 'text-red-600 dark:text-red-400'
-  };
-  return variants[props.variant];
-});
-
-// Track value changes
-watch(() => props.value, async (newValue, oldValue) => {
-  if (oldValue === null || newValue === null) return;
-
-  emit('value-changed', { previous: oldValue, current: newValue });
-
-  // Check goal achievement
-  if (props.goal && oldValue < props.goal && newValue >= props.goal) {
-    emit('goal-reached');
-    notificationStore.success(`Goal reached for ${props.label}!`);
-  }
-});
-
-onMounted(async () => {
-  // Initial setup if needed
-});
-</script>
-
 <template>
   <div 
     class="stat-item group flex justify-between items-center p-3 rounded-lg transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -152,12 +59,94 @@ onMounted(async () => {
   </div>
 </template>
 
+<script setup lang="ts">
+import { computed, watch } from 'vue';
+import { useNotificationStore } from '@/stores/notification';
+
+interface Props {
+  label: string;
+  value: number | null;
+  format: 'number' | 'percentage' | 'time' | 'days' | 'points';
+  previousValue?: number;
+  goal?: number;
+  variant?: 'default' | 'success' | 'warning' | 'danger';
+  showTrend?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  showTrend: true
+});
+
+const emit = defineEmits<{
+  (e: 'goal-reached'): void;
+  (e: 'value-changed', change: { previous: number; current: number }): void;
+}>();
+
+const notificationStore = useNotificationStore();
+
+const formattedValue = computed(() => {
+  if (props.value === null) return 'N/A';
+
+  switch (props.format) {
+    case 'percentage':
+      return `${(props.value * 100).toFixed(1)}%`;
+    case 'time':
+      const hours = Math.floor(props.value / 60);
+      const minutes = props.value % 60;
+      return `${hours}h ${minutes}m`;
+    case 'days':
+      return `${props.value} ${props.value === 1 ? 'day' : 'days'}`;
+    case 'points':
+      return `${props.value.toLocaleString()} pts`;
+    default:
+      return props.value.toLocaleString();
+  }
+});
+
+const trendPercentage = computed(() => {
+  if (!props.previousValue || props.value === null) return null;
+  const change = ((props.value - props.previousValue) / props.previousValue) * 100;
+  return change.toFixed(1);
+});
+
+const trendClasses = computed(() => {
+  if (!trendPercentage.value) return '';
+  const trend = Number(trendPercentage.value);
+  return {
+    'text-green-600': trend > 0,
+    'text-red-600': trend < 0,
+    'text-gray-600': trend === 0
+  };
+});
+
+const variantClasses = computed(() => {
+  const variants = {
+    default: 'text-gray-900 dark:text-gray-100',
+    success: 'text-green-600 dark:text-green-400',
+    warning: 'text-yellow-600 dark:text-yellow-400',
+    danger: 'text-red-600 dark:text-red-400'
+  };
+  return variants[props.variant];
+});
+
+watch(() => props.value, (newValue, oldValue) => {
+  if (oldValue === null || newValue === null) return;
+
+  emit('value-changed', { previous: oldValue, current: newValue });
+
+  if (props.goal && oldValue < props.goal && newValue >= props.goal) {
+    emit('goal-reached');
+    notificationStore.success(`Goal reached for ${props.label}!`);
+  }
+});
+</script>
+
 <style scoped>
 .stat-item {
   @apply relative overflow-hidden;
 }
 
-/* Hover effect */
 .stat-item::after {
   content: '';
   @apply absolute inset-0 bg-current opacity-0 transition-opacity duration-200;
@@ -167,7 +156,6 @@ onMounted(async () => {
   @apply opacity-5;
 }
 
-/* Accessibility */
 @media (prefers-reduced-motion: reduce) {
   .stat-item,
   .stat-item::after {
@@ -175,7 +163,6 @@ onMounted(async () => {
   }
 }
 
-/* Print styles */
 @media print {
   .stat-item {
     @apply break-inside-avoid;

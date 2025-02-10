@@ -27,6 +27,7 @@
         <!-- Flashcard Progress -->
         <div class="mb-6">
           <FlashcardProgress
+            title="Flashcard Progress"
             :current-index="currentIndex"
             :total="totalFlashcards"
             :correct-answers="correctAnswers"
@@ -99,7 +100,12 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
 import { useToast } from 'vue-toastification';
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
+import { 
+    ArrowLeftIcon,
+    ClipboardListIcon,
+    ClockIcon,
+    ChartBarIcon
+} from '@heroicons/vue/24/outline';
 import type { Flashcard } from '@/types/lessons';
 
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
@@ -166,12 +172,14 @@ const handleAnswerSubmit = async (answer: string) => {
       totalPoints.value += 10;
       answeredCards.value[currentIndex.value] = true;
 
-      await lessonsStore.submitFlashcardAnswer(lessonId.value, {
+      const response = await lessonsStore.submitFlashcardAnswer(lessonId.value, {
         flashcard_id: currentFlashcard.value.id,
         user_answer: answer,
         expected_answer: currentFlashcard.value.answer,
         time_spent: timeSpent.value
       });
+
+      console.log('Flashcard answer submission response:', response);
 
       if (isLastCard.value && allCardsCompleted.value) {
         await completeLesson();
@@ -182,6 +190,7 @@ const handleAnswerSubmit = async (answer: string) => {
       toast.error('Incorrect answer. Try again!');
     }
   } catch (error) {
+    console.error('Error submitting answer:', error);
     toast.error('Failed to submit answer');
   }
 };

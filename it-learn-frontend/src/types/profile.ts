@@ -7,6 +7,8 @@ export interface Achievement {
   earned_at: Date | null;
 }
 
+
+
 export interface PointsHistory {
   amount: number;
   action: string;
@@ -139,9 +141,12 @@ export interface ProgressCircle {
 }
 
 // State interfaces
-export interface ProfileState {
+interface ProfileState {
   profile: ProfileResponse | null;
-  profilePictureUrl: string | null;
+  profilePicture: {
+    data: string | null;
+    timestamp: number;
+  },
   statistics: LearningStats | null;
   points: PointsResponse | null;
   progressCircle: ProgressCircle | null;
@@ -155,6 +160,7 @@ export interface ProfileState {
   error: string | null;
   lastUpdate: string | null;
 }
+
 
 // New Response interfaces
 export interface AchievementsResponse {

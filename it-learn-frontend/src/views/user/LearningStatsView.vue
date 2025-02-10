@@ -103,7 +103,10 @@ import {
   TrophyIcon, 
   ChartBarIcon, 
   BookOpenIcon, 
-  FireIcon 
+  FireIcon,
+  ClipboardListIcon,
+  ClockIcon,
+  ChartBarIcon
 } from '@heroicons/vue/24/outline';
 import { useProfileStore } from '@/stores/profile';
 import type { LearningStats, ProfileData } from '@/types/profile';

@@ -23,7 +23,7 @@
             :alt="achievement.name"
             class="w-8 h-8"
           />
-          <trophy-icon
+          <TrophyIcon
             v-else
             class="w-6 h-6"
             :class="achievement.unlocked ? 'text-primary-600' : 'text-gray-400'"

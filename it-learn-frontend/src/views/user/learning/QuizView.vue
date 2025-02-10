@@ -27,6 +27,30 @@
           />
         </div>
 
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <QuickStat
+        title="Quiz Progress"
+        label="Questions"
+        :value="currentQuestionIndex + 1"
+        :total="totalQuestions"
+        icon="ClipboardListIcon"
+      />
+      <QuickStat
+        title="Time Remaining"
+        label="Time"
+        :value="timeSpent"
+        suffix="s"
+        icon="ClockIcon"
+      />
+      <QuickStat
+        title="Current Score"
+        label="Score"
+        :value="currentScore"
+        suffix="%"
+        icon="ChartBarIcon"
+      />
+    </div>
+
         <div class="mt-4">
           <ProgressBar
             :value="currentQuestionIndex + 1"
@@ -73,7 +97,11 @@ import { useRoute, useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
 import { useToast } from 'vue-toastification';
 import type { Question, Quiz } from '@/types/lessons';
-
+import {
+  ClipboardListIcon,
+  ClockIcon,
+  ChartBarIcon
+} from '@heroicons/vue/24/outline';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import QuizQuestion from '@/components/lessons/quiz/QuizQuestion.vue';
 import QuizResults from '@/components/lessons/quiz/QuizResults.vue';

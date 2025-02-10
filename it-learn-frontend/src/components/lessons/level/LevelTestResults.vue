@@ -6,7 +6,6 @@
         {{ resultMessage }}
       </p>
     </div>
-
     <div class="grid grid-cols-3 gap-6 mb-8">
       <QuickStat
         label="Total Score"
@@ -26,7 +25,6 @@
         icon="ClockIcon"
       />
     </div>
-
     <div class="achievements-section mb-8" v-if="passed && achievements.length">
       <h3 class="text-lg font-semibold text-gray-900 mb-4">
         Achievements Unlocked!
@@ -43,10 +41,8 @@
         </div>
       </div>
     </div>
-
     <div class="questions-review space-y-6">
       <h3 class="text-lg font-semibold text-gray-900">Question Review</h3>
-      
       <div 
         v-for="(answer, index) in answers" 
         :key="index"
@@ -71,7 +67,6 @@
             <p class="text-sm text-gray-600 mt-1">{{ answer.question }}</p>
           </div>
         </div>
-        
         <div class="mt-3 text-sm">
           <p class="text-gray-600">Your answer: {{ answer.userAnswer }}</p>
           <p v-if="!answer.isCorrect" class="text-gray-600 mt-1">
@@ -83,7 +78,6 @@
         </div>
       </div>
     </div>
-
     <div class="mt-8 flex justify-center">
       <button
         @click="$emit('continue')"

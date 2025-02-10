@@ -69,6 +69,11 @@ import { useProfileStore } from '@/stores/profile';
 import type { Achievement as AchievementType } from '@/types/profile';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import Achievement from '@/components/achievements/Achievement.vue';
+import {
+  ClipboardListIcon,
+  ClockIcon,
+  ChartBarIcon
+} from '@heroicons/vue/24/outline';
 
 const profileStore = useProfileStore();
 const loading = ref(true);

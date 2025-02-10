@@ -17,10 +17,8 @@
           </span>
         </div>
       </div>
-
       <div class="space-y-4">
         <p class="text-gray-700">{{ question.question }}</p>
-        
         <div class="answer-section space-y-2">
           <input
             v-model="userAnswer"
@@ -30,7 +28,6 @@
             :disabled="isSubmitted || isTimeUp"
             @keyup.enter="submitAnswer"
           />
-          
           <div v-if="showFeedback" class="mt-2">
             <p :class="feedbackClass" class="text-sm font-medium">
               {{ feedbackMessage }}
@@ -38,7 +35,6 @@
           </div>
         </div>
       </div>
-
       <div class="flex justify-end">
         <button
           v-if="!isSubmitted && !isTimeUp"

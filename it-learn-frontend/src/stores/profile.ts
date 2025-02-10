@@ -241,21 +241,21 @@ export const useProfileStore = defineStore('profile', {
   },
 
   async fetchSettings() {
-    try {
       this.loading = true;
       this.error = null;
-      const response = await ProfileService.getSettings();
-      if (this.profile) {
-        this.profile.settings = response.settings;
+      try {
+        const response = await ProfileService.getSettings();
+        if (this.profile) {
+          this.profile.settings = response.settings;
+        }
+        return response;
+      } catch (error) {
+        this.error = 'Failed to fetch settings';
+        throw error;
+      } finally {
+        this.loading = false;
       }
-      return response;
-    } catch (error) {
-      this.error = 'Failed to fetch settings';
-      throw error;
-    } finally {
-      this.loading = false;
-    }
-  },
+    },
 
     async loadInitialData() {
       this.loading = true;

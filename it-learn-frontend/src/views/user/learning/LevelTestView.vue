@@ -32,6 +32,30 @@
           />
         </div>
 
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <QuickStat
+        title="Questions Completed"
+        label="Questions"
+        :value="currentQuestionIndex + 1"
+        :total="totalQuestions"
+        icon="ClipboardListIcon"
+      />
+      <QuickStat
+        title="Time Spent"
+        label="Time"
+        :value="timeSpent"
+        suffix="s"
+        icon="ClockIcon"
+      />
+      <QuickStat
+        title="Score"
+        label="Current Score"
+        :value="currentScore"
+        suffix="%"
+        icon="ChartBarIcon"
+      />
+    </div>
+
         <ProgressBar
           :value="currentQuestionIndex + 1"
           :max="totalQuestions"

@@ -114,6 +114,11 @@ import { useProfileStore } from '@/stores/profile';
 import type { ProfileSettings } from '@/types/profile';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import Switch from '@/components/common/Switch.vue';
+import {
+  ClipboardListIcon,
+  ClockIcon,
+  ChartBarIcon
+} from '@heroicons/vue/24/outline';
 
 const toast = useToast();
 const profileStore = useProfileStore();

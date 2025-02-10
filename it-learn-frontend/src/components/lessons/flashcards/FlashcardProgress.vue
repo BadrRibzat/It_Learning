@@ -5,9 +5,6 @@ import { useProfileStore } from '@/stores/profile';
 import { CheckCircleIcon, StarIcon, FireIcon } from '@heroicons/vue/24/solid';
 import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
 
-const TIMESTAMP = '2025-02-09 14:37:22';
-const USER_LOGIN = 'BadrRibzat';
-
 const props = defineProps<{
   currentIndex: number;
   total: number;
@@ -43,15 +40,6 @@ const getProgressIndicatorClass = (index: number) => {
   return props.answeredCards[index] ? 'bg-green-500' : 'bg-red-500';
 };
 
-const logProgress = () => {
-  console.log(`[${TIMESTAMP}] Flashcard progress update for ${USER_LOGIN}:`, {
-    completion: completionPercentage.value,
-    accuracy: accuracy.value,
-    points: props.points,
-    streak: streak.value
-  });
-};
-
 const checkMilestones = async () => {
   const currentPercentage = completionPercentage.value;
   const milestone = milestones.find(m => m.threshold === currentPercentage);
@@ -62,9 +50,7 @@ const checkMilestones = async () => {
     if (currentPercentage === 100) {
       await profileStore.trackActivity('flashcards_completed', {
         accuracy: accuracy.value,
-        points_earned: props.points,
-        timestamp: TIMESTAMP,
-        user: USER_LOGIN
+        points_earned: props.points
       });
     }
   }
@@ -76,12 +62,11 @@ const checkMilestones = async () => {
 };
 
 watch(() => props.currentIndex, async () => {
-  logProgress();
   await checkMilestones();
 });
 
 onMounted(() => {
-  logProgress();
+  checkMilestones();
 });
 </script>
 

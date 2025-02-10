@@ -1,49 +1,3 @@
-<script setup lang="ts">
-import { ref } from 'vue';
-import type { Flashcard } from '@/types/lessons';
-
-const props = defineProps<{
-  flashcard: Flashcard;
-  showFeedback?: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'answer-submitted', answer: string): void;
-  (e: 'next'): void;
-}>();
-
-const isFlipped = ref(false);
-const userAnswer = ref('');
-const isCorrect = ref(false);
-const hasSubmitted = ref(false);
-
-const handleFlip = () => {
-  if (!isFlipped.value) {
-    isFlipped.value = true;
-  }
-};
-
-const submitAnswer = () => {
-  if (!userAnswer.value.trim()) return;
-  
-  hasSubmitted.value = true;
-  isCorrect.value = userAnswer.value.trim().toLowerCase() === props.flashcard.answer.toLowerCase();
-  emit('answer-submitted', userAnswer.value);
-};
-
-const handleNext = () => {
-  isFlipped.value = false;
-  hasSubmitted.value = false;
-  userAnswer.value = '';
-  emit('next');
-};
-
-const tryAgain = () => {
-  hasSubmitted.value = false;
-  userAnswer.value = '';
-};
-</script>
-
 <template>
   <div 
     class="flashcard-container"
@@ -119,6 +73,52 @@ const tryAgain = () => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import type { Flashcard } from '@/types/lessons';
+
+const props = defineProps<{
+  flashcard: Flashcard;
+  showFeedback?: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: 'answer-submitted', answer: string): void;
+  (e: 'next'): void;
+}>();
+
+const isFlipped = ref(false);
+const userAnswer = ref('');
+const isCorrect = ref(false);
+const hasSubmitted = ref(false);
+
+const handleFlip = () => {
+  if (!isFlipped.value) {
+    isFlipped.value = true;
+  }
+};
+
+const submitAnswer = () => {
+  if (!userAnswer.value.trim()) return;
+  
+  hasSubmitted.value = true;
+  isCorrect.value = userAnswer.value.trim().toLowerCase() === props.flashcard.answer.toLowerCase();
+  emit('answer-submitted', userAnswer.value);
+};
+
+const handleNext = () => {
+  isFlipped.value = false;
+  hasSubmitted.value = false;
+  userAnswer.value = '';
+  emit('next');
+};
+
+const tryAgain = () => {
+  hasSubmitted.value = false;
+  userAnswer.value = '';
+};
+</script>
 
 <style scoped>
 .flashcard-container {

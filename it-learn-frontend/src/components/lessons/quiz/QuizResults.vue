@@ -20,11 +20,6 @@ const notificationStore = useNotificationStore();
 const profileStore = useProfileStore();
 const lessonsStore = useLessonsStore();
 
-const logQuizCompletion = () => {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] Quiz completed by BadrRibzat - Score: ${props.results.score}%`);
-};
-
 const handleQuizCompletion = async () => {
   if (props.results.passed) {
     notificationStore.success(
@@ -45,9 +40,7 @@ const handleQuizCompletion = async () => {
 
     await profileStore.trackActivity('quiz_complete', {
       score: props.results.score,
-      points_earned: props.results.points_earned,
-      timestamp: new Date().toISOString(),
-      completed_by: 'BadrRibzat'
+      points_earned: props.results.points_earned
     });
   } else {
     notificationStore.warning(
@@ -76,7 +69,6 @@ const retryQuiz = () => {
 };
 
 onMounted(async () => {
-  logQuizCompletion();
   await handleQuizCompletion();
 });
 </script>

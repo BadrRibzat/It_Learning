@@ -105,7 +105,12 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
+import { 
+  ArrowLeftIcon, 
+  ClipboardListIcon,
+  ClockIcon,
+  ChartBarIcon
+} from '@heroicons/vue/24/outline';
 import type { Lesson } from '@/types/lessons';
 
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
