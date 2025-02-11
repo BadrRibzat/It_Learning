@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { notifyError } from '@/utils/notifications';
 
-export const API_URL = import.meta.env.VITE_APP_API_URL || 'https://it-learn-backend.onrender.com';
+export const API_URL = '/api';
 
 const api = axios.create({
   baseURL: API_URL,

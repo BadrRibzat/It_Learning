@@ -200,7 +200,7 @@ import { onMounted, ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
-import { CogIcon, TrophyIcon, FireIcon, StarIcon, ClipboardListIcon, ClockIcon, ChartBarIcon } from '@heroicons/vue/24/outline';
+import { CogIcon, TrophyIcon, FireIcon, StarIcon, ClipboardIcon, ClockIcon, ChartBarIcon } from '@heroicons/vue/24/outline';
 import { useProfileStore } from '@/stores/profile';
 import { useAuthStore } from '@/stores/auth';
 import type { 
@@ -215,6 +215,7 @@ import ProgressCircle from '@/components/profile/ProgressCircle.vue';
 import QuickStat from '@/components/profile/QuickStat.vue';
 import ProfileSettingsModal from '@/components/profile/ProfileSettingsModal.vue';
 import Avatar from '@/components/common/Avatar.vue';
+import { toBase64 } from '@/utils/fileUtils';
 
 const router = useRouter();
 const toast = useToast();

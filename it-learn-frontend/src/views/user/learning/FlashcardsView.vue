@@ -19,7 +19,7 @@
         <!-- Learning Timer -->
         <div class="mb-4 flex justify-end">
           <LearningTimer
-            :start-time="startTime"
+            :total-time="timeSpent"
             @time-update="handleTimeUpdate"
           />
         </div>
@@ -111,22 +111,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useLessonsStore } from '@/stores/lessons';
-import { useToast } from 'vue-toastification';
-import { 
-    ArrowLeftIcon,
-    ClipboardIcon,
-    ClockIcon,
-    ChartBarIcon
-} from '@heroicons/vue/24/outline';
-import type { Flashcard } from '@/types/lessons';
+import { useLessonsStore } from "@/stores/lessons";
+import { useToast } from "vue-toastification";
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
-import FlashcardCard from '@/components/lessons/flashcards/FlashcardCard.vue';
-import FlashcardProgress from '@/components/lessons/flashcards/FlashcardProgress.vue';
-import FlashcardQuestion from '@/components/lessons/flashcards/FlashcardQuestion.vue';
-import CommandExample from '@/components/lessons/common/CommandExample.vue';
-import LearningTimer from '@/components/lessons/common/LearningTimer.vue';
+import LoadingSpinner from "@/components/common/LoadingSpinner.vue";
+import FlashcardCard from "@/components/lessons/flashcards/FlashcardCard.vue";
+import FlashcardProgress from "@/components/lessons/flashcards/FlashcardProgress.vue";
+import CommandExample from "@/components/lessons/common/CommandExample.vue";
+import LearningTimer from "@/components/lessons/common/LearningTimer.vue";
 import LearningDebugComponent from './LearningDebugComponent.vue';
 
 const route = useRoute();
@@ -146,7 +139,6 @@ const answeredCards = ref<boolean[]>([]);
 const timeSpent = ref(0);
 
 // Computed
-const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 const levelId = computed(() => route.params.levelId as string);
 const lessonId = computed(() => route.params.lessonId as string);
 const accuracy = computed(() => (correctAnswers.value / totalFlashcards.value) * 100);
@@ -155,16 +147,16 @@ const totalFlashcards = computed(() => lessonsStore.flashcards.length);
 const isLastCard = computed(() => currentIndex.value === totalFlashcards.value - 1);
 const allCorrect = computed(() => correctAnswers.value === totalFlashcards.value);
 
-// Initialize flashcards
-const initializeFlashcards = async () => {
+const levelId = ref(route.params.levelId as string);
+const lessonId = ref(route.params.lessonId as string);
   try {
     loading.value = true;
     error.value = null;
     await lessonsStore.fetchFlashcards(lessonId.value);
     answeredCards.value = new Array(lessonsStore.flashcards.length).fill(false);
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to load flashcards';
-    toast.error('Failed to load flashcards');
+    error.value = err instanceof Error ? `Error: ${err.message}` : 'Failed to load flashcards. Please try again later.';
+    toast.error(error.value);
   } finally {
     loading.value = false;
   }
@@ -257,7 +249,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (correctAnswers.value > 0) {
-    lessonsStore.saveProgress(lessonId.value, {
+    lessonsStore.saveQuizProgress(lessonId.value, {
       completed_flashcards: correctAnswers.value,
       total_points: totalPoints.value,
       time_spent: timeSpent.value

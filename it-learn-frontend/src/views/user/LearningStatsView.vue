@@ -66,17 +66,17 @@
           <div class="space-y-6">
             <MetricItem
               label="Quiz Average"
-              :value="stats?.quiz_average"
+              :value="stats?.quiz_average ?? null"
               format="percentage"
             />
             <MetricItem
               label="Accuracy Rate"
-              :value="stats?.accuracy_rate"
+              :value="stats?.accuracy_rate ?? null"
               format="percentage"
             />
             <MetricItem
               label="Time Spent Learning"
-              :value="stats?.time_spent"
+              :value="stats?.time_spent ?? null"
               format="time"
             />
           </div>
@@ -104,9 +104,8 @@ import {
   ChartBarIcon, 
   BookOpenIcon, 
   FireIcon,
-  ClipboardListIcon,
-  ClockIcon,
-  ChartBarIcon
+  ClipboardIcon,
+  ClockIcon
 } from '@heroicons/vue/24/outline';
 import { useProfileStore } from '@/stores/profile';
 import type { LearningStats, ProfileData } from '@/types/profile';

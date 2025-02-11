@@ -116,8 +116,6 @@ const initChart = () => {
     chart.value.data = {
       chartId: props.chartId,
       dataPoints: props.chartData.datasets.reduce((acc, dataset) => acc + dataset.data.length, 0),
-      timestamp: TIMESTAMP,
-      user: USER_LOGIN,
     };
 
     emit('chart-ready');

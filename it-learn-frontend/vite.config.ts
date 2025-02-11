@@ -31,6 +31,26 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
+        '/profile': {
+          target: env.VITE_APP_API_URL,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/profile/, ''),
+          configure: (proxy, _options) => {
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.removeHeader('content-length');
+            });
+          },
+        },
+        '/profile/achievements': {
+          target: env.VITE_APP_API_URL,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/profile\/achievements/, ''),
+          configure: (proxy, _options) => {
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.removeHeader('content-length');
+            });
+          },
+        },
       },
     },
     build: {

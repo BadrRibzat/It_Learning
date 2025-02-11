@@ -109,7 +109,7 @@ class ProfileService {
   static async getAchievements(): Promise<{ achievements: Achievement[] }> {
     try {
       const response: AxiosResponse<{ achievements: Achievement[] }> = await axios.get(
-        `${API_URL}/achievements`
+        `/profile/achievements`
       );
       return response.data;
     } catch (error) {

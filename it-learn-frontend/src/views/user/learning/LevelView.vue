@@ -47,17 +47,20 @@
         <div class="grid grid-cols-3 gap-6 mb-6">
           <QuickStat
             label="Lessons Completed"
+            title="Lessons Completed"
             :value="levelProgress?.completed_lessons || 0"
             :total="levelProgress?.total_lessons || 0"
             icon="BookOpenIcon"
           />
           <QuickStat
             label="Total Points"
+            title="Total Points"
             :value="levelProgress?.total_points || 0"
             icon="StarIcon"
           />
           <QuickStat
             label="Average Score"
+            title="Average Score"
             :value="averageQuizScore"
             suffix="%"
             icon="AcademicCapIcon"
@@ -107,7 +110,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
 import { 
   ArrowLeftIcon, 
-  ClipboardListIcon,
+  ClipboardIcon,
   ClockIcon,
   ChartBarIcon
 } from '@heroicons/vue/24/outline';

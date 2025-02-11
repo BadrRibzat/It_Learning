@@ -47,8 +47,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import LearningTimer from '@/components/common/LearningTimer.vue';
-import ProgressBar from '@/components/common/ProgressBar.vue';
+import LearningTimer from '@/components/lessons/common/LearningTimer.vue';
+import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
 
 const props = defineProps<{
   currentStep: number;

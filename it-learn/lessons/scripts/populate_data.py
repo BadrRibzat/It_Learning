@@ -1,3 +1,5 @@
+# Updated populate_data.py script
+
 import sys
 import os
 
@@ -45,20 +47,21 @@ def populate_initial_data():
             logger.info(f"Created level: {level['name']} with ID: {level_id}")
 
         logging.info("Creating lessons and content...")
-        command_examples = [
-            'ls', 'cd', 'mkdir', 'rmdir', 'touch', 'cp', 'mv', 'rm', 'cat', 'echo',
-            'grep', 'find', 'head', 'tail', 'chmod', 'chown', 'ps', 'kill', 'df', 'du',
-            'top', 'history', 'alias', 'unalias', 'export', 'source', 'wget', 'curl', 'tar', 'ssh', 'sudo'
-        ]
+        command_examples = {
+            'beginner': ['ls', 'cd', 'mkdir', 'rmdir', 'touch'],
+            'intermediate': ['cp', 'mv', 'rm', 'cat', 'echo'],
+            'advanced': ['grep', 'find', 'head', 'tail', 'chmod'],
+            'expert': ['chown', 'ps', 'kill', 'df', 'du', 'top', 'history', 'alias', 'unalias', 'export', 'source', 'wget', 'curl', 'tar', 'ssh', 'sudo']
+        }
 
-        for level_id in level_ids:
-            level_info = db.levels.find_one({"_id": level_id})
-            logger.info(f"Creating lessons for level: {level_info['name']} (ID: {level_id})")
+        for level_id, level_info in zip(level_ids, levels):
+            level_name = level_info['name']
+            logger.info(f"Creating lessons for level: {level_name} (ID: {level_id})")
             
             for lesson_num in range(1, 6):
                 lesson = {
                     'level': level_id,
-                    'title': f"Lesson {lesson_num} for {level_info['name']}",
+                    'title': f"Lesson {lesson_num} for {level_name}",
                     'description': '',
                     'order': lesson_num,
                     'created_at': datetime.utcnow()
@@ -67,17 +70,21 @@ def populate_initial_data():
                 logger.info(f"Created lesson {lesson_num} with ID: {lesson_id}")
 
                 # Create flashcards
-                for i in range(10):
-                    cmd = random.choice(command_examples)
-                    doc = nlp(f"Explain the {cmd} command for Linux/macOS with example")
+                for i, cmd in enumerate(command_examples[level_name]):
+                    explanation = f"The {cmd} command is used in Linux/macOS for [detailed explanation]."
+                    example = f"Example usage of {cmd}: {cmd} [options]"
+                    formatted_example = f"Example usage of {cmd}: \n```sh\n{cmd} [options]\n```"
+                    question = f"What is the purpose of the {cmd} command?"
+                    answer = f"The {cmd} command is used for [detailed explanation]."
+                    
                     flashcard = {
                         'lesson': lesson_id,
                         'command': cmd,
-                        'explanation': f"Explain the {cmd} command for Linux/macOS with example",
-                        'example': f"Example usage of {cmd}",
-                        'formatted_example': f"Example usage of {cmd}",
-                        'question': f"What does the {cmd} command do?",
-                        'answer': cmd,
+                        'explanation': explanation,
+                        'example': example,
+                        'formatted_example': formatted_example,
+                        'question': question,
+                        'answer': answer,
                         'order': i + 1,
                         'created_at': datetime.utcnow()
                     }
@@ -98,7 +105,7 @@ def populate_initial_data():
                 flashcards = list(db.flashcards.find({'lesson': lesson_id}))
                 for j in range(5):
                     if flashcards:
-                        flashcard = random.choice(flashcards)
+                        flashcard = flashcards[j % len(flashcards)]
                         question = {
                             'quiz': quiz_id,
                             'type': 'fill_blank',

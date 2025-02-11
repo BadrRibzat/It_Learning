@@ -393,6 +393,34 @@ class ActivityFeed(Resource):
             logger.error(f"Error fetching activity feed: {str(e)}")
             raise AppError("Failed to fetch activity feed", 500)
 
+@profile_ns.route('/achievements')
+class Achievements(Resource):
+    @jwt_required()
+    @profile_ns.marshal_with(profile_models['achievement'], as_list=True)
+    @profile_ns.doc(
+        description='Get user achievements',
+        security='Bearer Auth',
+        responses={
+            200: 'Success',
+            401: 'Unauthorized',
+            404: 'Achievements not found',
+            500: 'Server error'
+        }
+    )
+    def get(self):
+        """Get user's achievements"""
+        try:
+            user_id = get_jwt_identity()
+            achievements = db.achievements.find({'user_id': ObjectId(user_id)})
+            if not achievements:
+                raise AppError("Achievements not found", 404)
+            return list(achievements)
+        except AppError as e:
+            raise e
+        except Exception as e:
+            logger.error(f"Error fetching achievements: {str(e)}")
+            raise AppError("Failed to fetch achievements", 500)
+
 @profile_ns.route('/delete')
 class DeleteAccount(Resource):
     @jwt_required()

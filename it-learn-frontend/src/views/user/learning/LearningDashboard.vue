@@ -112,10 +112,6 @@
       @start-test="navigateToTest"
     />
 
-    <!-- Debug Information -->
-    <div v-if="isDevelopment" class="mt-8">
-      <LearningDebugComponent :debug-data="debugData" />
-    </div>
   </div>
 </template>
 
@@ -127,7 +123,7 @@ import {
     StarIcon, 
     BookOpenIcon, 
     AcademicCapIcon,
-    ClipboardListIcon,
+    ClipboardIcon,
     ClockIcon,
     ChartBarIcon
   } from '@heroicons/vue/24/outline';
@@ -137,13 +133,10 @@ import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
 import QuickStat from '@/components/profile/QuickStat.vue';
 import LevelList from '@/components/lessons/level/LevelList.vue';
 import LevelTestModal from '@/components/lessons/level/LevelTestModal.vue';
-import LearningDebugComponent from './LearningDebugComponent.vue';
 
 const router = useRouter();
 const lessonsStore = useLessonsStore();
 const showLevelTest = ref(false);
-
-const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 
 const currentLevel = computed(() => lessonsStore.currentLevel);
 const availableLevels = computed(() => lessonsStore.availableLevels);
@@ -167,20 +160,6 @@ const totalLessonsCompleted = computed(() => {
   return total;
 });
 
-const debugData = computed(() => ({
-  currentLevel: currentLevel.value,
-  availableLevels: availableLevels.value,
-  levelProgress: levelProgress.value,
-  canTakeLevelTest: canTakeLevelTest.value,
-  storeState: {
-    loading: lessonsStore.loading,
-    error: lessonsStore.error,
-    currentLesson: lessonsStore.currentLesson,
-    currentFlashcard: lessonsStore.currentFlashcard,
-    currentQuiz: lessonsStore.currentQuiz,
-  },
-}));
-
 const averageQuizScore = computed(() => {
   if (!levelProgress.value?.quiz_scores.length) return 0;
   const sum = levelProgress.value.quiz_scores.reduce((a, b) => a + b, 0);
@@ -199,13 +178,15 @@ onMounted(async () => {
       await Promise.all(availableLevels.value.map(async (level) => {
         try {
           const progress = await lessonsStore.fetchLevelProgress(level.id);
-          levelProgressMap.value[level.id] = lessonsStore.levelProgress;
+          if (lessonsStore.levelProgress) {
+            levelProgressMap.value[level.id] = lessonsStore.levelProgress;
+          }
         } catch (error) {
           console.error(`Failed to fetch level progress for level ${level.id}:`, error);
         }
       }));
     }
-    
+
     if (currentLevel.value) {
       await lessonsStore.fetchLevelProgress(currentLevel.value.id);
     }

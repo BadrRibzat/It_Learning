@@ -381,12 +381,12 @@ class LessonQuiz(Resource):
     @lessons_ns.marshal_with(quiz_model)
     @lessons_ns.doc(
         description='''Get quiz questions for a lesson.
-        
+
         Returns quiz details if:
         - User has completed sufficient flashcards
         - Quiz is unlocked based on progress
         - User has not already passed the quiz
-        
+
         Returns questions in randomized order.
         ''',
         params={'lesson_id': 'Lesson identifier'},
@@ -403,24 +403,24 @@ class LessonQuiz(Resource):
         """Retrieve quiz questions if unlocked"""
         try:
             user_id = get_jwt_identity()
-            
+
             # Check if quiz is unlocked
             progress = progress_service.get_lesson_progress(user_id, lesson_id)
             if not progress.get('quiz_unlocked', False):
                 raise AppError("Complete more flashcards to unlock quiz", 403)
-            
+
             # Get quiz and its questions
             if not ObjectId.is_valid(lesson_id):
                  raise AppError("Invalid lesson ID format", 400)
             quiz = db.quizzes.find_one({'lesson': ObjectId(lesson_id)})
             if not quiz:
                  raise AppError("Quiz not found", 404)
-            
+
             # Get questions
             questions = list(db.questions.find(
                 {'quiz': quiz['_id']}
             ).sort('order', 1))
-            
+
             # Format response
             return {
                 'id': str(quiz['_id']),
@@ -434,7 +434,7 @@ class LessonQuiz(Resource):
                 'total_questions': len(questions),
                 'passing_score': quiz.get('passing_score', 0.8)
             }
-            
+
         except AppError as e:
             raise e
         except Exception as e:
@@ -446,13 +446,13 @@ class LessonQuiz(Resource):
     @lessons_ns.marshal_with(quiz_submission_response)
     @lessons_ns.doc(
         description='''Submit quiz answers for grading.
-        
+
         Processes quiz submission and:
         - Calculates score
         - Updates progress
         - Awards points
         - Unlocks next lesson if passed
-        
+
         Required score is 80% to pass.
         ''',
         params={'lesson_id': 'Lesson identifier'},
@@ -472,27 +472,27 @@ class LessonQuiz(Resource):
             data = lessons_ns.payload
             if not ObjectId.is_valid(lesson_id):
                 raise AppError("Invalid lesson ID format", 400)
-            
+
             quiz = db.quizzes.find_one({'lesson': ObjectId(lesson_id)})
             if not quiz:
                 raise AppError("Quiz not found", 404)
-            
+
             questions = list(db.questions.find(
                 {'quiz': quiz['_id']}
             ).sort('order', 1))
-            
+
             if len(data['answers']) != len(questions):
                 raise AppError("Invalid number of answers", 400)
-            
+
             correct_answers = sum(
                 1 for q, a in zip(questions, data['answers'])
                 if a.strip().lower() == q['answer'].lower()
             )
-            
+
             score = correct_answers / len(questions)
             passed = score >= 0.8
             points_earned = correct_answers * 20
-            
+
             # Record submission
             submission = {
                 'user': ObjectId(user_id),
@@ -505,7 +505,7 @@ class LessonQuiz(Resource):
                 'submitted_at': datetime.now(UTC)
             }
             db.quiz_submissions.insert_one(submission)
-            
+
             # Handle next lesson unlock if passed
             next_lesson_unlocked = False
             if passed:
@@ -523,7 +523,7 @@ class LessonQuiz(Resource):
                         }
                     )
                     next_lesson_unlocked = True
-            
+
             return {
                 'score': score * 100,
                 'correct_answers': correct_answers,
@@ -532,7 +532,7 @@ class LessonQuiz(Resource):
                 'next_lesson_unlocked': next_lesson_unlocked,
                 'points_earned': points_earned
             }
-            
+
         except AppError as e:
             raise e
         except Exception as e:
