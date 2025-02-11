@@ -1,5 +1,3 @@
-# Updated populate_data.py script
-
 import sys
 import os
 
@@ -54,6 +52,165 @@ def populate_initial_data():
             'expert': ['chown', 'ps', 'kill', 'df', 'du', 'top', 'history', 'alias', 'unalias', 'export', 'source', 'wget', 'curl', 'tar', 'ssh', 'sudo']
         }
 
+        command_details = {
+            'ls': {
+                'explanation': 'The ls command lists the contents of a directory.',
+                'example': 'ls -l',
+                'formatted_example': '```sh\nls -l\n```'
+            },
+            'cd': {
+                'explanation': 'The cd command changes the current directory.',
+                'example': 'cd /home/user',
+                'formatted_example': '```sh\ncd /home/user\n```'
+            },
+            'mkdir': {
+                'explanation': 'The mkdir command creates a new directory.',
+                'example': 'mkdir new_folder',
+                'formatted_example': '```sh\nmkdir new_folder\n```'
+            },
+            'rmdir': {
+                'explanation': 'Removes empty directories. Cannot delete directories containing files or other directories.',
+                'example': 'rmdir empty_folder',
+                'formatted_example': '```sh\nrmdir empty_folder\n```'
+            },
+            'touch': {
+                'explanation': 'Creates new empty files or updates file timestamps.',
+                'example': 'touch new_file.txt',
+                'formatted_example': '```sh\ntouch new_file.txt\n```'
+            },
+            'cp': {
+                'explanation': 'Copies files and directories. Use -r flag for directories.',
+                'example': 'cp -r source_dir/ destination_dir/',
+                'formatted_example': '```sh\ncp -r source_dir/ destination_dir/\n```'
+            },
+            'mv': {
+                'explanation': 'Moves or renames files/directories. Also used for bulk renaming.',
+                'example': 'mv old_name.txt new_name.txt',
+                'formatted_example': '```sh\nmv old_name.txt new_name.txt\n```'
+            },
+            'rm': {
+                'explanation': 'Removes files/directories permanently. Use with caution!',
+                'example': 'rm -rf directory/',
+                'formatted_example': '```sh\nrm -rf directory/\n```',
+                'warning': '⚠️ Dangerous command: Deletes files permanently'
+            },
+            'cat': {
+                'explanation': 'Displays file contents. Often used with pipes for processing.',
+                'example': 'cat file.txt | grep "search"',
+                'formatted_example': '```sh\ncat file.txt | grep "search"\n```'
+            },
+            'echo': {
+                'explanation': 'Prints text to terminal or redirects to files.',
+                'example': 'echo "Hello World" > greeting.txt',
+                'formatted_example': '```sh\necho "Hello World" > greeting.txt\n```'
+            },
+            'grep': {
+                'explanation': 'Searches text patterns using regular expressions.',
+                'example': 'grep -ri "error" /var/log/',
+                'formatted_example': '```sh\ngrep -ri "error" /var/log/\n```'
+            },
+            'find': {
+                'explanation': 'Searches for files/directories matching criteria.',
+                'example': 'find /home -name "*.jpg" -size +1M',
+                'formatted_example': '```sh\nfind /home -name "*.jpg" -size +1M\n```'
+            },
+            'head': {
+                'explanation': 'Displays first 10 lines of a file by default.',
+                'example': 'head -n 20 large_file.log',
+                'formatted_example': '```sh\nhead -n 20 large_file.log\n```'
+            },
+            'tail': {
+                'explanation': 'Displays last 10 lines of a file. Useful for logs.',
+                'example': 'tail -f /var/log/system.log',
+                'formatted_example': '```sh\ntail -f /var/log/system.log\n```'
+            },
+            'chmod': {
+                'explanation': 'Changes file permissions using numeric or symbolic modes.',
+                'example': 'chmod 755 script.sh',
+                'formatted_example': '```sh\nchmod 755 script.sh\n```'
+            },
+            'chown': {
+                'explanation': 'Changes file owner and group.',
+                'example': 'chown user:group file.txt',
+                'formatted_example': '```sh\nchown user:group file.txt\n```'
+            },
+            'ps': {
+                'explanation': 'Displays information about running processes.',
+                'example': 'ps aux | grep nginx',
+                'formatted_example': '```sh\nps aux | grep nginx\n```'
+            },
+            'kill': {
+                'explanation': 'Terminates processes by PID. Use -9 for force kill.',
+                'example': 'kill -9 1234',
+                'formatted_example': '```sh\nkill -9 1234\n```'
+            },
+            'df': {
+                'explanation': 'Shows disk space usage. -h flag for human-readable format.',
+                'example': 'df -h',
+                'formatted_example': '```sh\ndf -h\n```'
+            },
+            'du': {
+                'explanation': 'Estimates file/directory space usage.',
+                'example': 'du -sh *',
+                'formatted_example': '```sh\ndu -sh *\n```'
+            },
+            'top': {
+                'explanation': 'Dynamic real-time view of running system/processes.',
+                'example': 'top',
+                'formatted_example': '```sh\ntop\n```'
+            },
+            'history': {
+                'explanation': 'Displays command history. Use !n to repeat command number n.',
+                'example': 'history | grep "ssh"',
+                'formatted_example': '```sh\nhistory | grep "ssh"\n```'
+            },
+            'alias': {
+                'explanation': 'Creates shortcuts for commands.',
+                'example': 'alias ll="ls -alh"',
+                'formatted_example': '```sh\nalias ll="ls -alh"\n```'
+            },
+            'unalias': {
+                'explanation': 'Removes command aliases.',
+                'example': 'unalias ll',
+                'formatted_example': '```sh\nunalias ll\n```'
+            },
+            'export': {
+                'explanation': 'Sets environment variables.',
+                'example': 'export PATH=$PATH:/new/path',
+                'formatted_example': '```sh\nexport PATH=$PATH:/new/path\n```'
+            },
+            'source': {
+                'explanation': 'Reloads shell configuration files.',
+                'example': 'source ~/.bashrc',
+                'formatted_example': '```sh\nsource ~/.bashrc\n```'
+            },
+            'wget': {
+                'explanation': 'Downloads files from the web.',
+                'example': 'wget https://example.com/file.zip',
+                'formatted_example': '```sh\nwget https://example.com/file.zip\n```'
+            },
+            'curl': {
+                'explanation': 'Transfers data from/to servers. Supports multiple protocols.',
+                'example': 'curl -O https://example.com/file.jpg',
+                'formatted_example': '```sh\ncurl -O https://example.com/file.jpg\n```'
+            },
+            'tar': {
+                'explanation': 'Archiving utility. Common flags: -c (create), -x (extract), -z (gzip), -v (verbose), -f (file)',
+                'example': 'tar -czvf archive.tar.gz folder/',
+                'formatted_example': '```sh\ntar -czvf archive.tar.gz folder/\n```'
+            },
+            'ssh': {
+                'explanation': 'Secure shell client for remote server access.',
+                'example': 'ssh user@remote.server.com',
+                'formatted_example': '```sh\nssh user@remote.server.com\n```'
+            },
+            'sudo': {
+                'explanation': 'Executes commands with superuser privileges.',
+                'example': 'sudo apt update',
+                'formatted_example': '```sh\nsudo apt update\n```'
+            }
+        }
+
         for level_id, level_info in zip(level_ids, levels):
             level_name = level_info['name']
             logger.info(f"Creating lessons for level: {level_name} (ID: {level_id})")
@@ -71,11 +228,12 @@ def populate_initial_data():
 
                 # Create flashcards
                 for i, cmd in enumerate(command_examples[level_name]):
-                    explanation = f"The {cmd} command is used in Linux/macOS for [detailed explanation]."
-                    example = f"Example usage of {cmd}: {cmd} [options]"
-                    formatted_example = f"Example usage of {cmd}: \n```sh\n{cmd} [options]\n```"
+                    details = command_details.get(cmd, {})
+                    explanation = details.get('explanation', f"The {cmd} command is used in Linux/macOS for [detailed explanation].")
+                    example = details.get('example', f"Example usage of {cmd}: {cmd} [options]")
+                    formatted_example = details.get('formatted_example', f"```sh\n{cmd} [options]\n```")
                     question = f"What is the purpose of the {cmd} command?"
-                    answer = f"The {cmd} command is used for [detailed explanation]."
+                    answer = explanation
                     
                     flashcard = {
                         'lesson': lesson_id,
