@@ -147,8 +147,7 @@ const totalFlashcards = computed(() => lessonsStore.flashcards.length);
 const isLastCard = computed(() => currentIndex.value === totalFlashcards.value - 1);
 const allCorrect = computed(() => correctAnswers.value === totalFlashcards.value);
 
-const levelId = ref(route.params.levelId as string);
-const lessonId = ref(route.params.lessonId as string);
+const initializeFlashcards = async () => {
   try {
     loading.value = true;
     error.value = null;

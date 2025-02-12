@@ -5,9 +5,9 @@
         <div class="flex items-center">
           <RouterLink to="/" class="flex items-center">
             <span class="sr-only">IT Learning</span>
-            <img class="h-8 w-auto" src="@/assets/logo.svg" alt="IT Learning" />
+            <img class="h-8 w-auto" src="@/assets/logo.png" alt="IT Learning" />
           </RouterLink>
-          
+
           <div class="ml-10 hidden space-x-8 lg:block">
             <RouterLink
               v-for="item in navigation"
@@ -137,7 +137,7 @@
             >
               {{ item.name }}
             </RouterLink>
-            
+
             <template v-if="!isAuthenticated">
               <RouterLink
                 to="/login"
@@ -194,7 +194,12 @@ import {
   XMarkIcon,
   ChevronDownIcon,
 } from '@heroicons/vue/24/outline';
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
+import {
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems
+} from '@headlessui/vue';
 
 const route = useRoute();
 const router = useRouter();

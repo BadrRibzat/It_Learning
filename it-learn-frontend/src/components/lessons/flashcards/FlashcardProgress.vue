@@ -1,75 +1,3 @@
-<script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
-import { useNotificationStore } from '@/stores/notification';
-import { useProfileStore } from '@/stores/profile';
-import { CheckCircleIcon, StarIcon, FireIcon } from '@heroicons/vue/24/solid';
-import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
-
-const props = defineProps<{
-  currentIndex: number;
-  total: number;
-  correctAnswers: number;
-  points: number;
-  answeredCards: boolean[];
-  streakCount?: number;
-}>();
-
-const notificationStore = useNotificationStore();
-const profileStore = useProfileStore();
-
-const completionPercentage = computed(() => 
-  Math.round((props.currentIndex + 1) / props.total * 100)
-);
-
-const accuracy = computed(() => 
-  Math.round((props.correctAnswers / (props.currentIndex + 1)) * 100) || 0
-);
-
-const streak = computed(() => props.streakCount || 0);
-
-const milestones = [
-  { threshold: 25, message: '25% Complete!' },
-  { threshold: 50, message: 'Halfway there!' },
-  { threshold: 75, message: 'Almost done!' },
-  { threshold: 100, message: 'Completed!' }
-];
-
-const getProgressIndicatorClass = (index: number) => {
-  if (index > props.currentIndex) return 'bg-gray-200';
-  if (!props.answeredCards[index]) return 'bg-gray-400';
-  return props.answeredCards[index] ? 'bg-green-500' : 'bg-red-500';
-};
-
-const checkMilestones = async () => {
-  const currentPercentage = completionPercentage.value;
-  const milestone = milestones.find(m => m.threshold === currentPercentage);
-
-  if (milestone) {
-    notificationStore.success(milestone.message);
-    
-    if (currentPercentage === 100) {
-      await profileStore.trackActivity('flashcards_completed', {
-        accuracy: accuracy.value,
-        points_earned: props.points
-      });
-    }
-  }
-
-  if (streak.value > 0 && streak.value % 5 === 0) {
-    notificationStore.success(`${streak.value} correct answers in a row! 🔥`);
-    await profileStore.checkAchievements('streak_milestone');
-  }
-};
-
-watch(() => props.currentIndex, async () => {
-  await checkMilestones();
-});
-
-onMounted(() => {
-  checkMilestones();
-});
-</script>
-
 <template>
   <div class="flashcard-progress space-y-4 bg-white rounded-lg shadow p-6">
     <div class="flex items-center justify-between">
@@ -144,6 +72,78 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { computed, onMounted, watch } from 'vue';
+import { useNotificationStore } from '@/stores/notification';
+import { useProfileStore } from '@/stores/profile';
+import { CheckCircleIcon, StarIcon, FireIcon } from '@heroicons/vue/24/solid';
+import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
+
+const props = defineProps<{
+  currentIndex: number;
+  total: number;
+  correctAnswers: number;
+  points: number;
+  answeredCards: boolean[];
+  streakCount?: number;
+}>();
+
+const notificationStore = useNotificationStore();
+const profileStore = useProfileStore();
+
+const completionPercentage = computed(() => 
+  Math.round((props.currentIndex + 1) / props.total * 100)
+);
+
+const accuracy = computed(() => 
+  Math.round((props.correctAnswers / (props.currentIndex + 1)) * 100) || 0
+);
+
+const streak = computed(() => props.streakCount || 0);
+
+const milestones = [
+  { threshold: 25, message: '25% Complete!' },
+  { threshold: 50, message: 'Halfway there!' },
+  { threshold: 75, message: 'Almost done!' },
+  { threshold: 100, message: 'Completed!' }
+];
+
+const getProgressIndicatorClass = (index: number) => {
+  if (index > props.currentIndex) return 'bg-gray-200';
+  if (!props.answeredCards[index]) return 'bg-gray-400';
+  return props.answeredCards[index] ? 'bg-green-500' : 'bg-red-500';
+};
+
+const checkMilestones = async () => {
+  const currentPercentage = completionPercentage.value;
+  const milestone = milestones.find(m => m.threshold === currentPercentage);
+
+  if (milestone) {
+    notificationStore.success(milestone.message);
+    
+    if (currentPercentage === 100) {
+      await profileStore.trackActivity('flashcards_completed', {
+        accuracy: accuracy.value,
+        points_earned: props.points
+      });
+    }
+  }
+
+  if (streak.value > 0 && streak.value % 5 === 0) {
+    notificationStore.success(`${streak.value} correct answers in a row! 🔥`);
+    await profileStore.checkAchievements('streak_milestone');
+  }
+};
+
+watch(() => props.currentIndex, async () => {
+  await checkMilestones();
+});
+
+onMounted(() => {
+  checkMilestones();
+});
+</script>
 
 <style scoped>
 .flashcard-progress {

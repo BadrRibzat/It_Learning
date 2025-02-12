@@ -48,17 +48,17 @@ const socialLinks = [
   {
     name: 'GitHub',
     href: 'https://github.com/yourusername',
-    icon: CodeBracketIcon, // Changed from GitHubIcon
+    icon: CodeBracketIcon,
   },
   {
     name: 'Twitter',
     href: 'https://twitter.com/yourusername',
-    icon: ChatBubbleLeftRightIcon, // Changed from TwitterIcon
+    icon: ChatBubbleLeftRightIcon,
   },
   {
     name: 'LinkedIn',
     href: 'https://linkedin.com/in/yourusername',
-    icon: UserCircleIcon, // Changed from LinkedInIcon
+    icon: UserCircleIcon,
   },
 ];
 

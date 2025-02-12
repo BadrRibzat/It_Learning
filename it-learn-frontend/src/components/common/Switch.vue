@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useNotificationStore } from '@/stores/notification';
 
 interface SwitchProps {
@@ -136,15 +136,6 @@ const handleChange = async () => {
   const newValue = !props.modelValue;
 
   try {
-    await logUserActivity('switch_toggled', {
-      id: switchId.value,
-      name: props.name,
-      previousValue: props.modelValue,
-      newValue,
-      timestamp: TIMESTAMP,
-      user: USER_LOGIN
-    });
-
     emit('update:modelValue', newValue);
     emit('change', newValue);
   } catch (error) {
@@ -156,24 +147,6 @@ const handleChange = async () => {
     }, 200);
   }
 };
-
-watch(() => props.modelValue, (newValue) => {
-  logUserActivity('switch_value_changed', {
-    id: switchId.value,
-    value: newValue,
-    timestamp: TIMESTAMP,
-    user: USER_LOGIN
-  });
-});
-
-onMounted(() => {
-  logUserActivity('switch_mounted', {
-    id: switchId.value,
-    initialValue: props.modelValue,
-    timestamp: TIMESTAMP,
-    user: USER_LOGIN
-  });
-});
 </script>
 
 <style scoped>
@@ -197,4 +170,9 @@ onMounted(() => {
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+.switch-track.cursor-not-allowed {
+  @apply opacity-50;
+}
+
 </style>

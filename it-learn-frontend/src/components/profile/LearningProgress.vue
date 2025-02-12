@@ -58,8 +58,8 @@
               class="w-8 h-8 rounded-full flex items-center justify-center"
               :class="milestone.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'"
             >
-              <check-circle-icon v-if="milestone.completed" class="w-5 h-5" />
-              <clock-icon v-else class="w-5 h-5" />
+              <CheckCircleIcon v-if="milestone.completed" class="w-5 h-5" />
+              <ClockIcon v-else class="w-5 h-5" />
             </div>
             <div>
               <p class="font-medium">{{ milestone.title }}</p>
@@ -107,3 +107,18 @@ const progressItems = computed(() => {
   ];
 });
 </script>
+
+<style scoped>
+.progress-bar {
+  width: 100%;
+  height: 100%;
+}
+
+.bg-blue-500 {
+  background-color: #3b82f6;
+}
+
+.bg-green-500 {
+  background-color: #10b981;
+}
+</style>

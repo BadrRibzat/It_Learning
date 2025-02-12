@@ -275,7 +275,7 @@
     <!-- CTA Section -->
     <section class="relative isolate mt-32 px-6 py-32 sm:mt-56 sm:py-40 lg:px-8">
       <div class="absolute inset-0 -z-10 overflow-hidden bg-gradient-to-b from-primary-100/20">
-        <div class="absolute inset-0 bg-white/90" />
+        <div class="absolute inset-0 bg-white/90"></div>
       </div>
       <div class="mx-auto max-w-2xl text-center">
         <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">

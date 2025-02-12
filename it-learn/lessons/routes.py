@@ -38,7 +38,27 @@ level_service = LevelService()
 progress_service = ProgressService()
 db = get_db()
 
-# API Models
+# API Models for serialization
+level_card_model = lessons_ns.model('LevelCard', {
+    'id': fields.String(description='Level identifier'),
+    'name': fields.String(description='Level name', example='beginner'),
+    'order': fields.Integer(description='Level sequence', example=1),
+    'description': fields.String(description='Level description'),
+    'icon': fields.String(description='Level icon URL'),
+    'is_unlocked': fields.Boolean(description='Level unlock status'),
+    'required_score': fields.Float(description='Required score to pass', example=0.8),
+    'test_available': fields.Boolean(description='Whether level has test')
+})
+
+levels_response_model = lessons_ns.model('LevelsResponse', {
+    'current_level': fields.String(description='Current user level'),
+    'next_level': fields.String(description='Next available level'),
+    'required_score': fields.Float(description='Score required to advance'),
+    'unlocked_levels': fields.List(fields.String, description='List of unlocked level names'),
+    'progress': fields.Integer(description='Current level progress'),
+    'levels': fields.List(fields.Nested(level_card_model), description='Array of level cards')
+})
+
 flashcard_model = lessons_ns.model('Flashcard', {
     'id': fields.String(required=True, description='Unique identifier for the flashcard'),
     'command': fields.String(required=True, description='Command name or syntax', example='ls'),
@@ -122,40 +142,41 @@ level_progress_response = lessons_ns.model('LevelProgressResponse', {
 @lessons_ns.route('/levels')
 class LevelList(Resource):
     @jwt_required()
+    @lessons_ns.marshal_with(levels_response_model)
     @lessons_ns.doc(
-        description='Get all available levels',
+        description='Get all available levels as an array with current progress',
         security='Bearer Auth',
         responses={
-            200: 'List of available levels',
+            200: 'List of levels successfully retrieved',
             401: 'Authentication required',
             500: 'Server error'
         }
     )
     def get(self):
-        """Get all available levels"""
+        """Get all available levels as an array with progression info"""
         try:
             user_id = get_jwt_identity()
-            user = db.users.find_one({'_id': ObjectId(user_id)})
-
-            # Get all levels
-            levels = list(db.levels.find().sort('order', 1))
-
-            # Format response
-            response = []
-            for level in levels:
-                is_unlocked = (
-                    level['name'] == 'beginner' or
-                    str(level['_id']) in [str(lid) for lid in user.get('unlocked_levels', [])]
-                )
-                response.append({
-                    'id': str(level['_id']),
-                    'name': level['name'],
-                    'order': level['order'],
-                    'is_unlocked': is_unlocked,
-                    'is_current': user.get('current_level') == level['order']
-                })
-
+            level_service = LevelService()
+            
+            # Get level progression data
+            progression_data = level_service.get_level_progression(user_id)
+            
+            # Ensure levels is always an array
+            if not progression_data.get('levels'):
+                progression_data['levels'] = []
+                
+            # Structure the response according to the model
+            response = {
+                'current_level': progression_data['current_level'],
+                'next_level': progression_data.get('next_level'),
+                'required_score': progression_data.get('required_score', 0.8),
+                'unlocked_levels': progression_data.get('unlocked_levels', ['beginner']),
+                'progress': progression_data.get('progress', 0),
+                'levels': progression_data['levels']
+            }
+            
             return response
+            
         except Exception as e:
             logger.error(f"Error fetching levels: {str(e)}")
             raise AppError("Failed to fetch levels", 500)
@@ -163,11 +184,12 @@ class LevelList(Resource):
 @lessons_ns.route('/levels/current')
 class CurrentLevel(Resource):
     @jwt_required()
+    @lessons_ns.marshal_with(level_card_model)
     @lessons_ns.doc(
-        description='Get user\'s current level details',
+        description='Get current level details',
         security='Bearer Auth',
         responses={
-            200: 'Current level details',
+            200: 'Current level details retrieved',
             401: 'Authentication required',
             404: 'Level not found',
             500: 'Server error'
@@ -177,39 +199,100 @@ class CurrentLevel(Resource):
         """Get current level details"""
         try:
             user_id = get_jwt_identity()
-            user = db.users.find_one({'_id': ObjectId(user_id)})
-
-            # New users start at beginner level
-            current_level_order = user.get('current_level', 1)
-            level = db.levels.find_one({'order': current_level_order})
-
-            if not level:
-                level = db.levels.find_one({'name': 'beginner'})
-
-            if not level:
-                raise AppError("Level not found", 404)
-
-            # Get lessons for current level
-            lessons = list(db.lessons.find({
-                'level': level['_id']
-            }).sort('order', 1))
-
-            return {
-                'id': str(level['_id']),
-                'name': level['name'],
-                'order': level['order'],
-                'total_lessons': len(lessons),
-                'lessons': [{
-                    'id': str(lesson['_id']),
-                    'title': lesson['title'],
-                    'order': lesson['order']
-                } for lesson in lessons]
-            }
+            level_service = LevelService()
+            
+            progression_data = level_service.get_level_progression(user_id)
+            current_level_name = progression_data['current_level']
+            
+            # Find current level in levels array
+            current_level = next(
+                (level for level in progression_data['levels'] 
+                 if level['name'] == current_level_name),
+                None
+            )
+            
+            if not current_level:
+                raise AppError("Current level not found", 404)
+                
+            return current_level
+            
         except AppError as e:
             raise e
         except Exception as e:
             logger.error(f"Error fetching current level: {str(e)}")
             raise AppError("Failed to fetch current level", 500)
+
+@lessons_ns.route('/levels/<level_id>/access')
+class LevelAccess(Resource):
+    level_access_model = lessons_ns.model('LevelAccess', {
+        'has_access': fields.Boolean(description='Whether user has access to level'),
+        'requires_test': fields.Boolean(description='Whether level requires test'),
+        'redirect_url': fields.String(description='URL to redirect to if test required'),
+        'test_id': fields.String(description='Level test ID if available'),
+        'error': fields.String(description='Error message if any')
+    })
+
+    @jwt_required()
+    @lessons_ns.marshal_with(level_access_model)
+    @lessons_ns.doc(
+        description='Check level access and get test requirements',
+        security='Bearer Auth',
+        responses={
+            200: 'Access check completed',
+            401: 'Authentication required',
+            404: 'Level not found',
+            500: 'Server error'
+        }
+    )
+    def get(self, level_id):
+        """Check level access and handle test redirects"""
+        try:
+            user_id = get_jwt_identity()
+            if not ObjectId.is_valid(level_id):
+                raise AppError("Invalid level ID format", 400)
+                
+            db = get_db()
+            level = db.levels.find_one({'_id': ObjectId(level_id)})
+            if not level:
+                raise AppError("Level not found", 404)
+                
+            user = db.users.find_one({'_id': ObjectId(user_id)})
+            unlocked_levels = user.get('unlocked_levels', ['beginner'])
+            
+            # Beginner level or already unlocked
+            if level['name'] == 'beginner' or level['name'] in unlocked_levels:
+                return {
+                    'has_access': True,
+                    'requires_test': False,
+                    'redirect_url': None,
+                    'test_id': None,
+                    'error': None
+                }
+                
+            # Check for level test
+            level_test = db.level_tests.find_one({'level': ObjectId(level_id)})
+            if level_test:
+                return {
+                    'has_access': False,
+                    'requires_test': True,
+                    'redirect_url': f'/levels/{level_id}/test',
+                    'test_id': str(level_test['_id']),
+                    'error': None
+                }
+                
+            return {
+                'has_access': False,
+                'requires_test': True,
+                'redirect_url': None,
+                'test_id': None,
+                'error': 'Level test not found'
+            }
+            
+        except AppError as e:
+            raise e
+        except Exception as e:
+            logger.error(f"Error checking level access: {str(e)}")
+            raise AppError("Failed to check level access", 500)
 
 @lessons_ns.route('/levels/<level_id>/lessons')
 class LessonsList(Resource):
@@ -465,6 +548,7 @@ class LessonQuiz(Resource):
             500: 'Server error'
         }
     )
+
     def post(self, lesson_id):
         """Submit and grade quiz answers"""
         try:
@@ -545,12 +629,12 @@ class LevelTest(Resource):
     @lessons_ns.marshal_with(level_test_model)
     @lessons_ns.doc(
         description='''Get level advancement test.
-        
+
         Returns test details if:
         - All lessons in level are completed
         - All quizzes are passed
         - Not in cooldown period from previous attempt
-        
+
         Test has stricter requirements than regular quizzes.
         ''',
         params={'level_id': 'Level identifier'},
@@ -569,9 +653,9 @@ class LevelTest(Resource):
             user_id = get_jwt_identity()
             if not ObjectId.is_valid(level_id):
                 raise AppError("Invalid level ID format", 400)
-            
+
             self._verify_level_eligibility(user_id, level_id)
-            
+
             level_test = db.level_tests.find_one({'level': ObjectId(level_id)})
             if not level_test:
                 raise AppError("Level test not found", 404)
@@ -611,14 +695,14 @@ class LevelTest(Resource):
     @lessons_ns.expect(test_submission_model)
     @lessons_ns.doc(
         description='''Submit level test answers.
-        
+
         Processes test submission and:
         - Validates eligibility
         - Checks attempt limits
         - Calculates score
         - Handles level progression
         - Awards points
-        
+
         Has cooldown period between attempts.
         ''',
         params={'level_id': 'Level identifier'},
@@ -897,3 +981,4 @@ class LevelProgress(Resource):
         except Exception as e:
             logger.error(f"Level progress error: {str(e)}")
             raise AppError("Failed to fetch level progress", 500)
+

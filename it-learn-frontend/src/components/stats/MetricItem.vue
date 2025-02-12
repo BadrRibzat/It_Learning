@@ -55,3 +55,35 @@ const changeColor = computed(() => {
   return props.change > 0 ? 'text-green-600' : 'text-red-600';
 });
 </script>
+
+<style scoped>
+.value {
+  font-size: 1.25rem;
+}
+
+.change {
+  font-size: 0.875rem;
+}
+
+.text-green-600 {
+  color: #10b981;
+}
+
+.text-red-600 {
+  color: #ef4444;
+}
+
+.arrow-up {
+  color: #10b981;
+}
+
+.arrow-down {
+  color: #ef4444;
+}
+
+.arrow-up,
+.arrow-down {
+  width: 1rem;
+  height: 1rem;
+}
+</style>

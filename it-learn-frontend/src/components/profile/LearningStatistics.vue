@@ -16,7 +16,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import type { LearningStats } from '@/types/profile';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import QuickStat from './QuickStat.vue';
@@ -26,3 +25,43 @@ const props = defineProps<{
   loading?: boolean;
 }>();
 </script>
+
+<style scoped>
+.quick-stat {
+  margin-bottom: 1.5rem;
+}
+
+.quick-stat:last-child {
+  margin-bottom: 0;
+}
+
+.quick-stat .value {
+  font-size: 1.5rem;
+}
+
+.quick-stat .title {
+  font-size: 0.875rem;
+}
+.loading-spinner {
+  width: 3rem;
+  height: 3rem;
+}
+
+.loading-spinner svg {
+  width: 3rem;
+  height: 3rem;
+}
+
+.loading-spinner path {
+  stroke: #4b5563;
+}
+
+.loading-spinner circle {
+  stroke: #4b5563;
+}
+
+.loading-spinner .path {
+  stroke: #4b5563;
+}
+
+</style>

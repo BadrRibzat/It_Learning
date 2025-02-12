@@ -67,11 +67,11 @@
 import { AcademicCapIcon } from '@heroicons/vue/24/outline';
 import type { Level } from '@/types/lessons';
 
-defineProps<{
+const props = defineProps<{
   level: Level | null;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'start-test'): void;
 }>();

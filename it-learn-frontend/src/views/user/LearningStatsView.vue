@@ -103,9 +103,7 @@ import {
   TrophyIcon, 
   ChartBarIcon, 
   BookOpenIcon, 
-  FireIcon,
-  ClipboardIcon,
-  ClockIcon
+  FireIcon 
 } from '@heroicons/vue/24/outline';
 import { useProfileStore } from '@/stores/profile';
 import type { LearningStats, ProfileData } from '@/types/profile';
@@ -174,7 +172,6 @@ const startOfWeek = computed(() => {
 });
 
 const weeklyActivities = computed(() => {
-  // Transform activities into heatmap data
   return profileStore.recentActivities?.map(activity => ({
     date: new Date(activity.timestamp),
     value: activity.points_earned || 0
@@ -212,3 +209,41 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+/* Add custom styles here */
+.learning-stats-page {
+  max-width: 1200px;
+}
+
+@media (min-width: 768px) {
+  .learning-stats-page {
+    padding-top: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .learning-stats-page {
+    padding-top: 4rem;
+  }
+}
+
+/* Stat Card */
+.stat-card {
+  display: flex;
+  align-items: center;
+}
+.stat-card__icon {
+  width: 2rem;
+  height: 2rem;
+  margin-right: 0.5rem;
+}
+.stat-card__value {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.stat-card__label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+</style>

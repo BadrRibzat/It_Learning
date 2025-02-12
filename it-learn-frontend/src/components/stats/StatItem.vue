@@ -168,4 +168,57 @@ watch(() => props.value, (newValue, oldValue) => {
     @apply break-inside-avoid;
   }
 }
+
+.stat-item .trend {
+  @apply flex items-center text-sm;
+}
+
+.stat-item .trend svg {
+  @apply w-4 h-4 mr-1;
+}
+
+.stat-item .goal-progress {
+  @apply mt-1 flex items-center space-x-2;
+}
+
+.stat-item .goal-progress .bar {
+  @apply w-16 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden;
+}
+
+.stat-item .goal-progress .bar .progress {
+  @apply h-full transition-all duration-500 ease-out;
+}
+
+.stat-item .goal-progress .bar .progress.goal-reached {
+  @apply bg-green-500;
+}
+
+.stat-item .goal-progress .bar .progress.goal-not-reached {
+  @apply bg-primary-500;
+}
+
+.stat-item .goal-progress .percentage {
+  @apply text-xs text-gray-500 dark:text-gray-400;
+}
+
+.stat-item .goal-progress .percentage.goal-reached {
+  @apply text-green-500;
+}
+
+.stat-item .goal-progress .percentage.goal-not-reached {
+  @apply text-primary-500;
+}
+
+.stat-item .goal-progress .percentage.goal-reached::after {
+  @apply content-['✔'] ml-1;
+}
+
+.stat-item .goal-progress .percentage.goal-not-reached::after {
+  @apply content-['✘'] ml-1;
+}
+
+.stat-item .goal-progress .percentage.goal-reached::after,
+.stat-item .goal-progress .percentage.goal-not-reached::after {
+  @apply text-sm;
+}
 </style>

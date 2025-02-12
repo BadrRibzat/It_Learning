@@ -1,31 +1,62 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold mb-6">Profile Overview</h2>
-    
-    <div v-if="loading" class="flex justify-center py-8">
-      <LoadingSpinner />
+  <div class="profile-overview bg-white rounded-lg shadow p-6">
+    <div class="flex items-center space-x-4">
+      <Avatar
+        :src="profile?.profile_picture"
+        :name="profile?.full_name || 'User'"
+        size="lg"
+      />
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">{{ profile?.full_name || 'User' }}</h2>
+        <p class="text-sm text-gray-600">{{ profile?.email }}</p>
+      </div>
     </div>
-    
-    <div v-else>
-      <ProfileInfo :profile="profile" :loading="loading" />
-      <LearningProgress :currentLevel="currentLevel" :stats="stats" :loading="loading" />
-      <LearningStatistics :stats="stats" :loading="loading" />
+    <div class="mt-6 space-y-4">
+      <ProgressCircle
+        title="Overall Progress"
+        :progress="profile?.overall_progress || 0"
+        color="#4caf50"
+      />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <QuickStat
+          title="Total Points"
+          :label="'Total Points'"
+          :value="profile?.total_points || 0"
+          icon="TrophyIcon"
+        />
+        <QuickStat
+          title="Current Streak"
+          :label="'Current Streak'"
+          :value="profile?.current_streak || 0"
+          icon="FireIcon"
+          suffix="days"
+        />
+        <QuickStat
+          title="Achievements"
+          :label="'Achievements'"
+          :value="profile?.achievements.length || 0"
+          icon="StarIcon"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import type { UserProfile, LearningStats, CurrentLevel } from '@/types/profile';
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
-import ProfileInfo from './ProfileInfo.vue';
-import LearningProgress from './LearningProgress.vue';
-import LearningStatistics from './LearningStatistics.vue';
+import { defineProps } from 'vue';
+import Avatar from '@/components/common/Avatar.vue';
+import ProgressCircle from '@/components/profile/ProgressCircle.vue';
+import QuickStat from '@/components/profile/QuickStat.vue';
 
 const props = defineProps<{
-  profile?: UserProfile;
-  stats?: LearningStats;
-  currentLevel?: CurrentLevel;
-  loading?: boolean;
+  profile: {
+    profile_picture: string | null;
+    full_name: string;
+    email: string;
+    overall_progress: number;
+    total_points: number;
+    current_streak: number;
+    achievements: { id: string; name: string; earned_at: string | null }[];
+  } | null;
 }>();
 </script>

@@ -114,11 +114,6 @@ import { useProfileStore } from '@/stores/profile';
 import type { ProfileSettings } from '@/types/profile';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import Switch from '@/components/common/Switch.vue';
-import {
-  ClipboardListIcon,
-  ClockIcon,
-  ChartBarIcon
-} from '@heroicons/vue/24/outline';
 
 const toast = useToast();
 const profileStore = useProfileStore();
@@ -170,3 +165,55 @@ onMounted(() => {
   loadSettings();
 });
 </script>
+
+<style scoped>
+.settings-page {
+  min-height: calc(100vh - 4rem);
+}
+
+.switch {
+  @apply ml-4;
+}
+
+.disabled:opacity-50 {
+  opacity: 0.5;
+}
+
+@media (min-width: 640px) {
+  .settings-page {
+    padding-top: 2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .settings-page {
+    padding-top: 4rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .settings-page {
+    padding-top: 6rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .settings-page {
+    padding-top: 8rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .settings-page {
+    padding-top: 10rem;
+  }
+}
+/*
+ In the code above, we have a  ProfileSettingsView  component that displays a form with different sections for notifications, privacy, and language settings. The form is populated with the user's settings fetched from the API. The user can update the settings and save them by submitting the form. 
+ The component uses the  useProfileStore  composition function to interact with the profile store. It fetches the user's settings when the component is mounted and updates the settings when the form is submitted. 
+ The  ProfileSettingsView  component uses the  Switch  component to render toggle switches for the notification and privacy settings. The  Switch  component is a custom component that we'll create next. 
+ Create a Switch Component 
+ Let's create a  Switch  component that renders a toggle switch input. The component will accept a  v-model  prop to bind the switch value to a parent component. 
+ Create a new file named  Switch.vue  inside the  src/components/common  directory and add the following code:
+*/
+</style>

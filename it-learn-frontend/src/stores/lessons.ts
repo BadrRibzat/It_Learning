@@ -43,7 +43,10 @@ export const useLessonsStore = defineStore('lessons', {
       if (!state.currentLesson) return false;
       return state.currentLesson.progress.quiz_unlocked;
     },
-    canTakeLevelTest: (state: StoreState) => state.levelProgress?.level_test_available || false,
+    canTakeLevelTest: (state: StoreState) => {
+      if (!state.currentLevel || !state.levelProgress) return false;
+      return state.levelProgress.level_test_available;
+    },
     nextLesson: (state: StoreState) => {
       if (!state.currentLesson || !state.lessons.length) return null;
       const currentIndex = state.lessons.findIndex(lesson => lesson.id === state.currentLesson?.id);
@@ -56,7 +59,13 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         this.loading = true;
         this.error = null;
-        this.levels = await LessonService.getLevels();
+        const response = await LessonService.getLevels();
+        console.log('API Levels Response:', response); // Detailed logging
+        if (Array.isArray(response)) {
+          this.levels = response;
+        } else {
+          throw new Error('Levels data is not an array');
+        }
       } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Failed to fetch levels';
         throw error;

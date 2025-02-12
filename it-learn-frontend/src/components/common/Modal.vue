@@ -37,3 +37,53 @@ const props = defineProps<{
 
 const emit = defineEmits(['close']);
 </script>
+
+<style scoped>
+.fixed {
+  position: fixed;
+}
+
+.inset-0 {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+.bg-gray-500 {
+  background-color: #d1d5db;
+}
+
+.bg-opacity-75 {
+  --bg-opacity: 0.75;
+}
+
+.transition-opacity {
+  transition-property: opacity;
+  transition-duration: 0.15s;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+</style>

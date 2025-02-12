@@ -1,14 +1,11 @@
 import { createRouter, createWebHistory, type RouteLocationNormalized, type NavigationGuardNext } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
-import { levelGuard } from '../utils/levelGuard';
-import DefaultLayout from '../components/layout/DefaultLayout.vue';
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
-      component: DefaultLayout,
       children: [
         {
           path: '',
@@ -37,12 +34,12 @@ const router = createRouter({
               component: () => import('../components/profile/ProfileOverview.vue')
             },
             {
-              path: '/profile/settings',
-              name: 'ProfileSettings',
-              component: () => import('@/views/user/ProfileSettingsView.vue'),
+              path: 'settings',
+              name: 'profile-settings',
+              component: () => import('../views/user/ProfileSettingsView.vue'),
               meta: {
-              requiresAuth: true,
-              title: 'Profile Settings'
+                requiresAuth: true,
+                title: 'Profile Settings'
               }
             },
             {
@@ -68,7 +65,6 @@ const router = createRouter({
                   path: 'level/:levelId',
                   name: 'level',
                   component: () => import('../views/user/learning/LevelView.vue'),
-                  beforeEnter: levelGuard,
                   props: true
                 },
                 {
@@ -93,7 +89,6 @@ const router = createRouter({
                   path: 'level/:levelId/test',
                   name: 'level-test',
                   component: () => import('../views/user/learning/LevelTestView.vue'),
-                  beforeEnter: levelGuard,
                   props: true
                 }
               ]

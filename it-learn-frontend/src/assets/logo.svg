@@ -1,5 +1,0 @@
-<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="40" height="40" rx="8" fill="#0EA5E9"/>
-  <path d="M8 20L16 28L32 12" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="48" y="28" font-family="Arial" font-size="24" font-weight="bold" fill="#1F2937">Learn</text>
-</svg>

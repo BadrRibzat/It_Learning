@@ -140,3 +140,54 @@ const loadMore = async () => {
   }
 };
 </script>
+
+<style scoped>
+.activity-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.activity-icon.bg-blue-100 {
+  background-color: #ebf8ff;
+}
+
+.activity-icon.bg-green-100 {
+  background-color: #f0fdf4;
+}
+
+.activity-icon.bg-purple-100 {
+  background-color: #f3ebff;
+}
+
+.activity-icon.bg-yellow-100 {
+  background-color: #fffcf1;
+}
+
+.activity-icon.bg-primary-100 {
+  background-color: #f6f6ff;
+}
+
+.activity-icon.text-blue-600 {
+  color: #2b6cb0;
+}
+
+.activity-icon.text-green-600 {
+  color: #2f855a;
+}
+
+.activity-icon.text-purple-600 {
+  color: #6b46c1;
+}
+
+.activity-icon.text-yellow-600 {
+  color: #b7791f;
+}
+
+.activity-icon.text-primary-600 {
+  color: #4c51bf;
+}
+
+.activity-icon.text-gray-600 {
+  color: #4b5563;
+}
+</style>

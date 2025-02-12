@@ -1,44 +1,30 @@
 <template>
   <div class="achievements-page container mx-auto px-4 py-8">
-    <div v-if="loading" class="flex justify-center items-center min-h-screen">
+    <div v-if="loading" class="flex justify-center items-center min-h-[400px]">
       <LoadingSpinner />
     </div>
-
-    <div v-else class="space-y-8">
-      <!-- Achievements Header -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <h1 class="text-2xl font-bold text-gray-900">Your Achievements</h1>
+    
+    <div v-else>
+      <!-- Header Section -->
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900">Achievements</h1>
         <p class="text-gray-600 mt-2">
-          Track your progress and unlock new achievements as you learn
+          {{ completionText }}
         </p>
-        <div class="mt-4 flex items-center space-x-4">
-          <div class="text-primary-600">
-            <svg v-for="achievement in achievements" :key="achievement.id" :src="require(`@/assets/achievements/${achievement.icon}.svg`).default" class="animated-svg"></svg>
-            <span class="text-3xl font-bold">{{ totalAchievements }}</span>
-            <span class="text-sm ml-2">Achievements Earned</span>
-          </div>
-          <div class="text-gray-600">
-            <span class="text-3xl font-bold">{{ completionRate }}%</span>
-            <span class="text-sm ml-2">Completion Rate</span>
-          </div>
-        </div>
       </div>
 
       <!-- Achievement Categories -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div v-for="category in achievementCategories" :key="category.id" class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ category.name }}</h2>
-          <div class="space-y-4">
-            <Achievement v-for="achievement in category.achievements" :key="achievement.id" :achievement="achievement" :unlocked="unlockedAchievements.includes(achievement.id)" />
+      <div class="space-y-8">
+        <!-- Level Mastery -->
+        <div class="achievement-category">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Level Mastery</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <AchievementItem 
+              v-for="achievement in achievements" 
+              :key="achievement.id" 
+              :achievement="achievement"
+            />
           </div>
-        </div>
-      </div>
-
-      <!-- Recent Unlocks -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Recently Unlocked</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Achievement v-for="achievement in recentUnlocks" :key="achievement.id" :achievement="achievement" :unlocked="true" :show-date="true" />
         </div>
       </div>
     </div>
@@ -47,58 +33,120 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useToast } from 'vue-toastification';
 import { useProfileStore } from '@/stores/profile';
-import type { Achievement as AchievementType } from '@/types/profile';
+import type { Achievement } from '@/types/profile';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
-import Achievement from '@/components/achievements/Achievement.vue';
-import { notifyError } from '@/utils/notifications';
+import AchievementItem from '@/components/achievements/Achievement.vue';
 
+const toast = useToast();
 const profileStore = useProfileStore();
+
 const loading = ref(true);
-const achievements = ref<AchievementType[]>([]);
-const unlockedAchievements = ref<string[]>([]);
+const error = ref<string | null>(null);
+const achievements = ref<Achievement[]>([]);
 
-const totalAchievements = computed(() => achievements.value.length);
-const completionRate = computed(() => {
-  if (!achievements.value.length) return 0;
-  return Math.round((unlockedAchievements.value.length / achievements.value.length) * 100);
+// Achievement icons mapping
+const achievementIcons = {
+  beginner: '/src/assets/achievements/beginner-level-achievement.svg',
+  intermediate: '/src/assets/achievements/intermediate-level-achievement.svg',
+  advanced: '/src/assets/achievements/advanced-level-achievement.svg',
+  expert: '/src/assets/achievements/expert-level-achievement.svg'
+};
+
+// Computed properties
+const learningAchievements = computed(() => 
+  achievements.value.filter(a => a.type === 'learning')
+);
+
+const levelAchievements = computed(() => 
+  achievements.value.filter(a => a.type === 'level')
+);
+
+const completionText = computed(() => {
+  const earned = achievements.value.filter(a => a.earned_at).length;
+  const total = achievements.value.length;
+  const percentage = Math.round((earned / total) * 100);
+  return `You've earned ${earned} out of ${total} achievements (${percentage}% complete)`;
 });
 
-const recentUnlocks = computed(() => {
-  return achievements.value
-    .filter(a => unlockedAchievements.value.includes(a.id))
-    .sort((a, b) => new Date(b.earned_at).getTime() - new Date(a.earned_at).getTime())
-    .slice(0, 4);
-});
+// Methods
+const getAchievementIcon = (achievement: Achievement) => {
+  const level = achievement.name.toLowerCase();
+  return achievementIcons[level as keyof typeof achievementIcons] || achievementIcons.beginner;
+};
 
-const achievementCategories = computed(() => {
-  const categories = achievements.value.reduce((acc, achievement) => {
-    const category = acc.find(c => c.id === achievement.category_id);
-    if (category) {
-      category.achievements.push(achievement);
-    } else {
-      acc.push({
-        id: achievement.category_id,
-        name: achievement.category_name || "Category Placeholder",
-        achievements: [achievement]
-      });
-    }
-    return acc;
-  }, [] as any[]);
-
-  return categories.sort((a, b) => a.name.localeCompare(b.name));
-});
-
-onMounted(async () => {
+const loadAchievements = async () => {
   try {
-    await profileStore.fetchAchievements();
-    achievements.value = profileStore.achievements;
-    unlockedAchievements.value = profileStore.unlockedAchievements;
-  } catch (error) {
-    console.error('Failed to fetch achievements:', error);
-    notifyError('Failed to load achievements. Please try again later.');
+    loading.value = true;
+    error.value = null;
+    // Fix: Properly await the response and store it
+    achievements.value = await profileStore.fetchAchievements();
+
+    // If no achievements exist, initialize with default levels
+    if (achievements.value.length === 0) {
+      achievements.value = [
+        {
+          id: 'beginner',
+          name: 'Beginner Level',
+          description: 'Complete the beginner level lessons and test',
+          icon: '/src/assets/achievements/beginner-level-achievement.svg',
+          earned_at: null,
+          type: 'level',
+          progress: 0,
+          required: 100
+        },
+        {
+          id: 'intermediate',
+          name: 'Intermediate Level',
+          description: 'Master intermediate level concepts',
+          icon: '/src/assets/achievements/intermediate-level-achievement.svg',
+          earned_at: null,
+          type: 'level',
+          progress: 0,
+          required: 100
+        },
+        {
+          id: 'advanced',
+          name: 'Advanced Level',
+          description: 'Complete advanced level challenges',
+          icon: '/src/assets/achievements/advanced-level-achievement.svg',
+          earned_at: null,
+          type: 'level',
+          progress: 0,
+          required: 100
+        },
+        {
+          id: 'expert',
+          name: 'Expert Level',
+          description: 'Achieve expert status',
+          icon: '/src/assets/achievements/expert-level-achievement.svg',
+          earned_at: null,
+          type: 'level',
+          progress: 0,
+          required: 100
+        }
+      ];
+    }
+  } catch (err) {
+    error.value = 'Failed to load achievements';
+    toast.error('Failed to load achievements');
   } finally {
     loading.value = false;
   }
+};
+
+onMounted(() => {
+  loadAchievements();
 });
 </script>
+
+<style scoped>
+.achievement-category {
+  @apply bg-white rounded-lg shadow-sm p-6;
+}
+
+.achievements-page {
+  @apply bg-gray-50 min-h-screen;
+}
+</style>

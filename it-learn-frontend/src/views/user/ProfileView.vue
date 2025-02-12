@@ -22,7 +22,7 @@
               <div class="profile-picture-container">
                 <Avatar
                   :src="profile?.profile_data?.profile_picture"
-                  :name="profile?.profile_data?.full_name"
+                  :name="profile?.profile_data?.full_name || 'User'"
                   size="xl"
                   class="mb-4"
                 />
@@ -200,7 +200,7 @@ import { onMounted, ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
-import { CogIcon, TrophyIcon, FireIcon, StarIcon, ClipboardIcon, ClockIcon, ChartBarIcon } from '@heroicons/vue/24/outline';
+import { CogIcon, TrophyIcon, FireIcon, StarIcon } from '@heroicons/vue/24/outline';
 import { useProfileStore } from '@/stores/profile';
 import { useAuthStore } from '@/stores/auth';
 import type { 
@@ -215,7 +215,6 @@ import ProgressCircle from '@/components/profile/ProgressCircle.vue';
 import QuickStat from '@/components/profile/QuickStat.vue';
 import ProfileSettingsModal from '@/components/profile/ProfileSettingsModal.vue';
 import Avatar from '@/components/common/Avatar.vue';
-import { toBase64 } from '@/utils/fileUtils';
 
 const router = useRouter();
 const toast = useToast();
@@ -310,14 +309,9 @@ const handlePictureUpload = async (event: Event) => {
   try {
     updating.value = true;
     const response = await profileStore.uploadProfilePicture(file);
-    if (response.success) {
-      profile.value = await profileStore.fetchProfile();
-      toast.success('Profile picture updated successfully');
-    } else {
-      throw new Error('Failed to update profile picture');
-    }
+    profile.value = await profileStore.fetchProfile();
+    toast.success('Profile picture updated successfully');
   } catch (err) {
-    console.error('Upload error:', err);
     pictureError.value = err instanceof Error ? err.message : 'Failed to upload profile picture';
     toast.error('Failed to upload profile picture');
   } finally {

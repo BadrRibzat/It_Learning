@@ -173,3 +173,33 @@ const handleDeleteAccount = () => {
   emit('delete-account');
 };
 </script>
+
+<style scoped>
+.profile-menu {
+  @apply relative inline-block text-left z-50;
+}
+.profile-menu .dropdown {
+  @apply hidden md:inline;
+}
+.profile-menu .dropdown-menu {
+  @apply absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none divide-y divide-gray-100;
+}
+.profile-menu .dropdown-menu .menu-item {
+  @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50;
+}
+.profile-menu .dropdown-menu .menu-item:hover {
+  @apply bg-gray-50;
+}
+.profile-menu .dropdown-menu .menu-item:last-child {
+  @apply text-red-600;
+}
+.profile-menu .dropdown-menu .menu-item:last-child:hover {
+  @apply bg-gray-50;
+}
+.profile-menu .dropdown-menu .menu-item.active {
+  @apply bg-gray-100;
+}
+.profile-menu .dropdown-menu .menu-item.active:hover {
+  @apply bg-gray-100;
+}
+</style>

@@ -50,3 +50,7 @@ const iconColorClass = computed(() => {
   return variants[props.variant || 'primary'];
 });
 </script>
+
+<style scoped>
+@import '../../assets/main.css';
+</style>

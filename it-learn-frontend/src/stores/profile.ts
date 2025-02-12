@@ -18,7 +18,7 @@ interface ProfileState {
   profilePicture: {
     data: string | null;
     timestamp: number;
-  },
+  };
   statistics: LearningStats | null;
   points: PointsResponse | null;
   progressCircle: ProgressCircle | null;
@@ -74,12 +74,12 @@ export const useProfileStore = defineStore('profile', {
     },
     learningStats: (state) => state.profile?.learning_stats ?? null,
     unlockedAchievements: (state) => 
-      state.achievements.filter(a => a.unlocked).map(a => a.id),
+      state.achievements.filter(a => a.earned_at !== null).map(a => a.id),
     currentStreak: (state) => 
       state.statistics?.streak?.current_streak ?? 0,
     completionRate: (state) => {
       if (!state.achievements.length) return 0;
-      const unlocked = state.achievements.filter(a => a.unlocked).length;
+      const unlocked = state.achievements.filter(a => a.earned_at !== null).length;
       return Math.round((unlocked / state.achievements.length) * 100);
     },
     recentActivities: (state) => 
@@ -131,11 +131,11 @@ export const useProfileStore = defineStore('profile', {
       }
     },
 
-    async uploadProfilePicture(data: string) {
+    async uploadProfilePicture(file: File) {
       try {
         this.loading = true;
         this.error = null;
-        const response = await ProfileService.uploadProfilePicture(data);
+        const response = await ProfileService.uploadProfilePicture(file);
         this.profilePicture = {
           data: response.profile_picture,
           timestamp: Date.now()
@@ -213,7 +213,7 @@ export const useProfileStore = defineStore('profile', {
       this.error = null;
       try {
         const response = await ProfileService.getAchievements();
-        this.achievements = response.achievements;
+        this.achievements = response;
         return response;
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Failed to load achievements';
@@ -224,23 +224,23 @@ export const useProfileStore = defineStore('profile', {
     },
 
     async updateSettings(settings: ProfileSettings) {
-    try {
-      this.loading = true;
-      this.error = null;
-      const response = await ProfileService.updateSettings(settings);
-      if (this.profile) {
-        this.profile.settings = response.settings;
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await ProfileService.updateSettings(settings);
+        if (this.profile) {
+          this.profile.settings = response.settings;
+        }
+        return response;
+      } catch (error) {
+        this.error = 'Failed to update settings';
+        throw error;
+      } finally {
+        this.loading = false;
       }
-      return response;
-    } catch (error) {
-      this.error = 'Failed to update settings';
-      throw error;
-    } finally {
-      this.loading = false;
-    }
-  },
+    },
 
-  async fetchSettings() {
+    async fetchSettings() {
       this.loading = true;
       this.error = null;
       try {
@@ -278,9 +278,8 @@ export const useProfileStore = defineStore('profile', {
 
     async handleAchievementUnlock(achievementId: string) {
       const achievement = this.achievements.find(a => a.id === achievementId);
-      if (achievement && !achievement.unlocked) {
-        achievement.unlocked = true;
-        achievement.earned_at = new Date().toISOString();
+      if (achievement && !achievement.earned_at) {
+        achievement.earned_at = new Date();
         // Update statistics if needed
         await this.fetchStatistics();
       }

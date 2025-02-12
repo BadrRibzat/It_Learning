@@ -58,10 +58,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import type { LevelTestQuestion } from '@/types/lessons';
+import type { Question } from '@/types/lessons';
 
 const props = defineProps<{
-  question: LevelTestQuestion;
+  question: Question;
   order: number;
   total: number;
   timeLimit: number;
@@ -129,15 +129,14 @@ onMounted(() => {
     if (remainingTime.value > 0 && !isSubmitted.value) {
       remainingTime.value--;
       if (remainingTime.value === 0) {
-        emit('timeout');
+        clearInterval(timer.value!);
+        onTimeout();
       }
     }
   }, 1000);
 });
 
-onUnmounted(() => {
-  if (timer.value) {
-    clearInterval(timer.value);
-  }
+onBeforeUnmount(() => {
+  clearInterval(timer.value!);
 });
 </script>

@@ -22,58 +22,55 @@
       />
 
       <!-- Lesson Content -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <div class="lg:col-span-8">
-        <router-view></router-view>
-      </div>
-
-      <div class="lg:col-span-4 space-y-6">
-        <LessonContent
-          :current-step="currentStep"
-          :total-steps="totalSteps"
-          :can-navigate="canNavigate"
-          :is-active="isActive"
-          @previous="handlePrevious"
-          @next="handleNext"
-          @time-update="handleTimeUpdate"
-        />
-        
-        <QuickStat
-          title="Progress"
-          label="Lesson Progress"
-          :value="currentStep"
-          :total="totalSteps"
-          icon="ChartBarIcon"
-        />
-      </div>
-    </div>
-
-          <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold mb-4">Next Steps</h3>
-            <div class="space-y-4">
-              <template v-if="currentLesson?.progress.quiz_unlocked">
-                <p class="text-sm text-gray-600">
-                  You've unlocked the lesson quiz!
-                </p>
-                <button
-                  @click="startQuiz"
-                  class="w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-                >
-                  Take Quiz
-                </button>
-              </template>
-              <template v-else>
-                <p class="text-sm text-gray-600">
-                  Complete more flashcards to unlock the quiz
-                </p>
-                <ProgressBar
-                  :value="currentLesson?.progress.completed_flashcards || 0"
-                  :max="currentLesson?.progress.total_flashcards || 10"
-                />
-              </template>
-            </div>
-          </div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-8">
+          <router-view></router-view>
         </div>
+
+        <div class="lg:col-span-4 space-y-6">
+          <LessonContent
+            :current-step="currentStep"
+            :total-steps="totalSteps"
+            :can-navigate="canNavigate"
+            :is-active="isActive"
+            @previous="handlePrevious"
+            @next="handleNext"
+            @time-update="handleTimeUpdate"
+          />
+          
+          <QuickStat
+            title="Progress"
+            label="Lesson Progress"
+            :value="currentStep"
+            :total="totalSteps"
+            icon="ChartBarIcon"
+          />
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Next Steps</h3>
+        <div class="space-y-4">
+          <template v-if="currentLesson?.progress.quiz_unlocked">
+            <p class="text-sm text-gray-600">
+              You've unlocked the lesson quiz!
+            </p>
+            <button
+              @click="startQuiz"
+              class="w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+            >
+              Take Quiz
+            </button>
+          </template>
+          <template v-else>
+            <p class="text-sm text-gray-600">
+              Complete more flashcards to unlock the quiz
+            </p>
+            <ProgressBar
+              :value="currentLesson?.progress.completed_flashcards || 0"
+              :max="currentLesson?.progress.total_flashcards || 10"
+            />
+          </template>
         </div>
       </div>
     </template>

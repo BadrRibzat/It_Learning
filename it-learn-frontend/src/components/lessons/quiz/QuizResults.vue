@@ -1,3 +1,70 @@
+<template>
+  <div class="quiz-results bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
+    <div class="text-center mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">
+        Quiz Results
+      </h2>
+      
+      <div class="flex justify-center items-center space-x-4 mb-6">
+        <div class="text-4xl font-bold" 
+             :class="results.passed ? 'text-green-600' : 'text-red-600'">
+          {{ results.score }}%
+        </div>
+        <div class="text-lg text-gray-600">
+          {{ results.correct_answers }}/{{ results.total_questions }} Correct
+        </div>
+      </div>
+
+      <div class="points-earned mb-6">
+        <span class="text-xl font-semibold text-primary-600">
+          +{{ results.points_earned }} points earned
+        </span>
+      </div>
+    </div>
+
+    <div class="question-review mb-8">
+      <h3 class="text-lg font-semibold mb-4">Question Review</h3>
+      <div class="space-y-4">
+        <div v-for="(qa, index) in results.questions_with_answers" 
+             :key="index"
+             class="p-4 rounded-lg"
+             :class="qa.is_correct ? 'bg-green-50' : 'bg-red-50'">
+          <div class="flex justify-between mb-2">
+            <span class="font-medium">Question {{ index + 1 }}</span>
+            <span :class="qa.is_correct ? 'text-green-600' : 'text-red-600'">
+              {{ qa.is_correct ? 'Correct' : 'Incorrect' }}
+            </span>
+          </div>
+          <p class="text-gray-700 mb-2">{{ qa.question }}</p>
+          <p class="text-sm">
+            <span class="text-gray-600">Your answer: </span>
+            <span :class="qa.is_correct ? 'text-green-600' : 'text-red-600'">
+              {{ qa.user_answer }}
+            </span>
+          </p>
+          <p v-if="!qa.is_correct" class="text-sm text-gray-600 mt-1">
+            Correct answer: {{ qa.correct_answer }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-center space-x-4">
+      <button v-if="results.passed && results.next_lesson_unlocked"
+              @click="goToNextLesson"
+              class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+        Continue to Next Lesson
+      </button>
+      
+      <button v-if="!results.passed"
+              @click="retryQuiz"
+              class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+        Try Again
+      </button>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -72,73 +139,6 @@ onMounted(async () => {
   await handleQuizCompletion();
 });
 </script>
-
-<template>
-  <div class="quiz-results bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
-    <div class="text-center mb-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">
-        Quiz Results
-      </h2>
-      
-      <div class="flex justify-center items-center space-x-4 mb-6">
-        <div class="text-4xl font-bold" 
-             :class="results.passed ? 'text-green-600' : 'text-red-600'">
-          {{ results.score }}%
-        </div>
-        <div class="text-lg text-gray-600">
-          {{ results.correct_answers }}/{{ results.total_questions }} Correct
-        </div>
-      </div>
-
-      <div class="points-earned mb-6">
-        <span class="text-xl font-semibold text-primary-600">
-          +{{ results.points_earned }} points earned
-        </span>
-      </div>
-    </div>
-
-    <div class="question-review mb-8">
-      <h3 class="text-lg font-semibold mb-4">Question Review</h3>
-      <div class="space-y-4">
-        <div v-for="(qa, index) in results.questions_with_answers" 
-             :key="index"
-             class="p-4 rounded-lg"
-             :class="qa.is_correct ? 'bg-green-50' : 'bg-red-50'">
-          <div class="flex justify-between mb-2">
-            <span class="font-medium">Question {{ index + 1 }}</span>
-            <span :class="qa.is_correct ? 'text-green-600' : 'text-red-600'">
-              {{ qa.is_correct ? 'Correct' : 'Incorrect' }}
-            </span>
-          </div>
-          <p class="text-gray-700 mb-2">{{ qa.question }}</p>
-          <p class="text-sm">
-            <span class="text-gray-600">Your answer: </span>
-            <span :class="qa.is_correct ? 'text-green-600' : 'text-red-600'">
-              {{ qa.user_answer }}
-            </span>
-          </p>
-          <p v-if="!qa.is_correct" class="text-sm text-gray-600 mt-1">
-            Correct answer: {{ qa.correct_answer }}
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="flex justify-center space-x-4">
-      <button v-if="results.passed && results.next_lesson_unlocked"
-              @click="goToNextLesson"
-              class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-        Continue to Next Lesson
-      </button>
-      
-      <button v-if="!results.passed"
-              @click="retryQuiz"
-              class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
-        Try Again
-      </button>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .quiz-results {

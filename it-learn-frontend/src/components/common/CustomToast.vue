@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue';
 import { useNotificationStore } from '@/stores/notification';
-import { logUserActivity } from '@/utils/logger';
 import NotificationToast from './NotificationToast.vue';
-
-const TIMESTAMP = '2025-02-09 14:53:58';
-const USER_LOGIN = 'BadrRibzat';
 
 interface ToastConfig {
   id?: string;

@@ -4,22 +4,23 @@ export interface Achievement {
   name: string;
   description: string;
   icon: string;
-  earned_at: Date | null;
+  earned_at: string | null;
+  progress?: number;
+  required?: number;
+  type?: 'learning' | 'level';
 }
-
-
 
 export interface PointsHistory {
   amount: number;
   action: string;
-  timestamp: Date;
+  timestamp: string;
   details: Record<string, any>;
 }
 
 export interface LearningStreak {
   current_streak: number | null;
   longest_streak: number | null;
-  last_activity_date: Date | null;
+  last_activity_date: string | null;
   next_milestone: number | null;
 }
 
@@ -27,7 +28,7 @@ export interface Activity {
   id: string;
   type: string;
   description: string;
-  timestamp: Date;
+  timestamp: string;
   details: Record<string, any>;
   points_earned: number;
 }
@@ -66,8 +67,8 @@ export interface ProfileData {
   bio: string | null;
   profile_picture: string | null;
   preferred_language: string;
-  joined_date: Date;
-  last_active: Date;
+  joined_date: string;
+  last_active: string;
 }
 
 // Animation types
@@ -103,13 +104,6 @@ export interface ProfileUpdate {
 export interface ProfileUploadResponse {
   message: string;
   profile_picture: string;
-  success: boolean;
-}
-
-export interface ProfilePictureState {
-  url: string | null;
-  loading: boolean;
-  error: string | null;
 }
 
 export interface PointsResponse {
@@ -146,7 +140,7 @@ interface ProfileState {
   profilePicture: {
     data: string | null;
     timestamp: number;
-  },
+  };
   statistics: LearningStats | null;
   points: PointsResponse | null;
   progressCircle: ProgressCircle | null;
@@ -160,7 +154,6 @@ interface ProfileState {
   error: string | null;
   lastUpdate: string | null;
 }
-
 
 // New Response interfaces
 export interface AchievementsResponse {

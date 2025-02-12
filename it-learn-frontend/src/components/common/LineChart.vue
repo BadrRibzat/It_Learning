@@ -185,4 +185,22 @@ onBeforeUnmount(() => {
 .chart-container {
   animation: chartFadeIn 0.3s ease-out;
 }
+
+.chart-container canvas {
+  animation: chartFadeIn 0.3s ease-out;
+}
+
+.chart-overlay {
+  animation: chartFadeIn 0.3s ease-out;
+}
+
+.chart-container canvas {
+  border-radius: 0.5rem;
+}
+
+.chart-overlay button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+
 </style>

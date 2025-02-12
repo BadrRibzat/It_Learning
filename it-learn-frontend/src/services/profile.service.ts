@@ -12,7 +12,7 @@ import type {
   ProgressCircle,
   ActivityFeed,
   LearningStats,
-  ProfileSettings
+  ProfileSettings,
 } from '@/types/profile';
 
 const API_URL = '/profile';
@@ -106,10 +106,10 @@ class ProfileService {
     }
   }
 
-  static async getAchievements(): Promise<{ achievements: Achievement[] }> {
+  static async getAchievements(): Promise<Achievement[]> {
     try {
-      const response: AxiosResponse<{ achievements: Achievement[] }> = await axios.get(
-        `/profile/achievements`
+      const response: AxiosResponse<Achievement[]> = await axios.get(
+        `${API_URL}/achievements`
       );
       return response.data;
     } catch (error) {
@@ -193,6 +193,6 @@ class ProfileService {
       throw new Error('Invalid file type. Only JPEG, PNG and GIF are allowed');
     }
   }
-};
+}
 
 export default ProfileService;

@@ -82,7 +82,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import QuizQuestion from '@/components/lessons/quiz/QuizQuestion.vue';
 import QuizResults from '@/components/lessons/quiz/QuizResults.vue';
 import LearningTimer from '@/components/lessons/common/LearningTimer.vue';
-import LearningDebugComponent from '@/components/common/DebugComponent.vue';
+import LearningDebugComponent from './LearningDebugComponent.vue';
 
 const route = useRoute();
 const router = useRouter();

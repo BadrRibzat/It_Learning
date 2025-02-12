@@ -5,8 +5,7 @@ export interface Level {
   order: number;
   is_unlocked: boolean;
   is_current: boolean;
- }
-
+}
 
 export interface Flashcard {
   id: string;

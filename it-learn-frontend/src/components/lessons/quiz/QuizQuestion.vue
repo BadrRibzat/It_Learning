@@ -49,9 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { useNotificationStore } from '@/stores/notification';
-import { useProfileStore } from '@/stores/profile';
+import { ref, computed } from 'vue';
 import type { Question } from '@/types/lessons';
 
 const props = defineProps<{

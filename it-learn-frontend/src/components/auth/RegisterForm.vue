@@ -13,11 +13,11 @@
           required
           :class="[
             'block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
-            errors.full_name 
-              ? 'ring-red-300 focus:ring-red-500 text-red-900' 
+            errors.full_name
+              ? 'ring-red-300 focus:ring-red-500 text-red-900'
               : 'ring-gray-300 focus:ring-primary-600'
           ]"
-        >
+        />
         <p v-if="errors.full_name" class="mt-2 text-sm text-red-600">{{ errors.full_name }}</p>
       </div>
     </div>
@@ -36,11 +36,11 @@
           required
           :class="[
             'block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
-            errors.email 
-              ? 'ring-red-300 focus:ring-red-500 text-red-900' 
+            errors.email
+              ? 'ring-red-300 focus:ring-red-500 text-red-900'
               : 'ring-gray-300 focus:ring-primary-600'
           ]"
-        >
+        />
         <p v-if="errors.email" class="mt-2 text-sm text-red-600">{{ errors.email }}</p>
       </div>
     </div>
@@ -49,20 +49,24 @@
       <label for="password" class="block text-sm font-medium leading-6 text-gray-900">
         Password
       </label>
-      <div class="mt-2">
+      <div class="mt-2 relative">
         <input
           v-model="formData.password"
           id="password"
           name="password"
-          type="password"
+          :type="showPassword ? 'text' : 'password'"
+          autocomplete="new-password"
           required
           :class="[
-            'block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
-            errors.password 
-              ? 'ring-red-300 focus:ring-red-500 text-red-900' 
+            'block w-full rounded-md border-0 py-1.5 pr-10 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
+            errors.password
+              ? 'ring-red-300 focus:ring-red-500 text-red-900'
               : 'ring-gray-300 focus:ring-primary-600'
           ]"
-        >
+        />
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" @click="showPassword = !showPassword">
+          <Icon :icon="showPassword ? 'mdi:eye-off' : 'mdi:eye'" class="h-5 w-5 text-gray-500" />
+        </div>
         <p v-if="errors.password" class="mt-2 text-sm text-red-600">{{ errors.password }}</p>
       </div>
     </div>
@@ -71,20 +75,24 @@
       <label for="confirmPassword" class="block text-sm font-medium leading-6 text-gray-900">
         Confirm Password
       </label>
-      <div class="mt-2">
+      <div class="mt-2 relative">
         <input
           v-model="formData.confirm_password"
           id="confirmPassword"
           name="confirmPassword"
-          type="password"
+          :type="showPassword ? 'text' : 'password'"
+          autocomplete="new-password"
           required
           :class="[
-            'block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
-            errors.confirm_password 
-              ? 'ring-red-300 focus:ring-red-500 text-red-900' 
+            'block w-full rounded-md border-0 py-1.5 pr-10 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
+            errors.confirm_password
+              ? 'ring-red-300 focus:ring-red-500 text-red-900'
               : 'ring-gray-300 focus:ring-primary-600'
           ]"
-        >
+        />
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer" @click="showPassword = !showPassword">
+          <Icon :icon="showPassword ? 'mdi:eye-off' : 'mdi:eye'" class="h-5 w-5 text-gray-500" />
+        </div>
         <p v-if="errors.confirm_password" class="mt-2 text-sm text-red-600">{{ errors.confirm_password }}</p>
       </div>
     </div>
@@ -101,11 +109,11 @@
           type="date"
           :class="[
             'block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
-            errors.date_of_birth 
-              ? 'ring-red-300 focus:ring-red-500 text-red-900' 
+            errors.date_of_birth
+              ? 'ring-red-300 focus:ring-red-500 text-red-900'
               : 'ring-gray-300 focus:ring-primary-600'
           ]"
-        >
+        />
         <p v-if="errors.date_of_birth" class="mt-2 text-sm text-red-600">{{ errors.date_of_birth }}</p>
       </div>
     </div>
@@ -121,8 +129,8 @@
           name="language"
           :class="[
             'block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
-            errors.current_language 
-              ? 'ring-red-300 focus:ring-red-500 text-red-900' 
+            errors.current_language
+              ? 'ring-red-300 focus:ring-red-500 text-red-900'
               : 'ring-gray-300 focus:ring-primary-600'
           ]"
         >
@@ -186,15 +194,21 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from 'vue-toastification';
 import type { RegisterRequest } from '@/types/auth';
+import { Icon } from '@iconify/vue';
+import { CogIcon } from '@heroicons/vue/24/outline';
 
 export default defineComponent({
   name: 'RegisterForm',
+  components: {
+    Icon
+  },
   setup() {
     const router = useRouter();
     const authStore = useAuthStore();
     const toast = useToast();
     const loading = ref(false);
-    
+    const showPassword = ref(false);
+
     const formData = reactive<RegisterRequest>({
       email: '',
       password: '',
@@ -215,18 +229,15 @@ export default defineComponent({
 
     const validateForm = (): boolean => {
       let isValid = true;
-      // Reset errors
       Object.keys(errors).forEach(key => {
         errors[key as keyof typeof errors] = '';
       });
 
-      // Validate full name
       if (!formData.full_name) {
         errors.full_name = 'Full name is required';
         isValid = false;
       }
 
-      // Validate email
       if (!formData.email) {
         errors.email = 'Email is required';
         isValid = false;
@@ -235,7 +246,6 @@ export default defineComponent({
         isValid = false;
       }
 
-      // Validate password
       if (!formData.password) {
         errors.password = 'Password is required';
         isValid = false;
@@ -244,7 +254,6 @@ export default defineComponent({
         isValid = false;
       }
 
-      // Validate password confirmation
       if (!formData.confirm_password) {
         errors.confirm_password = 'Please confirm your password';
         isValid = false;
@@ -253,7 +262,6 @@ export default defineComponent({
         isValid = false;
       }
 
-      // Validate date of birth (if provided)
       if (formData.date_of_birth) {
         const date = new Date(formData.date_of_birth);
         const now = new Date();
@@ -286,8 +294,70 @@ export default defineComponent({
       formData,
       loading,
       errors,
-      handleSubmit
+      handleSubmit,
+      showPassword
     };
   }
 });
 </script>
+
+<style scoped>
+
+.form {
+  @apply space-y-6;
+}
+
+.input {
+  @apply block w-full rounded-md border-0 py-1.5 shadow-sm ring-1 ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6;
+}
+
+.input-error {
+  @apply ring-red-300 focus:ring-red-500 text-red-900;
+}
+
+.input-success {
+  @apply ring-gray-300 focus:ring-primary-600;
+}
+
+.button {
+  @apply flex w-full justify-center rounded-md bg-primary-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.button-spinner {
+  @apply animate-spin -ml-1 mr-3 h-5 w-5 text-white;
+}
+
+.link {
+  @apply font-semibold leading-6 text-primary-600 hover:text-primary-500;
+}
+
+.link:hover {
+  @apply text-primary-500;
+}
+
+CogIcon {
+  @apply h-5 w-5 text-gray-500;
+}
+
+input[type='date']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  display: none;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  -webkit-appearance: none;
+  display: none;
+}
+
+.button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+form > div {
+  @apply mt-6;
+}
+
+form > div:first-child {
+  @apply mt-0;
+}
+</style>

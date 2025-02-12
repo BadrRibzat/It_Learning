@@ -1,62 +1,32 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import { fileURLToPath, URL } from 'node:url';
+import { config as dotenvConfig } from 'dotenv';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Load environment variables from .env file
+dotenvConfig();
 
-export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current working directory.
-  const env = loadEnv(mode, process.cwd(), '');
-  
-  return {
-    plugins: [vue()],
-    resolve: {
-      alias: {
-        '@': resolve(__dirname, './src'),
-      },
-    },
-    server: {
-      port: 8080,
-      host: true,
-      proxy: {
-        '/api': {
-          target: env.VITE_APP_API_URL,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ''),
-          configure: (proxy, _options) => {
-            proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.removeHeader('content-length');
-            });
-          },
-        },
-        '/profile': {
-          target: env.VITE_APP_API_URL,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/profile/, ''),
-          configure: (proxy, _options) => {
-            proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.removeHeader('content-length');
-            });
-          },
-        },
-        '/profile/achievements': {
-          target: env.VITE_APP_API_URL,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/profile\/achievements/, ''),
-          configure: (proxy, _options) => {
-            proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.removeHeader('content-length');
-            });
-          },
-        },
-      },
-    },
-    build: {
-      outDir: 'dist',
-      assetsDir: 'assets',
-      sourcemap: true,
-    },
-  };
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
+  server: {
+    port: 8080,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_APP_API_URL,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
+  },
+  define: {
+    __VUE_I18N_FULL_INSTALL__: true,
+    __VUE_I18N_LEGACY_API__: false,
+    __INTLIFY_PROD_DEVTOOLS__: false,
+  }
 });

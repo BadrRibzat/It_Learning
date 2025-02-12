@@ -65,3 +65,27 @@ const formatDate = (date: Date) => {
   });
 };
 </script>
+
+<style scoped>
+.w-4 {
+  width: 1rem;
+}
+.h-4 {
+  height: 1rem;
+}
+.bg-gray-100 {
+  background-color: #f3f4f6;
+}
+.bg-primary-100 {
+  background-color: #f0f5ff;
+}
+.bg-primary-300 {
+  background-color: #c3dafe;
+}
+.bg-primary-500 {
+  background-color: #60a5fa;
+}
+.bg-primary-700 {
+  background-color: #2563eb;
+}
+</style>
