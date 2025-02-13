@@ -96,3 +96,12 @@ const handleLessonSelect = () => {
   }
 };
 </script>
+
+<style scoped>
+.lesson-card {
+  transition: transform 0.3s;
+}
+.lesson-card:hover {
+  transform: translateY(-5px);
+}
+</style>

@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useLessonsStore } from '@/stores/lessons'; // Updated import
+import { useLessonsStore } from '@/stores/lessons';
 import { 
     StarIcon, 
     BookOpenIcon, 
@@ -121,6 +121,7 @@ const initializeDashboard = async () => {
     
     await store.getLevels();
     await store.getCurrentLevel();
+    await store.unlockAllLessonsForBeginnerLevel(); // Unlock all lessons for beginner level
 
     if (availableLevels.value.length > 0) {
       await Promise.all(availableLevels.value.map(async (level) => {
@@ -149,12 +150,17 @@ onMounted(() => {
   initializeDashboard();
 });
 
-const handleLevelSelect = (level: Level) => {
+const handleLevelSelect = async (level: Level) => {
   if (level.order > (currentLevel.value?.order || 1)) {
-    router.push({
-      name: 'level-test',
-      params: { levelId: level.id }
-    });
+    const redirectUrl = await store.redirectToLevelTest(level.id);
+    if (redirectUrl) {
+      router.push(redirectUrl);
+    } else {
+      router.push({
+        name: 'level',
+        params: { levelId: level.id }
+      });
+    }
   } else {
     router.push({
       name: 'level',

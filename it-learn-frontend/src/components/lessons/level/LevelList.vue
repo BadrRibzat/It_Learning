@@ -19,7 +19,18 @@ const props = defineProps<{
   progress: Record<string, LevelProgress>;
 }>();
 
+const emit = defineEmits<{
+  (e: 'select-level', level: Level): void;
+}>();
+
 const selectLevel = (level: Level) => {
   emit('select-level', level);
 };
 </script>
+
+<style scoped>
+.level-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+</style>

@@ -34,11 +34,15 @@
         </div>
       </div>
 
-      <LevelList
-        :levels="lessonsStore.levels"
-        :progress="lessonsStore.levelProgress"
-        @select-level="handleLevelSelect"
-      />
+      <div class="lesson-list space-y-4">
+        <LessonCard
+          v-for="lesson in lessonsStore.lessons"
+          :key="lesson.id"
+          :lesson="lesson"
+          :isUnlocked="isLessonUnlocked(lesson)"
+          @select="handleLessonSelect"
+        />
+      </div>
 
       <LevelTestModal
         v-if="showLevelTest"
@@ -66,9 +70,8 @@ import {
   ChartBarIcon
 } from '@heroicons/vue/24/outline';
 import type { Lesson } from '@/types/lessons';
-
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LessonCard from '@/components/lessons/level/LessonCard.vue';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LevelTestModal from '@/components/lessons/level/LevelTestModal.vue';
 import LearningDebugComponent from './LearningDebugComponent.vue';
 
@@ -119,41 +122,20 @@ const initializeLevel = async () => {
   }
 };
 
-const handleLessonSelect = (lesson: Lesson) => {
-  const currentLevelOrder = lessonsStore.currentLevel?.order || 1;
-  const selectedLevelOrder = currentLevel.value?.order || 1;
-
-  let nextLevelId: string | null = null;
-
-  switch (lessonsStore.currentLevel?.name) {
-    case 'beginner':
-      nextLevelId = '67ab4b56bd71099b79f6ca87'; // Intermediate
-      break;
-    case 'intermediate':
-      nextLevelId = '67ab4b57bd71099b79f6ca88'; // Advanced
-      break;
-    case 'advanced':
-      nextLevelId = '67ab4b57bd71099b79f6ca89'; // Expert
-      break;
-    default:
-      nextLevelId = null;
-  }
-
-  if (selectedLevelOrder > currentLevelOrder && nextLevelId) {
+const handleLessonSelect = async (lesson: Lesson) => {
+  if (!lesson.progress.quiz_unlocked) {
     router.push({
-      name: 'level-test',
-      params: { levelId: nextLevelId }
+      name: 'flashcards',
+      params: { levelId: levelId.value, lessonId: lesson.id }
     });
-    return;
+  } else if (!lesson.completed) {
+    router.push({
+      name: 'quiz',
+      params: { levelId: levelId.value, lessonId: lesson.id }
+    });
+  } else {
+    router.push(`/lessons/${lesson.id}`);
   }
-
-  router.push({
-    name: lesson.progress.quiz_unlocked ? 'quiz' : 'flashcards',
-    params: {
-      levelId: levelId.value,
-      lessonId: lesson.id
-    }
-  });
 };
 
 const navigateToTest = () => {
@@ -168,3 +150,10 @@ onMounted(() => {
   initializeLevel();
 });
 </script>
+
+<style scoped>
+.level-view {
+  max-width: 800px;
+  margin: 0 auto;
+}
+</style>

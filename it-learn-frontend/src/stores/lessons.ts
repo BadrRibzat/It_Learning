@@ -33,8 +33,8 @@ export const useLessonsStore = defineStore('lessons', {
     async getLevels() {
       this.loading = true;
       try {
-        const levels = await LessonService.getLevels();
-        this.levels = levels;
+        const levelsResponse = await LessonService.getLevels();
+        this.levels = Array.isArray(levelsResponse.levels) ? levelsResponse.levels : []; // Ensure levels is an array
       } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
@@ -58,7 +58,7 @@ export const useLessonsStore = defineStore('lessons', {
       this.loading = true;
       try {
         const lessons = await LessonService.getLessons(levelId);
-        this.lessons = lessons;
+        this.lessons = Array.isArray(lessons) ? lessons : []; // Ensure lessons is an array
       } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
@@ -70,7 +70,7 @@ export const useLessonsStore = defineStore('lessons', {
       this.loading = true;
       try {
         const flashcards = await LessonService.getFlashcards(lessonId);
-        this.flashcards = flashcards;
+        this.flashcards = Array.isArray(flashcards) ? flashcards : []; // Ensure flashcards is an array
       } catch (error: any) {
         this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
@@ -148,7 +148,7 @@ export const useLessonsStore = defineStore('lessons', {
       }
     },
 
-   groupFlashcardsByLesson(flashcards: Flashcard[]): Map<string, Flashcard[]> {
+    groupFlashcardsByLesson(flashcards: Flashcard[]): Map<string, Flashcard[]> {
       return flashcards.reduce((acc, flashcard) => {
         const lessonId = flashcard.id;
         if (!acc.has(lessonId)) {
@@ -163,5 +163,24 @@ export const useLessonsStore = defineStore('lessons', {
       // TODO: Implement the logic to save quiz progress
       console.log(`Saving quiz progress for lesson ${lessonId}:`, progress);
     },
+
+    async unlockAllLessonsForBeginnerLevel() {
+      const beginnerLevel = this.levels.find(level => level.name === 'beginner');
+      if (beginnerLevel) {
+        const lessons = await this.getLessons(beginnerLevel.id);
+        lessons.forEach(lesson => {
+          lesson.is_unlocked = true;
+        });
+        this.lessons = lessons;
+      }
+    },
+
+    async redirectToLevelTest(levelId: string) {
+      const level = this.levels.find(level => level.id === levelId);
+      if (level && level.progress >= 0.8) {
+        return `/levels/${levelId}/test`;
+      }
+      return null;
+    }
   },
 });

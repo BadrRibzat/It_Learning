@@ -102,3 +102,12 @@ const averageQuizScore = computed(() => {
   return Math.round(sum / props.progress.quiz_scores.length);
 });
 </script>
+
+<style scoped>
+.level-card {
+  transition: transform 0.3s;
+}
+.level-card:hover {
+  transform: translateY(-5px);
+}
+</style>

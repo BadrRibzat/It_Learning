@@ -112,9 +112,10 @@ class LessonService {
     } // eslint-disable-line no-unused-vars
   }
 
-  static async getLevels(): Promise<Level[]> {
+  static async getLevels(): Promise<{ levels: Level[] }> {
     console.log('Fetching levels');
-    return this.makeRequest(`${API_URL}/levels`, 'get');
+    const levels = await this.makeRequest(`${API_URL}/levels`, 'get');
+    return { levels: Array.isArray(levels) ? levels : [] }; // Ensure levels is an array
   }
 
   static async getCurrentLevel(): Promise<Level> {
@@ -122,11 +123,13 @@ class LessonService {
   }
 
   static async getLessons(levelId: string): Promise<Lesson[]> {
-    return this.makeRequest(`${API_URL}/levels/${levelId}/lessons`, 'get');
+    const lessons = await this.makeRequest(`${API_URL}/levels/${levelId}/lessons`, 'get');
+    return Array.isArray(lessons) ? lessons : []; // Ensure lessons is an array
   }
 
   static async getFlashcards(lessonId: string): Promise<Flashcard[]> {
-    return this.makeRequest(`${API_URL}/lessons/${lessonId}/flashcards`, 'get');
+    const flashcards = await this.makeRequest(`${API_URL}/lessons/${lessonId}/flashcards`, 'get');
+    return Array.isArray(flashcards) ? flashcards : []; // Ensure flashcards is an array
   }
 
   static async submitFlashcardAnswer(lessonId: string, answer: FlashcardAnswer): Promise<FlashcardSubmissionResponse> {

@@ -132,7 +132,7 @@ const initializeLesson = async () => {
     loading.value = true;
     error.value = null;
 
-    await lessonsStore.fetchLessons(levelId.value);
+    await lessonsStore.getLessons(levelId.value);
     const lesson = lessonsStore.lessons.find(l => l.id === lessonId.value);
 
     if (!lesson) {
@@ -181,3 +181,10 @@ onMounted(() => {
   initializeLesson();
 });
 </script>
+
+<style scoped>
+.lesson-view {
+  max-width: 800px;
+  margin: 0 auto;
+}
+</style>

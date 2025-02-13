@@ -201,8 +201,8 @@ const initializeTest = async () => {
     error.value = null;
 
     await Promise.all([
-      lessonsStore.fetchLevels(),
-      lessonsStore.fetchLevelTest(levelId.value)
+      lessonsStore.getLevels(),
+      lessonsStore.getLevelTest(levelId.value)
     ]);
 
   } catch (err) {
