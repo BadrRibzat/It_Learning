@@ -34,21 +34,12 @@
         </div>
       </div>
 
-      <!-- Lessons Grid -->
-      <div class="space-y-6">
-        <h2 class="text-xl font-bold text-gray-900">Lessons</h2>
-        <div v-if="Array.isArray(lessons)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <LessonCard
-            v-for="lesson in lessons"
-            :key="lesson.id"
-            :lesson="lesson"
-            :is-unlocked="isLessonUnlocked(lesson)"
-            @select="handleLessonSelect"
-          />
-        </div>
-      </div>
+      <LevelList
+        :levels="lessonsStore.levels"
+        :progress="lessonsStore.levelProgress"
+        @select-level="handleLevelSelect"
+      />
 
-      <!-- Level Test Modal -->
       <LevelTestModal
         v-if="showLevelTest"
         :level="currentLevel"
@@ -83,14 +74,14 @@ import LearningDebugComponent from './LearningDebugComponent.vue';
 
 const router = useRouter();
 const route = useRoute();
-const lessonsStore = useLessonsStore();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
 const showLevelTest = ref(false);
 
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
-const levelId = computed(() => route.params.levelId as string);
+const levelId = computed(() => route.params['levelId'] as string);
+const lessonsStore = useLessonsStore();
 const currentLevel = computed(() => lessonsStore.currentLevel);
 const lessons = computed(() => lessonsStore.lessons);
 const canTakeLevelTest = computed(() => lessonsStore.canTakeLevelTest);
@@ -108,7 +99,7 @@ const debugData = computed(() => ({
 
 const isLessonUnlocked = (lesson: Lesson) => {
   if (lesson.order === 1) return true;
-  const previousLesson = lessons.value.find(l => l.order === lesson.order - 1);
+  const previousLesson = lessons.value.find((l: Lesson) => l.order === lesson.order - 1);
   return previousLesson?.completed || false;
 };
 
@@ -118,8 +109,8 @@ const initializeLevel = async () => {
     error.value = null;
 
     await Promise.all([
-      lessonsStore.fetchLessons(levelId.value),
-      lessonsStore.fetchLevelProgress(levelId.value)
+      lessonsStore.getLessons(levelId.value),
+      lessonsStore.getLevelProgress(levelId.value)
     ]);
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load level data';
@@ -129,6 +120,33 @@ const initializeLevel = async () => {
 };
 
 const handleLessonSelect = (lesson: Lesson) => {
+  const currentLevelOrder = lessonsStore.currentLevel?.order || 1;
+  const selectedLevelOrder = currentLevel.value?.order || 1;
+
+  let nextLevelId: string | null = null;
+
+  switch (lessonsStore.currentLevel?.name) {
+    case 'beginner':
+      nextLevelId = '67ab4b56bd71099b79f6ca87'; // Intermediate
+      break;
+    case 'intermediate':
+      nextLevelId = '67ab4b57bd71099b79f6ca88'; // Advanced
+      break;
+    case 'advanced':
+      nextLevelId = '67ab4b57bd71099b79f6ca89'; // Expert
+      break;
+    default:
+      nextLevelId = null;
+  }
+
+  if (selectedLevelOrder > currentLevelOrder && nextLevelId) {
+    router.push({
+      name: 'level-test',
+      params: { levelId: nextLevelId }
+    });
+    return;
+  }
+
   router.push({
     name: lesson.progress.quiz_unlocked ? 'quiz' : 'flashcards',
     params: {

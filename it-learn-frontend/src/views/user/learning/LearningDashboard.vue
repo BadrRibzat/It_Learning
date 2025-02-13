@@ -41,16 +41,16 @@
       </div>
     </template>
     <!-- Debug Information -->
-<div v-if="isDevelopment" class="mt-8">
-  <LearningDebugComponent :debug-data="debugData" />
-</div>
+    <div v-if="isDevelopment" class="mt-8">
+      <LearningDebugComponent :debug-data="debugData" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useLessonsStore } from '@/stores/lessons';
+import { useLessonsStore } from '@/stores/lessons'; // Updated import
 import { 
     StarIcon, 
     BookOpenIcon, 
@@ -59,24 +59,25 @@ import {
     ClockIcon,
     ChartBarIcon
 } from '@heroicons/vue/24/outline';
-import type { Level, LevelProgress } from '@/types/lessons';
+import type { Level, LevelProgress } from 'types/lessons';
 
 import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
 import QuickStat from '@/components/profile/QuickStat.vue';
 import LevelList from '@/components/lessons/level/LevelList.vue';
 import LevelTestModal from '@/components/lessons/level/LevelTestModal.vue';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LearningDebugComponent from './LearningDebugComponent.vue';
 
 const router = useRouter();
-const lessonsStore = useLessonsStore();
+const store = useLessonsStore(); // Use the store
 const showLevelTest = ref(false);
 const loading = ref(true);
 const error = ref<string | null>(null);
 
-const currentLevel = computed(() => lessonsStore.currentLevel);
-const availableLevels = computed(() => Array.isArray(lessonsStore.availableLevels) ? lessonsStore.availableLevels : []);
-const levelProgress = computed(() => lessonsStore.levelProgress);
-const canTakeLevelTest = computed(() => lessonsStore.canTakeLevelTest);
+const currentLevel = computed(() => store.currentLevel);
+const availableLevels = computed(() => Array.isArray(store.levels) ? store.levels : []);
+const levelProgress = computed(() => store.levelProgress);
+const canTakeLevelTest = computed(() => store.levelTest);
 const levelProgressMap = ref<{[levelId: string]: LevelProgress}>({});
 
 const totalPoints = computed(() => {
@@ -97,7 +98,7 @@ const totalLessonsCompleted = computed(() => {
 
 const averageQuizScore = computed(() => {
   if (!levelProgress.value?.quiz_scores.length) return 0;
-  const sum = levelProgress.value.quiz_scores.reduce((a, b) => a + b, 0);
+  const sum = levelProgress.value.quiz_scores.reduce((a: number, b: number) => a + b, 0);
   return Math.round(sum / levelProgress.value.quiz_scores.length);
 });
 
@@ -118,17 +119,15 @@ const initializeDashboard = async () => {
     loading.value = true;
     error.value = null;
     
-    await Promise.all([
-      lessonsStore.fetchLevels(),
-      lessonsStore.fetchCurrentLevel()
-    ]);
+    await store.getLevels();
+    await store.getCurrentLevel();
 
     if (availableLevels.value.length > 0) {
       await Promise.all(availableLevels.value.map(async (level) => {
         try {
-          const progress = await lessonsStore.fetchLevelProgress(level.id);
-          if (lessonsStore.levelProgress) {
-            levelProgressMap.value[level.id] = lessonsStore.levelProgress;
+          await store.getLevelProgress(level.id);
+          if (store.levelProgress) {
+            levelProgressMap.value[level.id] = store.levelProgress;
           }
         } catch (error) {
           console.error(`Failed to fetch level progress for level ${level.id}:`, error);
@@ -137,7 +136,7 @@ const initializeDashboard = async () => {
     }
 
     if (currentLevel.value) {
-      await lessonsStore.fetchLevelProgress(currentLevel.value.id);
+      await store.getLevelProgress(currentLevel.value.id);
     }
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load dashboard';
@@ -154,7 +153,7 @@ const handleLevelSelect = (level: Level) => {
   if (level.order > (currentLevel.value?.order || 1)) {
     router.push({
       name: 'level-test',
-      params: { levelId: currentLevel.value?.id }
+      params: { levelId: level.id }
     });
   } else {
     router.push({

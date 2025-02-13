@@ -43,20 +43,13 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue';
+import { inject, defineProps } from 'vue';
 import Avatar from '@/components/common/Avatar.vue';
 import ProgressCircle from '@/components/profile/ProgressCircle.vue';
 import QuickStat from '@/components/profile/QuickStat.vue';
+import type { ProfileResponse } from '@/types/profile';
 
-const props = defineProps<{
-  profile: {
-    profile_picture: string | null;
-    full_name: string;
-    email: string;
-    overall_progress: number;
-    total_points: number;
-    current_streak: number;
-    achievements: { id: string; name: string; earned_at: string | null }[];
-  } | null;
-}>();
+const profile = inject<ProfileResponse | null>('profile');
+
+defineProps<{}>();
 </script>

@@ -126,6 +126,7 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const lessonsStore = useLessonsStore();
+const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 const allCardsCompleted = computed(() => correctAnswers.value === totalFlashcards.value);
 
 // State
@@ -148,10 +149,11 @@ const isLastCard = computed(() => currentIndex.value === totalFlashcards.value -
 const allCorrect = computed(() => correctAnswers.value === totalFlashcards.value);
 
 const initializeFlashcards = async () => {
+  answeredCards.value = [];
   try {
     loading.value = true;
     error.value = null;
-    await lessonsStore.fetchFlashcards(lessonId.value);
+    await lessonsStore.getFlashcards(lessonId.value);
     answeredCards.value = new Array(lessonsStore.flashcards.length).fill(false);
   } catch (err) {
     error.value = err instanceof Error ? `Error: ${err.message}` : 'Failed to load flashcards. Please try again later.';
@@ -171,20 +173,34 @@ const navigateToPrevious = () => {
 const handleAnswerSubmit = async (answer: string) => {
   try {
     const isCorrect = answer.trim().toLowerCase() === currentFlashcard.value?.answer.toLowerCase();
-    
+
     if (isCorrect) {
       correctAnswers.value++;
       totalPoints.value += 10;
       answeredCards.value[currentIndex.value] = true;
 
-      const response = await lessonsStore.submitFlashcardAnswer(lessonId.value, {
-        flashcard_id: currentFlashcard.value.id,
-        user_answer: answer,
-        expected_answer: currentFlashcard.value.answer,
-        time_spent: timeSpent.value
-      });
+      try {
+        const response = await lessonsStore.submitFlashcardAnswer(lessonId.value, {
+          flashcard_id: currentFlashcard.value.id,
+          user_answer: answer,
+          expected_answer: currentFlashcard.value.answer,
+          time_spent: timeSpent.value
+        });
 
-      console.log('Flashcard answer submission response:', response);
+        console.log('Flashcard answer submission response:', response);
+
+        // Update local progress immediately
+        if (response && response.correct) {
+          lessonsStore.levelProgress.lessons_progress.find(lesson => lesson.id === lessonId.value).completed_flashcards++;
+          lessonsStore.levelProgress.total_points += response.points_earned;
+          correctAnswers.value++; // Update correctAnswers ref
+          totalPoints.value += response.points_earned; // Update totalPoints ref
+        }
+
+      } catch (submissionError) {
+        console.error('Error submitting answer:', submissionError);
+        toast.error('Failed to submit answer.');
+      }
 
       if (isLastCard.value && allCardsCompleted.value) {
         await completeLesson();
@@ -195,8 +211,8 @@ const handleAnswerSubmit = async (answer: string) => {
       toast.error('Incorrect answer. Try again!');
     }
   } catch (error) {
-    console.error('Error submitting answer:', error);
-    toast.error('Failed to submit answer');
+    console.error('Error processing answer:', error);
+    toast.error('Error processing answer.');
   }
 };
 
@@ -211,12 +227,19 @@ const completeLesson = async () => {
   try {
     await lessonsStore.completeLesson(lessonId.value);
     toast.success('Lesson completed! Quiz unlocked!');
+    await lessonsStore.getQuiz(lessonId.value); // Ensure quiz is fetched
+
     router.push({
       name: 'quiz',
       params: { levelId: levelId.value, lessonId: lessonId.value }
     });
   } catch (error) {
     toast.error('Failed to complete lesson');
+  } finally {
+    router.push({
+      name: 'quiz',
+      params: { levelId: levelId.value, lessonId: lessonId.value }
+    });
   }
 };
 

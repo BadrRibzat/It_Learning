@@ -168,3 +168,4 @@ export interface StoreState {
 export type LessonStatus = 'not_started' | 'in_progress' | 'completed';
 export type QuizStatus = 'locked' | 'available' | 'completed';
 export type LevelStatus = 'locked' | 'in_progress' | 'completed';
+

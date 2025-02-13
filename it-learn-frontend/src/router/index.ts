@@ -31,7 +31,7 @@ const router = createRouter({
             {
               path: '',
               name: 'profile-overview',
-              component: () => import('../components/profile/ProfileOverview.vue')
+              component: () => import('../components/profile/ProfileOverview.vue'),
             },
             {
               path: 'settings',
@@ -122,7 +122,7 @@ router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormali
   const isAuthenticated = authStore.isAuthenticated;
 
   // Handle authentication
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta['requiresAuth'] && !isAuthenticated) {
     next({ 
       name: 'login', 
       query: { 
@@ -132,7 +132,7 @@ router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormali
     });
   }
   // Handle guest only routes
-  else if (to.meta.requiresGuest && isAuthenticated) {
+  else if (to.meta['requiresGuest'] && isAuthenticated) {
     next({ name: 'profile-overview' });
   }
   // Redirect authenticated users from home to profile

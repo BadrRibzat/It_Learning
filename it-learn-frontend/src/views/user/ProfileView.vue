@@ -196,7 +196,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed, watch } from 'vue';
+import { onMounted, ref, computed, watch, provide } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue';
@@ -228,6 +228,8 @@ const profile = ref<ProfileResponse | null>(null);
 const showSettings = ref(false);
 const showCelebration = ref(false);
 const pictureError = ref<string | null>(null);
+
+provide('profile', profile.value);
 
 const pointsToNextLevel = computed(() => {
   if (!profile.value?.learning_stats?.total_points) return 0;

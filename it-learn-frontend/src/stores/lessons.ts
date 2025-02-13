@@ -1,283 +1,167 @@
 import { defineStore } from 'pinia';
-import LessonService from '@/services/lessons.service';
+import LessonService from '../services/lessons.service';
 import type {
   Level,
   Lesson,
   Flashcard,
   Quiz,
-  LevelTest,
-  LevelProgress,
-  StoreState,
-  FlashcardAnswer,
-  QuizSubmission,
   TestSubmission,
-  Question
+  LevelProgress,
 } from '@/types/lessons';
 
 export const useLessonsStore = defineStore('lessons', {
-  state: (): StoreState => ({
-    currentLevel: null,
-    levels: [],
+  state: () => ({
+    currentLevel: null as Level | null,
+    levels: [] as Level[],
     lessonFlashcards: new Map<string, Flashcard[]>(),
-    currentLesson: null,
-    lessons: [],
-    currentFlashcard: null,
-    flashcards: [],
-    currentQuiz: null,
-    levelProgress: null,
-    levelTest: null,
+    currentLesson: null as Lesson | null,
+    lessons: [] as Lesson[],
+    currentFlashcard: null as Flashcard | null,
+    flashcards: [] as Flashcard[],
+    currentQuiz: null as Quiz | null,
+    levelProgress: null as LevelProgress | null,
+    levelTest: null as any,
     loading: false,
-    error: null
+    error: null as string | null,
   }),
 
   getters: {
-    isLoading: (state: StoreState) => state.loading,
-    hasError: (state: StoreState) => state.error !== null,
-    availableLevels: (state: StoreState) => state.levels,
-    lessonProgress: (state: StoreState) => (lessonId: string) => {
-      if (!state.levelProgress) return null;
-      const lesson = state.lessons.find((l: Lesson) => l.id === lessonId);
-      return lesson?.progress || null;
-    },
-    canAccessQuiz: (state: StoreState) => {
-      if (!state.currentLesson) return false;
-      return state.currentLesson.progress.quiz_unlocked;
-    },
-    canTakeLevelTest: (state: StoreState) => {
-      if (!state.currentLevel || !state.levelProgress) return false;
-      return state.levelProgress.level_test_available;
-    },
-    nextLesson: (state: StoreState) => {
-      if (!state.currentLesson || !state.lessons.length) return null;
-      const currentIndex = state.lessons.findIndex(lesson => lesson.id === state.currentLesson?.id);
-      return currentIndex < state.lessons.length - 1 ? state.lessons[currentIndex + 1] : null;
-    }
+    // Add getters here if needed
   },
 
   actions: {
-    async fetchLevels(this: any) {
+    async getLevels() {
+      this.loading = true;
       try {
-        this.loading = true;
-        this.error = null;
-        const response = await LessonService.getLevels();
-        console.log('API Levels Response:', response); // Detailed logging
-        if (Array.isArray(response)) {
-          this.levels = response;
-        } else {
-          throw new Error('Levels data is not an array');
-        }
+        const levels = await LessonService.getLevels();
+        this.levels = levels;
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to fetch levels';
-        throw error;
+        this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
         this.loading = false;
       }
     },
-    async fetchCurrentLevel(this: any) {
+
+    async getCurrentLevel() {
+      this.loading = true;
       try {
-        this.loading = true;
-        this.error = null;
-        this.currentLevel = await LessonService.getCurrentLevel();
+        const level = await LessonService.getCurrentLevel();
+        this.currentLevel = level;
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to fetch current level';
-        throw error;
+        this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
         this.loading = false;
       }
     },
-    async fetchLessons(this: any, levelId: string) {
+
+    async getLessons(levelId: string) {
+      this.loading = true;
       try {
-        this.loading = true;
-        this.error = null;
-        this.lessons = await LessonService.getLessons(levelId);
+        const lessons = await LessonService.getLessons(levelId);
+        this.lessons = lessons;
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to fetch lessons';
-        throw error;
+        this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
         this.loading = false;
       }
     },
-    async setCurrentLesson(this: any, lesson: Lesson) {
-      this.currentLesson = lesson;
-      await this.fetchFlashcards(lesson.id);
-    },
-    async fetchFlashcards(this: any, lessonId: string) {
+
+    async getFlashcards(lessonId: string) {
+      this.loading = true;
       try {
-        this.loading = true;
-        this.error = null;
         const flashcards = await LessonService.getFlashcards(lessonId);
         this.flashcards = flashcards;
-        this.lessonFlashcards.set(lessonId, flashcards);
-        if (flashcards.length > 0) {
-          this.currentFlashcard = flashcards[0];
-        }
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to fetch flashcards';
-        throw error;
+        this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
         this.loading = false;
       }
     },
-    async submitFlashcardAnswer(this: any, lessonId: string, answer: FlashcardAnswer) {
+
+    async submitFlashcardAnswer(lessonId: string, answer: any) {
+      this.loading = true;
       try {
-        this.loading = true;
-        this.error = null;
         const response = await LessonService.submitFlashcardAnswer(lessonId, answer);
-        if (this.currentLesson) {
-          this.currentLesson.progress = response.progress;
-        }
         return response;
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to submit answer';
-        throw error;
+        this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
         this.loading = false;
       }
     },
-    async fetchQuiz(this: any, lessonId: string) {
+
+    async getQuiz(lessonId: string) {
+      this.loading = true;
       try {
-        this.loading = true;
-        this.error = null;
-        if (!this.lessonFlashcards.has(lessonId)) {
-          await this.fetchFlashcards(lessonId);
-        }
-        this.currentQuiz = await LessonService.getQuiz(lessonId);
-        if (this.currentQuiz) {
-          this.currentQuiz.questions = this.currentQuiz.questions.map((q: Question) => ({
-            ...q,
-            answer: this.findFlashcardAnswer(q.command, lessonId) || q.answer
-          }));
-        }
+        const quiz = await LessonService.getQuiz(lessonId);
+        this.currentQuiz = quiz;
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to fetch quiz';
-        throw error;
+        this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
         this.loading = false;
       }
     },
-    findFlashcardAnswer(this: any, command: string, lessonId: string): string | null {
-      const flashcards = this.lessonFlashcards.get(lessonId);
-      const flashcard = flashcards?.find((f: Flashcard) => f.command === command);
-      return flashcard?.answer || null;
-    },
-    async submitQuizResults(this: any, lessonId: string, results: {
-      answers: Array<{
-        question: string;
-        userAnswer: string;
-        correctAnswer: string;
-        isCorrect: boolean;
-        timeSpent: number;
-      }>;
-      total_time: number;
-      score: number;
-      passed: boolean;
-    }) {
+
+    async submitQuiz(submission: any) {
+      this.loading = true;
       try {
-        this.loading = true;
-        this.error = null;
-        const submission = {
-          answers: results.answers.map(a => a.userAnswer),
-          total_time: results.total_time,
-          score: results.score
-        };
-        await LessonService.submitQuiz(lessonId, submission);
-        if (this.currentLesson) {
-          this.currentLesson.progress = {
-            ...this.currentLesson.progress,
-            quiz_completed: true,
-            quiz_score: results.score
-          };
-        }
-        return true;
+        const response = await LessonService.submitQuiz(submission);
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to submit quiz results';
-        throw error;
+        this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
         this.loading = false;
       }
     },
-    async saveQuizProgress(this: any, lessonId: string, progress: {
-      current_question: number;
-      time_spent: number;
-      answers: Array<{
-        question: string;
-        userAnswer: string;
-        correctAnswer: string;
-        isCorrect: boolean;
-        timeSpent: number;
-      }>;
-    }) {
-      return true;
-    },
-    async completeLesson(this: any, lessonId: string) {
+
+    async getLevelTest(levelId: string) {
+      this.loading = true;
       try {
-        this.loading = true;
-        this.error = null;
-        await LessonService.completeLesson(lessonId);
-        if (this.currentLesson) {
-          this.currentLesson.progress.quiz_unlocked = true;
-        }
-        return true;
+        const test = await LessonService.getLevelTest(levelId);
+        this.levelTest = test;
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to complete lesson';
-        throw error;
+        this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
         this.loading = false;
       }
     },
-    async fetchLevelTest(this: any, levelId: string) {
+
+    async submitLevelTest(levelId: string, submission: TestSubmission) {
+      this.loading = true;
       try {
-        this.loading = true;
-        this.error = null;
-        this.levelTest = await LessonService.getLevelTest(levelId);
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to fetch level test';
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-    async submitLevelTest(this: any, levelId: string, submission: TestSubmission) {
-      try {
-        this.loading = true;
-        this.error = null;
         const response = await LessonService.submitLevelTest(levelId, submission);
-        if (response.next_level_unlocked) {
-          await this.fetchLevels();
-          await this.fetchCurrentLevel();
-        }
-        return response;
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to submit level test';
-        throw error;
+        this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
         this.loading = false;
       }
     },
-    async fetchLevelProgress(this: any, levelId: string) {
+
+    async getLevelProgress(levelId: string) {
+      this.loading = true;
       try {
-        this.loading = true;
-        this.error = null;
-        this.levelProgress = await LessonService.getLevelProgress(levelId);
+        const progress = await LessonService.getLevelProgress(levelId);
+        this.levelProgress = progress;
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Failed to fetch progress';
-        throw error;
+        this.error = error instanceof Error ? error.message : 'Unknown error';
       } finally {
         this.loading = false;
       }
     },
-    resetState(this: any) {
-      this.currentLevel = null;
-      this.levels = [];
-      this.currentLesson = null;
-      this.lessons = [];
-      this.currentFlashcard = null;
-      this.flashcards = [];
-      this.currentQuiz = null;
-      this.levelProgress = null;
-      this.levelTest = null;
-      this.loading = false;
-      this.error = null;
-    }
-  }
+
+   groupFlashcardsByLesson(flashcards: Flashcard[]): Map<string, Flashcard[]> {
+      return flashcards.reduce((acc, flashcard) => {
+        const lessonId = flashcard.id;
+        if (!acc.has(lessonId)) {
+          acc.set(lessonId, []);
+        }
+        acc.get(lessonId)?.push(flashcard);
+        return acc;
+      }, new Map<string, Flashcard[]>());
+    },
+
+    async saveQuizProgress(lessonId: string, progress: any) {
+      // TODO: Implement the logic to save quiz progress
+      console.log(`Saving quiz progress for lesson ${lessonId}:`, progress);
+    },
+  },
 });

@@ -81,6 +81,7 @@ import type { Quiz } from '@/types/lessons';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import QuizQuestion from '@/components/lessons/quiz/QuizQuestion.vue';
 import QuizResults from '@/components/lessons/quiz/QuizResults.vue';
+import LessonService from '@/services/lessons.service';
 import LearningTimer from '@/components/lessons/common/LearningTimer.vue';
 import LearningDebugComponent from './LearningDebugComponent.vue';
 
@@ -152,15 +153,18 @@ const debugData = computed(() => ({
 
 // Methods
 const initializeQuiz = async () => {
-  try {
-    loading.value = true;
-    error.value = null;
-    await lessonsStore.fetchQuiz(lessonId.value);
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to load quiz';
-    toast.error('Failed to load quiz');
-  } finally {
-    loading.value = false;
+  if (areFlashcardsCompleted.value) {
+    try {
+      loading.value = true;
+      error.value = null;
+      await lessonsStore.getFlashcards(lessonId.value);
+      await lessonsStore.getQuiz(lessonId.value);
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to load quiz';
+      toast.error('Failed to load quiz');
+    } finally {
+      loading.value = false;
+    }
   }
 };
 
@@ -244,7 +248,51 @@ const handleContinue = async () => {
   }
 };
 
-const goToFlashcards = () => {
+const goToFlashcards = async () => {
+  let attempts = 0;
+  const maxAttempts = 3;
+
+  while (attempts < maxAttempts) {
+    try {
+      const lesson = await LessonService.getLesson(lessonId.value);
+      if (lesson && lesson.flashcards) {
+        const firstUncompletedIndex = lesson.flashcards.findIndex(
+          (flashcard) => !flashcard.completed
+        );
+
+        router.push({
+          name: 'flashcards',
+          params: {
+            levelId: levelId.value,
+            lessonId: lessonId.value,
+          },
+          query: {
+            start: firstUncompletedIndex !== -1 ? firstUncompletedIndex : 0,
+          },
+        });
+        return; // Success, exit the loop
+      } else {
+        console.warn('Lesson or flashcards not found.');
+        router.push({
+          name: 'flashcards',
+          params: {
+            levelId: levelId.value,
+            lessonId: lessonId.value,
+          },
+        });
+        return; // Exit the loop, even if lesson/flashcards not found
+      }
+    } catch (error) {
+      attempts++;
+      console.error(`Failed to fetch lesson (attempt ${attempts}):`, error);
+      toast.error(`Failed to navigate to flashcards (attempt ${attempts}).`);
+      await new Promise(resolve => setTimeout(resolve, 500)); // Wait before retrying
+    }
+  }
+
+  // If all attempts failed
+  console.error('Failed to fetch lesson after multiple attempts.');
+  toast.error('Failed to navigate to flashcards after multiple attempts.');
   router.push({
     name: 'flashcards',
     params: {
@@ -272,7 +320,7 @@ const handleRetry = async () => {
 
 // Lifecycle hooks
 onMounted(() => {
-  initializeQuiz();
+  // initializeQuiz(); // Initialize quiz only when flashcards are completed
 });
 
 // Cleanup function if needed

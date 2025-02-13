@@ -5,13 +5,25 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue';
-import { useProfileStore } from '@/stores/profile';
-
-const profileStore = useProfileStore();
+const { level, lessons, storeState } = defineProps({
+  level: {
+    type: Object,
+    required: true,
+  },
+  lessons: {
+    type: Array,
+    required: true,
+  },
+  storeState: {
+    type: Object,
+    required: true,
+  },
+});
 
 const debugInfo = computed(() => ({
+  level: JSON.stringify(level, null, 2),
+  lessons: JSON.stringify(lessons, null, 2),
+  storeState: JSON.stringify(storeState, null, 2),
   profile: profileStore.profile,
   loading: profileStore.loading,
 }));

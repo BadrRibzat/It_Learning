@@ -1,7 +1,8 @@
-import { useProfileStore } from '@/stores/profile';
-import { useLessonsStore } from '@/stores/lessons';
-import { useNotificationStore } from '@/stores/notification';
-import type { LevelProgress } from '@/types/lessons';
+import { useProfileStore } from '../stores/profile';
+import { useLessonsStore } from '../stores/lessons';
+import { useNotificationStore } from '../stores/notification';
+import type { LevelProgress } from '../types/lessons';
+import { storeToRefs } from 'pinia';
 
 export class ProgressTracker {
   private static notificationStore = useNotificationStore();
@@ -9,24 +10,19 @@ export class ProgressTracker {
   static async updateProgress(type: string, data: any) {
     const profileStore = useProfileStore();
     const lessonsStore = useLessonsStore();
+    const { currentLevel } = storeToRefs(lessonsStore);
 
     try {
       switch (type) {
         case 'flashcard':
           if (data.correct) {
-            await profileStore.updateLearningStats({
-              points_earned: data.points_earned,
-              correct_answers: 1,
-              total_answers: 1,
-              completed_flashcards: data.progress.completed_flashcards,
-              total_flashcards: data.progress.total_flashcards
-            });
+            await profileStore.fetchStatistics();
 
             this.notificationStore.success(`Correct! +${data.points_earned} points earned`);
 
             if (data.progress.quiz_unlocked) {
               this.notificationStore.info('Quiz unlocked! Complete all flashcards to proceed');
-              await profileStore.checkAchievements('flashcard_completion');
+              await profileStore.fetchAchievements();
             }
           } else {
             this.notificationStore.warning('Not quite right. Try again!');
@@ -35,25 +31,18 @@ export class ProgressTracker {
 
         case 'quiz':
           if (data.passed) {
-            await profileStore.updateLearningStats({
-              points_earned: data.points_earned,
-              correct_answers: data.correct_answers,
-              total_questions: data.total_questions,
-              completed_lessons: data.next_lesson_unlocked ? 1 : 0,
-              quiz_score: data.score
-            });
+            await profileStore.fetchStatistics();
 
             this.notificationStore.success(
               `Quiz completed! Score: ${data.score}% (+${data.points_earned} points)`
             );
 
             if (data.quiz_completed) {
-              await profileStore.checkAchievements('quiz_completion');
+              await profileStore.fetchAchievements();
             }
             
             if (data.next_lesson_unlocked) {
               this.notificationStore.info('New lesson unlocked!');
-              await lessonsStore.completeLesson(data.lesson_id);
             }
           } else {
             this.notificationStore.warning(
@@ -63,20 +52,17 @@ export class ProgressTracker {
           break;
 
         case 'lesson':
-          await profileStore.updateLearningStats({
-            points_earned: 50,
-            completed_lessons: 1
-          });
+          await profileStore.fetchStatistics();
           
           this.notificationStore.success('Lesson completed! +50 bonus points');
-          await profileStore.checkAchievements('lesson_completion');
+          await profileStore.fetchAchievements();
           break;
       }
 
-      await lessonsStore.fetchLevelProgress(lessonsStore.currentLevel?.id || '');
+      await lessonsStore.getLevelProgress(currentLevel.value?.id || '');
       await profileStore.fetchProgressCircle();
 
-    } catch (error) {
+    } catch (error: any) {
       this.notificationStore.error(
         'Failed to update progress. Please try again later.'
       );
