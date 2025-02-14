@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List  # Import List explicitly
 from pymongo import MongoClient
 from bson import ObjectId
 from utils.redis_cache import cache
@@ -14,7 +14,7 @@ class ProgressService:
         self.db = get_db()
 
     def serialize_mongodb_object(self, obj):
-        """Serialize MongoDB objects to JSON-compatible format"""
+        """Serialize MongoDB objects to JSON-compatible format."""
         if isinstance(obj, dict):
             return {k: self.serialize_mongodb_object(v) for k, v in obj.items()}
         elif isinstance(obj, list):
@@ -37,7 +37,6 @@ class ProgressService:
             upsert=True,
         )
 
-        # Check if the quiz should be unlocked
         if self._should_unlock_quiz(user_id, lesson_id):
             self._create_quiz_entry(user_id, lesson_id)
 
@@ -62,18 +61,27 @@ class ProgressService:
 
         # Find the associated quiz for this lesson
         quiz = self.db.quizzes.find_one({"lesson": ObjectId(lesson_id)})
-        quiz_unlocked = bool(quiz) and progress.get("completed_flashcards", 0) >= 10
+        if not quiz:
+            return {
+                "completed_flashcards": progress.get("correct_answers", 0),
+                "total_flashcards": 10,
+                "quiz_unlocked": False,
+            }
 
+        # Check if user has access to the quiz
+        quiz_entry = self.db.users.find_one(
+            {"_id": ObjectId(user_id), "available_quizzes": quiz["_id"]}
+        )
         return {
             "completed_flashcards": progress.get("correct_answers", 0),
             "total_flashcards": 10,
-            "quiz_unlocked": quiz_unlocked,
+            "quiz_unlocked": bool(quiz_entry),
         }
 
     def _create_quiz_entry(self, user_id: str, lesson_id: str):
         """Mark the quiz as available for the user."""
         quiz = self.db.quizzes.find_one({"lesson": ObjectId(lesson_id)})
-        if quiz:
+        if quiz:  # Only update if quiz exists
             self.db.users.update_one(
                 {"_id": ObjectId(user_id)},
                 {"$addToSet": {"available_quizzes": quiz["_id"]}},
@@ -142,8 +150,11 @@ class ProgressService:
             return {"unlocked": False, "required_score": 0.8}
 
         best_submission = max(submissions, key=lambda x: x.get("score", 0), default=None)
-        if best_submission and best_submission["score"] >= 0.8 * test["total_questions"]:
-            # Unlock the next level
+        if (
+            best_submission
+            and best_submission["score"] >= 0.8 * test["total_questions"]
+        ):
+            # Get the level being tested
             level = self.db.levels.find_one({"_id": test["level"]})
             if level:
                 self.db.users.update_one(
@@ -166,20 +177,19 @@ class ProgressService:
         """
         Get the user's current level progression and unlock requirements.
         Returns:
-            A dictionary containing:
-                - current_level (str): The name of the user's current level.
-                - next_level (str): The name of the next level (if available).
-                - required_score (float): The passing score required for level tests.
-                - unlocked_levels (list): List of unlocked level names.
-                - progress (int): Overall progress percentage.
-                - levels (list): Array of level cards with unlock status.
+            - current_level (str): The name of the user's current level.
+            - next_level (str): The name of the next level (if available).
+            - required_score (float): The passing score required for level tests.
+            - unlocked_levels (list): List of unlocked level names.
+            - progress (int): Overall progress percentage.
+            - levels (list): Array of level cards with unlock status.
         """
         try:
             user = self.db.users.find_one({"_id": ObjectId(user_id)})
             levels = list(self.db.levels.find().sort("order", 1))
 
             if not user:
-                # Default progression for new users
+                # Return default level progression for new users with all levels info
                 return {
                     "current_level": "beginner",
                     "next_level": "intermediate",
@@ -191,13 +201,14 @@ class ProgressService:
                     ],
                 }
 
-            # Get the current level
-            current_level_order = user.get("current_level", 1)
-            current_level = self.db.levels.find_one({"order": current_level_order})
+            # Get current level
+            current_level = self.db.levels.find_one(
+                {"order": user.get("current_level", 1)}
+            )
             if not current_level:
                 current_level = {"name": "beginner", "order": 1}
 
-            unlocked_levels = user.get("unlocked_levels", [])
+            unlocked_levels = user.get("unlocked_levels", ["beginner"])
             if "beginner" not in unlocked_levels:
                 unlocked_levels.append("beginner")
 
@@ -219,7 +230,22 @@ class ProgressService:
             raise ValueError("Failed to fetch level progression")
 
     def _format_level_card(self, level: Dict, unlocked_levels: List[str]) -> Dict:
-        """Format level data into a card format."""
+        """
+        Format level data into a card format.
+        Args:
+            level (Dict): Level data from the database.
+            unlocked_levels (List[str]): List of unlocked level names.
+        Returns:
+            A dictionary containing:
+                - id (str): Level ID.
+                - name (str): Level name.
+                - order (int): Level order.
+                - description (str): Level description.
+                - icon (str): Level icon URL.
+                - is_unlocked (bool): Whether the level is unlocked.
+                - required_score (float): Passing score required for the level test.
+                - test_available (bool): Whether the level test is available.
+        """
         return {
             "id": str(level["_id"]),
             "name": level["name"],
@@ -227,10 +253,11 @@ class ProgressService:
             "description": level.get("description", ""),
             "icon": level.get("icon", ""),
             "is_unlocked": level["name"] == "beginner" or level["name"] in unlocked_levels,
+            "required_score": 0.8,
             "test_available": level["name"] != "beginner",
         }
 
-    def _get_next_level(self, current_order: int) -> Dict:
+    def _get_next_level(self, current_order: int) -> Optional[Dict]:
         """Get the next level based on the current order."""
         return self.db.levels.find_one({"order": current_order + 1})
 
@@ -242,9 +269,7 @@ class ProgressService:
             points (int): Points to add to the user's total.
         """
         self.db.users.update_one(
-            {"_id": ObjectId(user_id)},
-            {"$inc": {"total_points": points}},
-            upsert=True,
+            {"_id": ObjectId(user_id)}, {"$inc": {"total_points": points}}, upsert=True
         )
 
     def get_user_progress(self, user_id: str, level_id: str) -> Dict:
@@ -310,9 +335,7 @@ class ProgressService:
             )
 
             # Check level test availability
-            level_test_available = (
-                completed_lessons == len(lessons) and all_quizzes_passed
-            )
+            level_test_available = completed_lessons == len(lessons) and all_quizzes_passed
 
             # Check if the next level is unlocked
             next_level = self._get_next_level(level["order"])
