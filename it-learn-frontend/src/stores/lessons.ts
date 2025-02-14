@@ -20,6 +20,7 @@ export const useLessonsStore = defineStore('lessons', {
     flashcards: [] as Flashcard[],
     currentQuiz: null as Quiz | null,
     levelProgress: null as LevelProgress | null,
+    levelProgressMap: {} as Record<string, LevelProgress>,
     levelTest: null as any,
     loading: false,
     error: null as string | null,
@@ -94,10 +95,30 @@ export const useLessonsStore = defineStore('lessons', {
       }
     },
 
+    async updateLocalProgress(levelId: string, progress: LevelProgress) {
+      this.levelProgressMap = {
+        ...this.levelProgressMap,
+        [levelId]: progress
+      };
+    },
+
+    // Modify submitFlashcardAnswer:
     async submitFlashcardAnswer(lessonId: string, answer: FlashcardAnswer) {
       this.loading = true;
       try {
         const response = await LessonService.submitFlashcardAnswer(lessonId, answer);
+    
+        // Update local progress
+        const lesson = this.lessons.find(l => l.id === lessonId);
+        if (lesson) {
+          lesson.progress = response.progress;
+          this.updateLocalProgress(lesson.level_id, response.level_progress);
+        }
+    
+        // Update profile points
+        const profileStore = useProfileStore();
+        await profileStore.updatePoints(response.points_earned);
+    
         return response;
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -110,20 +131,17 @@ export const useLessonsStore = defineStore('lessons', {
       }
     },
 
-    async getQuiz(lessonId: string) {
+    async getQuiz(levelId: string, lessonId: string) {
       this.loading = true;
       try {
-        const quiz = await LessonService.getQuiz(lessonId);
+        const quiz = await LessonService.getQuiz(levelId, lessonId);
         this.currentQuiz = quiz;
       } catch (error: unknown) {
-        if (error instanceof Error) {
-          this.error = error.message;
-        } else {
-          this.error = 'Unknown error';
-        }
+    // Error handling
       } finally {
         this.loading = false;
       }
+
     },
 
     async submitQuiz(submission: QuizSubmission) {
@@ -217,8 +235,9 @@ export const useLessonsStore = defineStore('lessons', {
     },
 
     async redirectToLevelTest(levelId: string) {
-      const level = this.levels.find(level => level.id === levelId);
-      if (level && level.progress >= 0.8) {
+      await this.getLevelProgress(levelId);
+      const progress = this.levelProgress;
+      if (progress && progress.completed_lessons === progress.total_lessons) {
         return `/levels/${levelId}/test`;
       }
       return null;

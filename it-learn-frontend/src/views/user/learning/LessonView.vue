@@ -87,11 +87,6 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
 import { useToast } from 'vue-toastification';
-import {
-  ClipboardListIcon,
-  ClockIcon,
-  ChartBarIcon
-} from '@heroicons/vue/24/outline';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LessonHeader from '@/components/lessons/common/LessonHeader.vue';
 import LessonContent from '@/components/lessons/common/LessonContent.vue';
@@ -100,8 +95,7 @@ import LearningDebugComponent from './LearningDebugComponent.vue';
 const router = useRouter();
 const route = useRoute();
 const toast = useToast();
-const lessonsStore = useLessonsStore();
-
+const store = useLessonsStore();
 const loading = ref(true);
 const error = ref<string | null>(null);
 const currentStep = ref(1);
@@ -110,7 +104,7 @@ const isActive = ref(true);
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 const levelId = computed(() => route.params.levelId as string);
 const lessonId = computed(() => route.params.lessonId as string);
-const currentLesson = computed(() => lessonsStore.currentLesson);
+const currentLesson = computed(() => store.currentLesson);
 const totalSteps = computed(() => currentLesson.value?.progress.total_flashcards || 10);
 const canNavigate = computed(() => route.name === 'flashcards');
 
@@ -122,8 +116,8 @@ const debugData = computed(() => ({
   totalSteps: totalSteps.value,
   isActive: isActive.value,
   storeState: {
-    loading: lessonsStore.loading,
-    error: lessonsStore.error
+    loading: store.loading,
+    error: store.error
   }
 }));
 
@@ -131,15 +125,14 @@ const initializeLesson = async () => {
   try {
     loading.value = true;
     error.value = null;
-
-    await lessonsStore.getLessons(levelId.value);
-    const lesson = lessonsStore.lessons.find(l => l.id === lessonId.value);
+    await store.getLessons(levelId.value);
+    const lesson = store.lessons.find(l => l.id === lessonId.value);
 
     if (!lesson) {
       throw new Error('Lesson not found');
     }
 
-    await lessonsStore.setCurrentLesson(lesson);
+    await store.setCurrentLesson(lesson);
     currentStep.value = lesson.progress.completed_flashcards + 1;
 
   } catch (err) {

@@ -366,6 +366,11 @@ onMounted(() => {
   loadProfile();
 });
 
+// Add watcher to refresh data
+watch(() => profileStore.profile, (newProfile) => {
+  profile.value = newProfile;
+});
+
 watch(() => profile.value?.current_level?.animations?.celebration, (newValue) => {
   if (newValue) {
     showCelebration.value = true;

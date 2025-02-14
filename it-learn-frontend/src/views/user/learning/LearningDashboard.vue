@@ -27,7 +27,14 @@
             Continue Learning
           </button>
         </div>
-        <!-- ... progress indicators -->
+        <ProgressBar
+          :value="currentProgress.completed_lessons"
+          :max="currentProgress.total_lessons"
+          class="mb-2"
+        />
+        <p class="text-sm text-gray-600">
+          {{ currentProgress.completed_lessons }} / {{ currentProgress.total_lessons }} lessons completed
+        </p>
       </div>
 
       <!-- Available Levels -->
@@ -40,6 +47,7 @@
         />
       </div>
     </template>
+
     <!-- Debug Information -->
     <div v-if="isDevelopment" class="mt-8">
       <LearningDebugComponent :debug-data="debugData" />
@@ -51,94 +59,37 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
-import { 
-    StarIcon, 
-    BookOpenIcon, 
-    AcademicCapIcon,
-    ClipboardIcon,
-    ClockIcon,
-    ChartBarIcon
-} from '@heroicons/vue/24/outline';
-import type { Level, LevelProgress } from '@/types/lessons';
-
 import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
-import QuickStat from '@/components/profile/QuickStat.vue';
 import LevelList from '@/components/lessons/level/LevelList.vue';
-import LevelTestModal from '@/components/lessons/level/LevelTestModal.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LearningDebugComponent from './LearningDebugComponent.vue';
 
 const router = useRouter();
-const store = useLessonsStore(); // Use the store
-const showLevelTest = ref(false);
+const store = useLessonsStore();
 const loading = ref(true);
 const error = ref<string | null>(null);
 
 const currentLevel = computed(() => store.currentLevel);
-const availableLevels = computed(() => Array.isArray(store.levels) ? store.levels : []);
-const levelProgress = computed(() => store.levelProgress);
-const canTakeLevelTest = computed(() => store.levelTest);
-const levelProgressMap = ref<{[levelId: string]: LevelProgress}>({});
-
-const totalPoints = computed(() => {
-  let total = 0;
-  for (const levelId in levelProgressMap.value) {
-    total += levelProgressMap.value[levelId]?.total_points || 0;
-  }
-  return total;
-});
-
-const totalLessonsCompleted = computed(() => {
-  let total = 0;
-  for (const levelId in levelProgressMap.value) {
-    total += levelProgressMap.value[levelId]?.completed_lessons || 0;
-  }
-  return total;
-});
-
-const averageQuizScore = computed(() => {
-  if (!levelProgress.value?.quiz_scores.length) return 0;
-  const sum = levelProgress.value.quiz_scores.reduce((a: number, b: number) => a + b, 0);
-  return Math.round(sum / levelProgress.value.quiz_scores.length);
+const availableLevels = computed(() => store.levels);
+const levelProgressMap = computed(() => store.levelProgressMap);
+const currentProgress = computed(() => store.levelProgress || {
+  completed_lessons: 0,
+  total_lessons: 0,
 });
 
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 const debugData = computed(() => ({
   currentLevel: currentLevel.value,
   availableLevels: availableLevels.value,
-  levelProgress: levelProgress.value,
-  canTakeLevelTest: canTakeLevelTest.value,
-  levelProgressMap: levelProgressMap.value,
-  totalPoints: totalPoints.value,
-  totalLessonsCompleted: totalLessonsCompleted.value,
-  averageQuizScore: averageQuizScore.value,
+  levelProgress: currentProgress.value,
 }));
 
 const initializeDashboard = async () => {
   try {
     loading.value = true;
     error.value = null;
-    
     await store.getLevels();
     await store.getCurrentLevel();
-    await store.unlockAllLessonsForBeginnerLevel(); // Unlock all lessons for beginner level
-
-    if (availableLevels.value.length > 0) {
-      await Promise.all(availableLevels.value.map(async (level) => {
-        try {
-          await store.getLevelProgress(level.id);
-          if (store.levelProgress) {
-            levelProgressMap.value[level.id] = store.levelProgress;
-          }
-        } catch (error) {
-          console.error(`Failed to fetch level progress for level ${level.id}:`, error);
-        }
-      }));
-    }
-
-    if (currentLevel.value) {
-      await store.getLevelProgress(currentLevel.value.id);
-    }
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load dashboard';
   } finally {
@@ -146,9 +97,25 @@ const initializeDashboard = async () => {
   }
 };
 
-onMounted(() => {
-  initializeDashboard();
-});
+const continueCurrentLevel = () => {
+  if (currentLevel.value) {
+    const nextLesson = store.lessons.find(
+      (lesson) => !lesson.completed && lesson.progress.quiz_unlocked
+    );
+
+    if (nextLesson) {
+      router.push({
+        name: 'quiz',
+        params: { levelId: currentLevel.value.id, lessonId: nextLesson.id },
+      });
+    } else {
+      router.push({
+        name: 'level',
+        params: { levelId: currentLevel.value.id },
+      });
+    }
+  }
+};
 
 const handleLevelSelect = async (level: Level) => {
   if (level.order > (currentLevel.value?.order || 1)) {
@@ -158,35 +125,20 @@ const handleLevelSelect = async (level: Level) => {
     } else {
       router.push({
         name: 'level',
-        params: { levelId: level.id }
+        params: { levelId: level.id },
       });
     }
   } else {
     router.push({
       name: 'level',
-      params: { levelId: level.id }
+      params: { levelId: level.id },
     });
   }
 };
 
-const navigateToTest = () => {
-  if (currentLevel.value) {
-    router.push({
-      name: 'level-test',
-      params: { levelId: currentLevel.value.id }
-    });
-    showLevelTest.value = false;
-  }
-};
-
-const continueCurrentLevel = () => {
-  if (currentLevel.value) {
-    router.push({
-      name: 'level',
-      params: { levelId: currentLevel.value.id }
-    });
-  }
-};
+onMounted(() => {
+  initializeDashboard();
+});
 </script>
 
 <style scoped>

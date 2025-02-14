@@ -162,6 +162,13 @@ export const useProfileStore = defineStore('profile', {
       }
     },
 
+    async updatePoints(points: number) {
+      if (this.profile?.learning_stats) {
+        this.profile.learning_stats.total_points += points;
+      }
+      await this.fetchProfile();
+    },
+
     async fetchProgressCircle() {
       this.loading = true;
       this.error = null;

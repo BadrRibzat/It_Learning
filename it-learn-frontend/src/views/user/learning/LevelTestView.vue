@@ -99,8 +99,6 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
 import { useToast } from 'vue-toastification';
-import type { Level } from '@/types/lessons';
-
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LevelTestQuestion from '@/components/lessons/level/LevelTestQuestion.vue';
 import LevelTestResults from '@/components/lessons/level/LevelTestResults.vue';
@@ -111,9 +109,7 @@ import LearningDebugComponent from './LearningDebugComponent.vue';
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const lessonsStore = useLessonsStore();
-
-// State
+const store = useLessonsStore();
 const loading = ref(true);
 const error = ref<string | null>(null);
 const startTime = ref(Date.now());
@@ -132,8 +128,8 @@ const questionTimeLimit = 90;
 
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 const levelId = computed(() => route.params.levelId as string);
-const currentLevel = computed(() => lessonsStore.currentLevel);
-const levelTest = computed(() => lessonsStore.levelTest);
+const currentLevel = computed(() => store.currentLevel);
+const levelTest = computed(() => store.levelTest);
 const currentQuestion = computed(() =>
   levelTest.value?.questions[currentQuestionIndex.value]
 );
@@ -189,20 +185,19 @@ const debugData = computed(() => ({
   levelTest: levelTest.value,
   unlockedAchievements: unlockedAchievements.value,
   storeState: {
-    loading: lessonsStore.loading,
-    error: lessonsStore.error
+    loading: store.loading,
+    error: store.error
   }
 }));
 
-// Methods
 const initializeTest = async () => {
   try {
     loading.value = true;
     error.value = null;
 
     await Promise.all([
-      lessonsStore.getLevels(),
-      lessonsStore.getLevelTest(levelId.value)
+      store.getLevels(),
+      store.getLevelTest(levelId.value)
     ]);
 
   } catch (err) {
@@ -270,7 +265,7 @@ const submitTestResults = async () => {
     const passed = score >= (levelTest.value?.passing_score || 80);
     const answers = userAnswers.value.map(a => a.userAnswer);
 
-    await lessonsStore.submitLevelTest(levelId.value, {
+    await store.submitLevelTest(levelId.value, {
       answers: answers,
     });
 
@@ -291,7 +286,7 @@ const handleContinue = async () => {
 
   if (score >= passingScore) {
     try {
-      await lessonsStore.advanceToNextLevel(levelId.value);
+      await store.advanceToNextLevel(levelId.value);
       router.push({ name: 'profile' });
     } catch (error) {
       toast.error('Failed to advance to next level');
@@ -304,7 +299,6 @@ const handleContinue = async () => {
   }
 };
 
-// Lifecycle Hooks
 onMounted(() => {
   initializeTest();
 });
@@ -312,7 +306,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // Clean up or save progress if needed
   if (timeSpent.value > 0 && !showResults.value) {
-    lessonsStore.saveLevelTestProgress(levelId.value, {
+    store.saveLevelTestProgress(levelId.value, {
       current_question: currentQuestionIndex.value,
       time_spent: timeSpent.value,
       answers: userAnswers.value

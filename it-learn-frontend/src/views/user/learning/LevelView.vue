@@ -1,9 +1,9 @@
 <template>
   <div class="level-view space-y-8">
-    <!-- Loading and Error States -->
     <div v-if="loading" class="flex justify-center items-center py-12">
       <LoadingSpinner />
     </div>
+
     <div v-else-if="error" class="text-center py-8">
       <p class="text-red-600">{{ error }}</p>
       <button 
@@ -14,7 +14,6 @@
       </button>
     </div>
 
-    <!-- Main Content -->
     <template v-else>
       <!-- Level Header -->
       <div class="bg-white rounded-lg shadow p-6">
@@ -36,7 +35,7 @@
 
       <div class="lesson-list space-y-4">
         <LessonCard
-          v-for="lesson in lessonsStore.lessons"
+          v-for="lesson in lessons"
           :key="lesson.id"
           :lesson="lesson"
           :isUnlocked="isLessonUnlocked(lesson)"
@@ -50,71 +49,36 @@
         @close="showLevelTest = false"
         @start-test="navigateToTest"
       />
-
-      <!-- Debug Information -->
-      <div v-if="isDevelopment" class="mt-8">
-        <LearningDebugComponent :debug-data="debugData" />
-      </div>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
-import {
-  ArrowLeftIcon,
-  ClipboardIcon,
-  ClockIcon,
-  ChartBarIcon
-} from '@heroicons/vue/24/outline';
-import type { Lesson } from '@/types/lessons';
 import LessonCard from '@/components/lessons/level/LessonCard.vue';
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LevelTestModal from '@/components/lessons/level/LevelTestModal.vue';
-import LearningDebugComponent from './LearningDebugComponent.vue';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 
 const router = useRouter();
 const route = useRoute();
-
+const store = useLessonsStore();
 const loading = ref(true);
 const error = ref<string | null>(null);
 const showLevelTest = ref(false);
 
-const isDevelopment = computed(() => import.meta.env.MODE === 'development');
-const levelId = computed(() => route.params['levelId'] as string);
-const lessonsStore = useLessonsStore();
-const currentLevel = computed(() => lessonsStore.currentLevel);
-const lessons = computed(() => lessonsStore.lessons);
-const canTakeLevelTest = computed(() => lessonsStore.canTakeLevelTest);
-
-const debugData = computed(() => ({
-  levelId: levelId.value,
-  currentLevel: currentLevel.value,
-  lessons: lessons.value,
-  canTakeLevelTest: canTakeLevelTest.value,
-  storeState: {
-    loading: lessonsStore.loading,
-    error: lessonsStore.error
-  }
-}));
-
-const isLessonUnlocked = (lesson: Lesson) => {
-  if (lesson.order === 1) return true;
-  const previousLesson = lessons.value.find((l: Lesson) => l.order === lesson.order - 1);
-  return previousLesson?.completed || false;
-};
+const levelId = computed(() => route.params.levelId as string);
+const currentLevel = computed(() => store.currentLevel);
+const lessons = computed(() => store.lessons);
+const canTakeLevelTest = computed(() => store.levelTest?.can_attempt);
 
 const initializeLevel = async () => {
   try {
     loading.value = true;
     error.value = null;
-
-    await Promise.all([
-      lessonsStore.getLessons(levelId.value),
-      lessonsStore.getLevelProgress(levelId.value)
-    ]);
+    await store.getLessons(levelId.value);
+    await store.getLevelTest(levelId.value);
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load level data';
   } finally {
@@ -122,26 +86,35 @@ const initializeLevel = async () => {
   }
 };
 
-const handleLessonSelect = async (lesson: Lesson) => {
-  if (!lesson.progress.quiz_unlocked) {
+const isLessonUnlocked = (lesson: Lesson) => {
+  if (lesson.order === 1) return true;
+  const previousLesson = lessons.value.find((l: Lesson) => l.order === lesson.order - 1);
+  return previousLesson?.completed || false;
+};
+
+const handleLessonSelect = (lesson: Lesson) => {
+  if (lesson.completed) {
     router.push({
       name: 'flashcards',
-      params: { levelId: levelId.value, lessonId: lesson.id }
+      params: { levelId: levelId.value, lessonId: lesson.id },
     });
-  } else if (!lesson.completed) {
+  } else if (lesson.progress.quiz_unlocked) {
     router.push({
       name: 'quiz',
-      params: { levelId: levelId.value, lessonId: lesson.id }
+      params: { levelId: levelId.value, lessonId: lesson.id },
     });
   } else {
-    router.push(`/lessons/${lesson.id}`);
+    router.push({
+      name: 'flashcards',
+      params: { levelId: levelId.value, lessonId: lesson.id },
+    });
   }
 };
 
 const navigateToTest = () => {
   router.push({
     name: 'level-test',
-    params: { levelId: levelId.value }
+    params: { levelId: levelId.value },
   });
   showLevelTest.value = false;
 };

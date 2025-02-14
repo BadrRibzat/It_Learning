@@ -205,7 +205,7 @@ def create_app():
             }
         
             is_healthy = all(
-                status for key, status in services_status.items() 
+                status for key, status for key, status in services_status.items() 
                 if key != 'status'
             )
             services_status['status'] = 'healthy' if is_healthy else 'unhealthy'

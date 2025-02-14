@@ -133,9 +133,12 @@ class LessonService {
     return this.makeRequest(`${API_URL}/flashcards/${lessonId}/submit`, 'post', answer);
   }
 
-  static async getQuiz(lessonId: string): Promise<Quiz> {
-    return this.makeRequest(`${API_URL}/lessons/${lessonId}/quiz`, 'get');
-  }
+  static async getQuiz(levelId: string, lessonId: string): Promise<Quiz> {
+   return this.makeRequest(
+    `${API_URL}/levels/${levelId}/lessons/${lessonId}/quiz`, 
+    'get'
+  );
+ }
 
   static async submitQuiz(lessonId: string, submission: QuizSubmission): Promise<QuizSubmissionResponse> {
     return this.makeRequest(`${API_URL}/lessons/${lessonId}/quiz`, 'post', submission);

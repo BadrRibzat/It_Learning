@@ -98,7 +98,7 @@ const initializeQuiz = async () => {
   try {
     loading.value = true;
     error.value = null;
-    quiz.value = await lessonsStore.getQuiz(lessonId.value);
+    await lessonsStore.getQuiz(levelId.value, lessonId.value);
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load quiz. Please try again later.';
     toast.error(error.value);

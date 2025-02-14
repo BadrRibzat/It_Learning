@@ -4,7 +4,7 @@
       v-for="level in levels"
       :key="level.id"
       :level="level"
-      :progress="progress[level.id]"
+      :progress="progress[level.id] || {}"
       @select="selectLevel"
     />
   </div>
@@ -16,7 +16,7 @@ import type { Level, LevelProgress } from '@/types/lessons';
 
 const props = defineProps<{
   levels: Level[];
-  progress: Record<string, LevelProgress>;
+  progress?: Record<string, LevelProgress>;
 }>();
 
 const emit = defineEmits<{

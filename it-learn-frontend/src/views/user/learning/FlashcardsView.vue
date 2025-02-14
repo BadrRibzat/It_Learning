@@ -225,18 +225,29 @@ const handleNext = () => {
   }
 };
 
+const goToQuiz = async () => {
+  try {
+    await lessonsStore.getQuiz(levelId.value, lessonId.value);
+    router.push({
+      name: 'quiz',
+      params: { levelId: levelId.value, lessonId: lessonId.value }
+    });
+  } catch (error) {
+    toast.error('Failed to load quiz');
+  }
+};
+
 const completeLesson = async () => {
   try {
     await lessonsStore.completeLesson(lessonId.value);
-    toast.success('Lesson completed! Quiz unlocked!');
-    await lessonsStore.getQuiz(lessonId.value); // Ensure quiz is fetched
-
+    await lessonsStore.getLessons(levelId.value);
     router.push({
       name: 'quiz',
       params: { levelId: levelId.value, lessonId: lessonId.value }
     });
   } catch (error) {
     toast.error('Failed to complete lesson');
+
   } finally {
     router.push({
       name: 'quiz',
