@@ -35,8 +35,12 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         const levelsResponse = await LessonService.getLevels();
         this.levels = Array.isArray(levelsResponse.levels) ? levelsResponse.levels : []; // Ensure levels is an array
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          this.error = error.message;
+        } else {
+          this.error = 'Unknown error';
+        }
       } finally {
         this.loading = false;
       }
@@ -47,8 +51,12 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         const level = await LessonService.getCurrentLevel();
         this.currentLevel = level;
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          this.error = error.message;
+        } else {
+          this.error = 'Unknown error';
+        }
       } finally {
         this.loading = false;
       }
@@ -59,8 +67,12 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         const lessons = await LessonService.getLessons(levelId);
         this.lessons = Array.isArray(lessons) ? lessons : []; // Ensure lessons is an array
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          this.error = error.message;
+        } else {
+          this.error = 'Unknown error';
+        }
       } finally {
         this.loading = false;
       }
@@ -71,20 +83,28 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         const flashcards = await LessonService.getFlashcards(lessonId);
         this.flashcards = Array.isArray(flashcards) ? flashcards : []; // Ensure flashcards is an array
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          this.error = error.message;
+        } else {
+          this.error = 'Unknown error';
+        }
       } finally {
         this.loading = false;
       }
     },
 
-    async submitFlashcardAnswer(lessonId: string, answer: any) {
+    async submitFlashcardAnswer(lessonId: string, answer: FlashcardAnswer) {
       this.loading = true;
       try {
         const response = await LessonService.submitFlashcardAnswer(lessonId, answer);
         return response;
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          this.error = error.message;
+        } else {
+          this.error = 'Unknown error';
+        }
       } finally {
         this.loading = false;
       }
@@ -95,19 +115,28 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         const quiz = await LessonService.getQuiz(lessonId);
         this.currentQuiz = quiz;
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          this.error = error.message;
+        } else {
+          this.error = 'Unknown error';
+        }
       } finally {
         this.loading = false;
       }
     },
 
-    async submitQuiz(submission: any) {
+    async submitQuiz(submission: QuizSubmission) {
       this.loading = true;
       try {
-        const response = await LessonService.submitQuiz(submission);
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
+        const response = await LessonService.submitQuiz(submission.lessonId, submission);
+        return response;
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          this.error = error.message;
+        } else {
+          this.error = 'Unknown error';
+        }
       } finally {
         this.loading = false;
       }
@@ -118,8 +147,12 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         const test = await LessonService.getLevelTest(levelId);
         this.levelTest = test;
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          this.error = error.message;
+        } else {
+          this.error = 'Unknown error';
+        }
       } finally {
         this.loading = false;
       }
@@ -129,8 +162,13 @@ export const useLessonsStore = defineStore('lessons', {
       this.loading = true;
       try {
         const response = await LessonService.submitLevelTest(levelId, submission);
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
+        return response;
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          this.error = error.message;
+        } else {
+          this.error = 'Unknown error';
+        }
       } finally {
         this.loading = false;
       }
@@ -141,8 +179,12 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         const progress = await LessonService.getLevelProgress(levelId);
         this.levelProgress = progress;
-      } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          this.error = error.message;
+        } else {
+          this.error = 'Unknown error';
+        }
       } finally {
         this.loading = false;
       }
@@ -167,11 +209,10 @@ export const useLessonsStore = defineStore('lessons', {
     async unlockAllLessonsForBeginnerLevel() {
       const beginnerLevel = this.levels.find(level => level.name === 'beginner');
       if (beginnerLevel) {
-        const lessons = await this.getLessons(beginnerLevel.id);
-        lessons.forEach(lesson => {
-          lesson.is_unlocked = true;
+        await this.getLessons(beginnerLevel.id);
+        this.lessons.forEach(lesson => {
+          lesson.completed = true;
         });
-        this.lessons = lessons;
       }
     },
 

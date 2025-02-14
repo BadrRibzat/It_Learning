@@ -114,8 +114,7 @@ class LessonService {
 
   static async getLevels(): Promise<{ levels: Level[] }> {
     console.log('Fetching levels');
-    const levels = await this.makeRequest(`${API_URL}/levels`, 'get');
-    return { levels: Array.isArray(levels) ? levels : [] }; // Ensure levels is an array
+    return this.makeRequest(`${API_URL}/levels`, 'get');
   }
 
   static async getCurrentLevel(): Promise<Level> {
@@ -123,13 +122,11 @@ class LessonService {
   }
 
   static async getLessons(levelId: string): Promise<Lesson[]> {
-    const lessons = await this.makeRequest(`${API_URL}/levels/${levelId}/lessons`, 'get');
-    return Array.isArray(lessons) ? lessons : []; // Ensure lessons is an array
+    return this.makeRequest(`${API_URL}/levels/${levelId}/lessons`, 'get');
   }
 
   static async getFlashcards(lessonId: string): Promise<Flashcard[]> {
-    const flashcards = await this.makeRequest(`${API_URL}/lessons/${lessonId}/flashcards`, 'get');
-    return Array.isArray(flashcards) ? flashcards : []; // Ensure flashcards is an array
+    return this.makeRequest(`${API_URL}/lessons/${lessonId}/flashcards`, 'get');
   }
 
   static async submitFlashcardAnswer(lessonId: string, answer: FlashcardAnswer): Promise<FlashcardSubmissionResponse> {

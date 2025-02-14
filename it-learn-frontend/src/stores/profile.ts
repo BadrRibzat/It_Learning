@@ -63,30 +63,30 @@ export const useProfileStore = defineStore('profile', {
   }),
 
   getters: {
-    isLoading: (state) => state.loading,
-    hasError: (state) => state.error !== null,
-    profileData: (state) => state.profile?.profile_data ?? null,
-    profilePictureUrl: (state) => {
+    isLoading: (state: ProfileState) => state.loading,
+    hasError: (state: ProfileState) => state.error !== null,
+    profileData: (state: ProfileState) => state.profile?.profile_data ?? null,
+    profilePictureUrl: (state: ProfileState) => {
       if (state.profile?.profile_data?.profile_picture) {
         return `data:image/png;base64,${state.profile.profile_data.profile_picture}`;
       }
       return null;
     },
-    learningStats: (state) => state.profile?.learning_stats ?? null,
-    unlockedAchievements: (state) => 
+    learningStats: (state: ProfileState) => state.profile?.learning_stats ?? null,
+    unlockedAchievements: (state: ProfileState) => 
       state.achievements.filter(a => a.earned_at !== null).map(a => a.id),
-    currentStreak: (state) => 
+    currentStreak: (state: ProfileState) => 
       state.statistics?.streak?.current_streak ?? 0,
-    completionRate: (state) => {
+    completionRate: (state: ProfileState) => {
       if (!state.achievements.length) return 0;
       const unlocked = state.achievements.filter(a => a.earned_at !== null).length;
       return Math.round((unlocked / state.achievements.length) * 100);
     },
-    recentActivities: (state) => 
+    recentActivities: (state: ProfileState) => 
       state.activityFeed?.activities ?? [],
-    hasMoreActivities: (state) => 
+    hasMoreActivities: (state: ProfileState) => 
       state.activityFeed?.summary?.has_more ?? false,
-    userSettings: (state) => state.settings,
+    userSettings: (state: ProfileState) => state.settings,
   },
 
   actions: {
@@ -95,7 +95,7 @@ export const useProfileStore = defineStore('profile', {
       this.error = null;
       try {
         this.profile = await ProfileService.getProfile();
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = error instanceof Error ? error.message : 'Failed to load profile';
         throw error;
       } finally {
@@ -108,7 +108,7 @@ export const useProfileStore = defineStore('profile', {
       this.error = null;
       try {
         this.statistics = await ProfileService.getStatistics();
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = error instanceof Error ? error.message : 'Failed to load statistics';
         throw error;
       } finally {
@@ -123,7 +123,7 @@ export const useProfileStore = defineStore('profile', {
         const response = await ProfileService.updateProfile(data);
         this.profile = response;
         return response;
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = 'Failed to update profile';
         throw error;
       } finally {
@@ -141,7 +141,7 @@ export const useProfileStore = defineStore('profile', {
           timestamp: Date.now()
         };
         return response;
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = 'Failed to upload profile picture';
         throw error;
       } finally {
@@ -154,7 +154,7 @@ export const useProfileStore = defineStore('profile', {
       this.error = null;
       try {
         this.points = await ProfileService.getPoints();
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = error instanceof Error ? error.message : 'Failed to load points';
         throw error;
       } finally {
@@ -167,7 +167,7 @@ export const useProfileStore = defineStore('profile', {
       this.error = null;
       try {
         this.progressCircle = await ProfileService.getProgressCircle();
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = error instanceof Error ? error.message : 'Failed to load progress data';
         throw error;
       } finally {
@@ -180,7 +180,7 @@ export const useProfileStore = defineStore('profile', {
       this.error = null;
       try {
         this.activityFeed = await ProfileService.getActivityFeed(limit, offset);
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = error instanceof Error ? error.message : 'Failed to load activity feed';
         throw error;
       } finally {
@@ -200,7 +200,7 @@ export const useProfileStore = defineStore('profile', {
         this.progressCircle = null;
         this.activityFeed = null;
         return response;
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = error instanceof Error ? error.message : 'Failed to delete account';
         throw error;
       } finally {
@@ -215,7 +215,7 @@ export const useProfileStore = defineStore('profile', {
         const response = await ProfileService.getAchievements();
         this.achievements = response;
         return response;
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = error instanceof Error ? error.message : 'Failed to load achievements';
         throw error;
       } finally {
@@ -232,7 +232,7 @@ export const useProfileStore = defineStore('profile', {
           this.profile.settings = response.settings;
         }
         return response;
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = 'Failed to update settings';
         throw error;
       } finally {
@@ -249,7 +249,7 @@ export const useProfileStore = defineStore('profile', {
           this.profile.settings = response.settings;
         }
         return response;
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = 'Failed to fetch settings';
         throw error;
       } finally {
@@ -268,7 +268,7 @@ export const useProfileStore = defineStore('profile', {
         ]);
         this.lastUpdate = new Date().toISOString();
         return { profile, stats, achievements };
-      } catch (error) {
+      } catch (error: unknown) {
         this.error = 'Failed to load profile data';
         throw error;
       } finally {
@@ -285,11 +285,11 @@ export const useProfileStore = defineStore('profile', {
       }
     },
 
-    async trackActivity(activityType: string, data: any) {
+    async trackActivity(activityType: string, data: Record<string, unknown>) {
       try {
         await ProfileService.trackActivity(activityType, data);
         await this.fetchActivityFeed();
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Failed to track activity:', error);
       }
     },

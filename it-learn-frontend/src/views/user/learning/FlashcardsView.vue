@@ -88,10 +88,7 @@
             <p>All flashcards completed!</p>
             <p>Final Score: {{ accuracy }}% accuracy, {{ totalPoints }} points earned</p>
             <button
-              @click="router.push({
-                name: 'quiz',
-                params: { levelId: levelId.value, lessonId: lessonId.value },
-              })"
+              @click="goToQuiz"
               class="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
             >
               Go to Quiz
@@ -191,8 +188,13 @@ const handleAnswerSubmit = async (answer: string) => {
 
         // Update local progress immediately
         if (response && response.correct) {
-          lessonsStore.levelProgress.lessons_progress.find(lesson => lesson.id === lessonId.value).completed_flashcards++;
-          lessonsStore.levelProgress.total_points += response.points_earned;
+          const lessonProgress = lessonsStore.levelProgress?.lessons_progress?.find(
+            (lesson) => lesson.id === lessonId.value
+          );
+          if (lessonProgress) {
+            lessonProgress.completed_flashcards++;
+            lessonsStore.levelProgress.total_points += response.points_earned;
+          }
           correctAnswers.value++; // Update correctAnswers ref
           totalPoints.value += response.points_earned; // Update totalPoints ref
         }

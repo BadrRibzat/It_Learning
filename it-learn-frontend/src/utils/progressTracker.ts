@@ -4,10 +4,37 @@ import { useNotificationStore } from '../stores/notification';
 import type { LevelProgress } from '../types/lessons';
 import { storeToRefs } from 'pinia';
 
+interface FlashcardData {
+  correct: boolean;
+  points_earned: number;
+  progress: {
+    quiz_unlocked: boolean;
+    completed_flashcards: number;
+    total_flashcards: number;
+  };
+}
+
+interface QuizData {
+  passed: boolean;
+  score: number;
+  points_earned: number;
+  quiz_completed: boolean;
+  next_lesson_unlocked: boolean;
+  required_score: number;
+  correct_answers: number;
+  total_questions: number;
+}
+
+interface LessonData {
+  completed_lessons: number;
+}
+
+type ProgressData = FlashcardData | QuizData | LessonData;
+
 export class ProgressTracker {
   private static notificationStore = useNotificationStore();
 
-  static async updateProgress(type: string, data: any) {
+  static async updateProgress(type: string, data: ProgressData) {
     const profileStore = useProfileStore();
     const lessonsStore = useLessonsStore();
     const { currentLevel } = storeToRefs(lessonsStore);
@@ -15,12 +42,12 @@ export class ProgressTracker {
     try {
       switch (type) {
         case 'flashcard':
-          if (data.correct) {
+          if ((data as FlashcardData).correct) {
             await profileStore.fetchStatistics();
 
-            this.notificationStore.success(`Correct! +${data.points_earned} points earned`);
+            this.notificationStore.success(`Correct! +${(data as FlashcardData).points_earned} points earned`);
 
-            if (data.progress.quiz_unlocked) {
+            if ((data as FlashcardData).progress.quiz_unlocked) {
               this.notificationStore.info('Quiz unlocked! Complete all flashcards to proceed');
               await profileStore.fetchAchievements();
             }
@@ -30,23 +57,23 @@ export class ProgressTracker {
           break;
 
         case 'quiz':
-          if (data.passed) {
+          if ((data as QuizData).passed) {
             await profileStore.fetchStatistics();
 
             this.notificationStore.success(
-              `Quiz completed! Score: ${data.score}% (+${data.points_earned} points)`
+              `Quiz completed! Score: ${(data as QuizData).score}% (+${(data as QuizData).points_earned} points)`
             );
 
-            if (data.quiz_completed) {
+            if ((data as QuizData).quiz_completed) {
               await profileStore.fetchAchievements();
             }
             
-            if (data.next_lesson_unlocked) {
+            if ((data as QuizData).next_lesson_unlocked) {
               this.notificationStore.info('New lesson unlocked!');
             }
           } else {
             this.notificationStore.warning(
-              `Quiz not passed. Required score: ${data.required_score}%. Try again!`
+              `Quiz not passed. Required score: ${(data as QuizData).required_score}%. Try again!`
             );
           }
           break;
@@ -62,7 +89,7 @@ export class ProgressTracker {
       await lessonsStore.getLevelProgress(currentLevel.value?.id || '');
       await profileStore.fetchProgressCircle();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.notificationStore.error(
         'Failed to update progress. Please try again later.'
       );
@@ -84,14 +111,14 @@ export class ProgressTracker {
     );
   }
 
-  static formatProgressMessage(type: string, data: any): string {
+  static formatProgressMessage(type: string, data: ProgressData): string {
     switch (type) {
       case 'flashcard':
-        return `Completed ${data.progress.completed_flashcards}/${data.progress.total_flashcards} flashcards`;
+        return `Completed ${(data as FlashcardData).progress.completed_flashcards}/${(data as FlashcardData).progress.total_flashcards} flashcards`;
       case 'quiz':
-        return `Quiz Score: ${data.score}% (${data.correct_answers}/${data.total_questions} correct)`;
+        return `Quiz Score: ${(data as QuizData).score}% (${(data as QuizData).correct_answers}/${(data as QuizData).total_questions} correct)`;
       case 'lesson':
-        return `Lesson completed! Total lessons completed: ${data.completed_lessons}`;
+        return `Lesson completed! Total lessons completed: ${(data as LessonData).completed_lessons}`;
       default:
         return '';
     }

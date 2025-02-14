@@ -15,54 +15,33 @@
     </div>
 
     <template v-else>
-      <!-- Quiz Progress Header -->
-      <div v-if="!showResults" class="bg-white rounded-lg shadow p-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-bold text-gray-900">
-            Lesson Quiz
-          </h2>
-          <LearningTimer
-            :total-time="quizTimeLimit"
-            @time-update="handleTimeUpdate"
-            @time-expired="submitQuiz"
-          />
-        </div>
-      </div>
-      <!-- Quiz Content -->
-      <div v-if="!showResults && quiz?.questions && areFlashcardsCompleted">
-        <QuizQuestion
-          :questions="quiz.questions"
-          :time-limit="quizTimeLimit"
-          @submit="handleQuizSubmit"
-        />
-        <div class="flex justify-end mt-4">
-          <button
-            class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-            @click="submitQuiz"
-          >
-            Submit Quiz
-          </button>
-        </div>
-      </div>
-      <div v-else-if="!areFlashcardsCompleted" class="text-center py-8">
-        <p class="text-gray-600">
-          Please complete all flashcards before attempting the quiz.
-        </p>
-        <button
-          @click="goToFlashcards"
-          class="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-        >
-          Go to Flashcards
-        </button>
-      </div>
+      <div class="max-w-3xl mx-auto">
+        <div class="bg-white rounded-lg shadow p-6 space-y-6">
+          <h2 class="text-xl font-bold text-gray-900">Lesson Quiz</h2>
 
-      <!-- Quiz Results -->
-      <QuizResults
-        v-else-if="showResults"
-        :results="quizResults"
-        @retry="handleRetry"
-        @continue="handleContinue"
-      />
+          <p class="text-gray-600">Time Spent: {{ formattedTimeSpent }}</p>
+
+          <div v-if="!quiz">
+            <p class="text-red-600">Please complete all flashcards before attempting the quiz.</p>
+            <button 
+              @click="goToFlashcards" 
+              class="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+            >
+              Go to Flashcards
+            </button>
+          </div>
+
+          <div v-else>
+            <QuizCard
+              v-for="(question, index) in quiz.questions"
+              :key="question.id"
+              :question="question"
+              :index="index"
+              @answer-submitted="handleAnswerSubmit"
+            />
+          </div>
+        </div>
+      </div>
     </template>
 
     <!-- Debug Information -->
@@ -73,70 +52,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
 import { useToast } from 'vue-toastification';
-import type { Quiz } from '@/types/lessons';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
-import QuizQuestion from '@/components/lessons/quiz/QuizQuestion.vue';
-import QuizResults from '@/components/lessons/quiz/QuizResults.vue';
-import LessonService from '@/services/lessons.service';
-import LearningTimer from '@/components/lessons/common/LearningTimer.vue';
+import QuizCard from '@/components/lessons/quiz/QuizCard.vue';
 import LearningDebugComponent from './LearningDebugComponent.vue';
 
 const route = useRoute();
 const router = useRouter();
-const lessonsStore = useLessonsStore();
 const toast = useToast();
-
-import type { QuizSubmissionResponse } from '@/types/lessons';
-
-// Computed
-const quizResults = computed<QuizSubmissionResponse>(() => {
-  const correctAnswersCount = userAnswers.value.filter(a => a.isCorrect).length;
-  const score = Math.round((correctAnswersCount / totalQuestions.value) * 100);
-
-  return {
-    score: score,
-    correct_answers: correctAnswersCount,
-    total_questions: totalQuestions.value,
-    passed: score >= 80,
-    next_lesson_unlocked: false, // This value will be updated after submitting the quiz
-    points_earned: 0, // This value will be updated after submitting the quiz
-    quiz_completed: false, // This value will be updated after submitting the quiz
-    quiz_score: score, // This value will be updated after submitting the quiz
-    questions_with_answers: [] // This value will be updated after submitting the quiz
-  };
-});
-
-// Refs
-const loading = ref(false);
-const error = ref<string | null>(null);
-const quizTimeLimit = 300; // 5 minutes
-const timeSpent = ref(quizTimeLimit);
-const userAnswers = ref<
-  Array<{
-    question: string;
-    userAnswer: string;
-    correctAnswer: string;
-    isCorrect: boolean;
-    timeSpent: number;
-  }>
->([]);
-const showResults = ref(false);
-
-// Computed
+const lessonsStore = useLessonsStore();
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
+
+// State
+const loading = ref(true);
+const error = ref<string | null>(null);
+const timeSpent = ref(0);
+const userAnswers = ref([]);
+const quiz = ref(null);
+
+// Computed
 const levelId = computed(() => route.params.levelId as string);
 const lessonId = computed(() => route.params.lessonId as string);
-const quiz = computed(() => lessonsStore.currentQuiz);
-const totalQuestions = computed(() => quiz.value?.questions.length || 0);
-
-const areFlashcardsCompleted = computed(() => {
-  const lesson = lessonsStore.currentLesson;
-  if (!lesson) return false;
-  return lesson.progress.completed_flashcards === lesson.progress.total_flashcards;
+const formattedTimeSpent = computed(() => {
+  const minutes = Math.floor(timeSpent.value / 60);
+  const seconds = timeSpent.value % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 });
 
 const debugData = computed(() => ({
@@ -147,192 +90,37 @@ const debugData = computed(() => ({
   quiz: quiz.value,
   storeState: {
     loading: lessonsStore.loading,
-    error: lessonsStore.error,
-  },
+    error: lessonsStore.error
+  }
 }));
 
-// Methods
 const initializeQuiz = async () => {
-  if (areFlashcardsCompleted.value) {
-    try {
-      loading.value = true;
-      error.value = null;
-      await lessonsStore.getFlashcards(lessonId.value);
-      await lessonsStore.getQuiz(lessonId.value);
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load quiz';
-      toast.error('Failed to load quiz');
-    } finally {
-      loading.value = false;
-    }
-  }
-};
-
-const handleQuizSubmit = (answers: string[]) => {
-  if (!quiz.value) return;
-
-  // Clear previous answers
-  userAnswers.value = [];
-
-  quiz.value.questions.forEach((question, index) => {
-    const correctAnswer = lessonsStore.findFlashcardAnswer(
-      question.command,
-      lessonId.value
-    );
-
-    const isCorrect = correctAnswer ?
-      answers[index]?.trim().toLowerCase() === correctAnswer.toLowerCase() :
-      false;
-
-    userAnswers.value.push({
-      question: question.question,
-      userAnswer: answers[index] || 'No answer provided',
-      correctAnswer: correctAnswer || 'Not available',
-      isCorrect: isCorrect,
-      timeSpent: 0 // Time spent is not tracked anymore
-    });
-  });
-
-  showResults.value = true;
-};
-
-const handleTimeUpdate = (seconds: number) => {
-  timeSpent.value = seconds;
-};
-
-const submitQuiz = async () => {
   try {
-    if (!quiz.value) return;
-    const correctAnswers = userAnswers.value.filter(a => a.isCorrect).length;
-    const score = Math.round((correctAnswers / totalQuestions.value) * 100);
-
-    await lessonsStore.submitQuizResults(lessonId.value, {
-      answers: userAnswers.value,
-      total_time: quizTimeLimit - timeSpent.value,
-      score: score,
-      passed: score >= 80, // Assuming 80% is the passing score
-    });
-
-    toast.success('Quiz submitted successfully!');
-  } catch (error) {
-    toast.error('Failed to submit quiz results');
+    loading.value = true;
+    error.value = null;
+    quiz.value = await lessonsStore.getQuiz(lessonId.value);
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to load quiz. Please try again later.';
+    toast.error(error.value);
   } finally {
-    showResults.value = true;
+    loading.value = false;
   }
 };
 
-const handleContinue = async () => {
-  if (!quiz.value) return;
-
-  if (!areFlashcardsCompleted.value) {
-    router.push({
-      name: 'flashcards',
-      params: {
-        levelId: levelId.value,
-        lessonId: lessonId.value,
-      },
-    });
-  } else {
-    try {
-      await lessonsStore.completeLesson(lessonId.value);
-      toast.success('Lesson completed successfully!');
-
-      // Navigate back to level view
-      router.push({
-        name: 'level',
-        params: { levelId: levelId.value }
-      });
-    } catch (error) {
-      toast.error('Failed to complete lesson');
-    }
-  }
-};
-
-const goToFlashcards = async () => {
-  let attempts = 0;
-  const maxAttempts = 3;
-
-  while (attempts < maxAttempts) {
-    try {
-      const lesson = await LessonService.getLesson(lessonId.value);
-      if (lesson && lesson.flashcards) {
-        const firstUncompletedIndex = lesson.flashcards.findIndex(
-          (flashcard) => !flashcard.completed
-        );
-
-        router.push({
-          name: 'flashcards',
-          params: {
-            levelId: levelId.value,
-            lessonId: lessonId.value,
-          },
-          query: {
-            start: firstUncompletedIndex !== -1 ? firstUncompletedIndex : 0,
-          },
-        });
-        return; // Success, exit the loop
-      } else {
-        console.warn('Lesson or flashcards not found.');
-        router.push({
-          name: 'flashcards',
-          params: {
-            levelId: levelId.value,
-            lessonId: lessonId.value,
-          },
-        });
-        return; // Exit the loop, even if lesson/flashcards not found
-      }
-    } catch (error) {
-      attempts++;
-      console.error(`Failed to fetch lesson (attempt ${attempts}):`, error);
-      toast.error(`Failed to navigate to flashcards (attempt ${attempts}).`);
-      await new Promise(resolve => setTimeout(resolve, 500)); // Wait before retrying
-    }
-  }
-
-  // If all attempts failed
-  console.error('Failed to fetch lesson after multiple attempts.');
-  toast.error('Failed to navigate to flashcards after multiple attempts.');
+const goToFlashcards = () => {
   router.push({
     name: 'flashcards',
-    params: {
-      levelId: levelId.value,
-      lessonId: lessonId.value,
-    },
+    params: { levelId: levelId.value, lessonId: lessonId.value }
   });
 };
 
-const handleRetry = async () => {
-  try {
-    // Reset quiz state
-    userAnswers.value = [];
-    showResults.value = false;
-    timeSpent.value = quizTimeLimit;
-
-    // Fetch fresh quiz questions
-    await initializeQuiz();
-
-    toast.info('Starting quiz again...');
-  } catch (error) {
-    toast.error('Failed to restart quiz');
-  }
+const handleAnswerSubmit = async (questionId: string, answer: string) => {
+  userAnswers.value.push({ questionId, answer });
+  // Logic to handle answer submission and update progress can be added here
 };
 
-// Lifecycle hooks
 onMounted(() => {
-  // initializeQuiz(); // Initialize quiz only when flashcards are completed
-});
-
-// Cleanup function if needed
-onBeforeUnmount(() => {
-  // Save any necessary state or cleanup timers
-  if (timeSpent.value > 0 && !showResults.value) {
-    lessonsStore.saveQuizProgress(lessonId.value, {
-      current_question: 0,
-      time_spent: quizTimeLimit - timeSpent.value,
-      answers: userAnswers.value
-    }).catch(console.error);
-  }
+  initializeQuiz();
 });
 </script>
 
@@ -340,15 +128,6 @@ onBeforeUnmount(() => {
 .quiz-view {
   max-width: 800px;
   margin: 0 auto;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+  padding: 1rem;
 }
 </style>

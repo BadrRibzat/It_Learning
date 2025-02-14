@@ -59,7 +59,7 @@ import {
     ClockIcon,
     ChartBarIcon
 } from '@heroicons/vue/24/outline';
-import type { Level, LevelProgress } from 'types/lessons';
+import type { Level, LevelProgress } from '@/types/lessons';
 
 import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
 import QuickStat from '@/components/profile/QuickStat.vue';
