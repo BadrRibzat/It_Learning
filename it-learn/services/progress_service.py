@@ -1,4 +1,4 @@
-from typing import Dict, List  # Import List explicitly
+from typing import Dict, List, Optional  # Import List and Optional explicitly
 from pymongo import MongoClient
 from bson import ObjectId
 from utils.redis_cache import cache
@@ -23,7 +23,9 @@ class ProgressService:
             return str(obj)
         return obj
 
-    def track_flashcard_progress(self, user_id: str, lesson_id: str, flashcard_id: str, is_correct: bool):
+    def track_flashcard_progress(
+        self, user_id: str, lesson_id: str, flashcard_id: str, is_correct: bool
+    ):
         """
         Update user progress for flashcards.
         Automatically unlocks the quiz when all flashcards are completed.
@@ -84,7 +86,7 @@ class ProgressService:
         if quiz:  # Only update if quiz exists
             self.db.users.update_one(
                 {"_id": ObjectId(user_id)},
-                {"$addToSet": {"available_quizzes": quiz["_id"]}},
+                {"$addToSet": {"available_quizzes": ObjectId(quiz["_id"])}},
                 upsert=True,
             )
 
@@ -173,6 +175,10 @@ class ProgressService:
 
         return {"unlocked": False, "required_score": 0.8}
 
+    def _get_next_level(self, current_order: int) -> Optional[Dict]:
+        """Get the next level based on current order."""
+        return self.db.levels.find_one({"order": current_order + 1})
+
     def get_level_progression(self, user_id: str) -> Dict:
         """
         Get the user's current level progression and unlock requirements.
@@ -230,22 +236,7 @@ class ProgressService:
             raise ValueError("Failed to fetch level progression")
 
     def _format_level_card(self, level: Dict, unlocked_levels: List[str]) -> Dict:
-        """
-        Format level data into a card format.
-        Args:
-            level (Dict): Level data from the database.
-            unlocked_levels (List[str]): List of unlocked level names.
-        Returns:
-            A dictionary containing:
-                - id (str): Level ID.
-                - name (str): Level name.
-                - order (int): Level order.
-                - description (str): Level description.
-                - icon (str): Level icon URL.
-                - is_unlocked (bool): Whether the level is unlocked.
-                - required_score (float): Passing score required for the level test.
-                - test_available (bool): Whether the level test is available.
-        """
+        """Format level data into a card format."""
         return {
             "id": str(level["_id"]),
             "name": level["name"],
@@ -256,7 +247,7 @@ class ProgressService:
             "required_score": 0.8,
             "test_available": level["name"] != "beginner",
         }
-
+    
     def _get_next_level(self, current_order: int) -> Optional[Dict]:
         """Get the next level based on the current order."""
         return self.db.levels.find_one({"order": current_order + 1})
