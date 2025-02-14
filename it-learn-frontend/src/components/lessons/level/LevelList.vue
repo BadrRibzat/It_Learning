@@ -4,7 +4,7 @@
       v-for="level in levels"
       :key="level.id"
       :level="level"
-      :progress="progress[level.id] || {}"
+      :progress="progress[level.id] || { completed_flashcards: 0, total_flashcards: 10 }"
       @select="selectLevel"
     />
   </div>
