@@ -1,9 +1,9 @@
 <template>
   <div class="modal-overlay" v-if="showModal">
     <div class="modal-content">
-      <h3>Level Test</h3>
-      <p>Passing Score: {{ test.passing_score * 100 }}%</p>
-      <button @click="startTest">Start Test</button>
+      <h4>Level Test Required</h4>
+      <p>You must pass the level test to access more content.</p>
+      <button @click="startTest">Take Test</button>
       <button @click="closeModal">Cancel</button>
     </div>
   </div>
@@ -11,27 +11,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useLessonsStore } from '@/stores/lessons';
 
 export default defineComponent({
-  props: {
-    levelId: {
-      type: String,
-      required: true,
-    },
-  },
-  setup() {
-    const lessonsStore = useLessonsStore();
-    return { lessonsStore };
-  },
   data() {
     return {
       showModal: false,
-      test: null as any,
     };
-  },
-  async mounted() {
-    this.test = await this.lessonsStore.getLevelTest(this.levelId);
   },
   methods: {
     openModal() {
@@ -63,8 +48,7 @@ export default defineComponent({
 
 .modal-content {
   background: white;
-  padding: 24px;
+  padding: 16px;
   border-radius: 8px;
-  text-align: center;
 }
 </style>

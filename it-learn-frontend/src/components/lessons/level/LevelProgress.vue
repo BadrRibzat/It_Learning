@@ -1,27 +1,54 @@
 <template>
-  <div class="progress-overview bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-bold mb-4">Level Progress</h2>
-    <div class="space-y-4">
-      <ProgressBar
-        :value="progress.completed_lessons"
-        :max="progress.total_lessons"
-        class="mb-2"
-      />
-
-      <div class="flex justify-between text-sm text-gray-600">
-        <span>Lessons Completed: {{ progress.completed_lessons }}/{{ progress.total_lessons }}</span>
-        <span>Points Earned: {{ progress.total_points }}</span>
-      </div>
-    </div>
+  <div class="level-progress">
+    <h4>Level Progress</h4>
+    <ul>
+      <li 
+        v-for="(lessonProgress, index) in levelProgress.lessons_progress" 
+        :key="index"
+        :class="{ completed: lessonProgress.quiz_unlocked }"
+      >
+        Lesson {{ index + 1 }}: 
+        {{ lessonProgress.completed_flashcards }} / {{ lessonProgress.total_flashcards }} Flashcards Completed
+      </li>
+    </ul>
+    <p v-if="levelProgress.level_test_available">Level Test Available</p>
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue';
-import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
-import type { LevelProgress } from '@/types/lessons';
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { useLessonsStore } from '@/stores/lessons';
+import { LevelProgress } from '@/types/lessons';
 
-const props = defineProps<{
-  progress: LevelProgress;
-}>();
+export default defineComponent({
+  props: {
+    levelId: {
+      type: String,
+      required: true,
+    },
+  },
+  setup() {
+    const lessonsStore = useLessonsStore();
+    return { lessonsStore };
+  },
+  computed: {
+    levelProgress(): LevelProgress | null {
+      return this.lessonsStore.levelProgressMap[this.levelId] || null;
+    },
+  },
+});
 </script>
+
+<style scoped>
+.level-progress {
+  border: 1px solid #ccc;
+  padding: 16px;
+  margin: 8px;
+  border-radius: 8px;
+}
+
+li.completed {
+  color: green;
+  font-weight: bold;
+}
+</style>

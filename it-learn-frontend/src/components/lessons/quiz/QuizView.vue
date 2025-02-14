@@ -1,7 +1,7 @@
 <template>
   <div class="quiz-view">
-    <h2>Quiz: {{ quiz.lesson_id }}</h2>
-    <Question 
+    <h3>Quiz</h3>
+    <QuizQuestion 
       v-for="question in quiz.questions" 
       :key="question.id" 
       :question="question" 
@@ -13,24 +13,21 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useLessonsStore } from '@/stores/lessons';
-import Question from '@/components/lessons/quiz/Question.vue';
+import QuizQuestion from './QuizQuestion.vue';
+import type { Quiz } from '@/types/lessons';
 
 export default defineComponent({
-  components: { Question },
-  props: ['lessonId'],
-  setup() {
-    const lessonsStore = useLessonsStore();
-    return { lessonsStore };
+  components: { QuizQuestion },
+  props: {
+    quiz: {
+      type: Object as () => Quiz,
+      required: true,
+    },
   },
   data() {
     return {
-      quiz: null as any,
       answers: [] as string[],
     };
-  },
-  async mounted() {
-    this.quiz = await this.lessonsStore.getQuiz(this.lessonId);
   },
   methods: {
     handleAnswer(answer: string) {
@@ -41,10 +38,7 @@ export default defineComponent({
         alert('Please answer all questions.');
         return;
       }
-      const response = await this.lessonsStore.submitQuiz(this.quiz.lesson_id, { answers: this.answers });
-      if (response.next_lesson_unlocked) {
-        this.$router.push('/next-lesson');
-      }
+      this.$emit('quiz-completed', { answers: this.answers });
     },
   },
 });

@@ -1,6 +1,6 @@
 <template>
-  <div class="flashcard-question">
-    <h4>Question: {{ flashcard.question }}</h4>
+  <div class="question">
+    <h4>Question {{ question.order }}: {{ question.question }}</h4>
     <input type="text" v-model="userAnswer" @keyup.enter="submitAnswer" />
     <button @click="submitAnswer">Submit</button>
     <p v-if="showResult">{{ resultMessage }}</p>
@@ -9,12 +9,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import type { Flashcard } from '@/types/lessons';
+import type { Question } from '@/types/lessons';
 
 export default defineComponent({
   props: {
-    flashcard: {
-      type: Object as () => Flashcard,
+    question: {
+      type: Object as () => Question,
       required: true,
     },
   },
@@ -27,10 +27,10 @@ export default defineComponent({
   },
   methods: {
     submitAnswer() {
-      const isCorrect = this.userAnswer.trim().toLowerCase() === this.flashcard.answer.toLowerCase();
+      const isCorrect = this.userAnswer.trim().toLowerCase() === this.question.answer.toLowerCase();
       this.showResult = true;
       this.resultMessage = isCorrect ? 'Correct!' : 'Incorrect!';
-      this.$emit('answered', { id: this.flashcard.id, answer: this.userAnswer });
+      this.$emit('answered', { id: this.question.id, answer: this.userAnswer });
     },
   },
 });

@@ -1,6 +1,6 @@
 <template>
   <div class="flashcards-view">
-    <h2>Flashcards: {{ lesson.title }}</h2>
+    <h3>Flashcards</h3>
     <Flashcard 
       v-for="flashcard in flashcards" 
       :key="flashcard.id" 
@@ -13,19 +13,20 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useLessonsStore } from '@/stores/lessons';
-import Flashcard from '@/components/lessons/flashcards/Flashcard.vue';
+import Flashcard from './Flashcard.vue';
+import type { Flashcard } from '@/types/lessons';
 
 export default defineComponent({
   components: { Flashcard },
-  props: ['lessonId'],
-  setup() {
-    const lessonsStore = useLessonsStore();
-    return { lessonsStore };
+  props: {
+    lessonId: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
-      flashcards: [] as any[],
+      flashcards: [] as Flashcard[],
       completedFlashcards: 0,
     };
   },
@@ -35,10 +36,15 @@ export default defineComponent({
     },
   },
   async mounted() {
-    this.flashcards = await this.lessonsStore.getFlashcards(this.lessonId);
+    try {
+      const lessonsStore = useLessonsStore();
+      this.flashcards = await lessonsStore.getFlashcards(this.lessonId);
+    } catch (error) {
+      console.error('Error fetching flashcards:', error);
+    }
   },
   methods: {
-    async handleAnswer(response: any) {
+    handleAnswer(response: any) {
       this.completedFlashcards++;
       if (response.progress.quiz_unlocked) {
         this.$emit('quiz-unlocked', response);

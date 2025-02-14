@@ -1,7 +1,14 @@
 <template>
-  <div class="flashcard-question">
-    <h4>Question: {{ flashcard.question }}</h4>
-    <input type="text" v-model="userAnswer" @keyup.enter="submitAnswer" />
+  <div class="flashcard">
+    <h4>{{ flashcard.command }}</h4>
+    <p>{{ flashcard.explanation }}</p>
+    <p>{{ flashcard.example }}</p>
+    <input 
+      type="text" 
+      v-model="userAnswer" 
+      @keyup.enter="submitAnswer"
+      placeholder="Your answer here..."
+    />
     <button @click="submitAnswer">Submit</button>
     <p v-if="showResult">{{ resultMessage }}</p>
   </div>
@@ -35,3 +42,12 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.flashcard {
+  border: 1px solid #ccc;
+  padding: 16px;
+  margin: 8px;
+  border-radius: 8px;
+}
+</style>

@@ -1,36 +1,42 @@
 <template>
-  <div class="level-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <LevelCard
-      v-for="level in levels"
-      :key="level.id"
-      :level="level"
-      :progress="progress[level.id] || { completed_flashcards: 0, total_flashcards: 10 }"
-      @select="selectLevel"
+  <div class="level-list">
+    <LevelCard 
+      v-for="level in levels" 
+      :key="level.id" 
+      :level="level" 
+      @start-learning="onStartLearning(level)"
     />
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
+import { defineComponent } from 'vue';
 import LevelCard from './LevelCard.vue';
-import type { Level, LevelProgress } from '@/types/lessons';
+import { useLessonsStore } from '@/stores/lessons';
 
-const props = defineProps<{
-  levels: Level[];
-  progress?: Record<string, LevelProgress>;
-}>();
-
-const emit = defineEmits<{
-  (e: 'select-level', level: Level): void;
-}>();
-
-const selectLevel = (level: Level) => {
-  emit('select-level', level);
-};
+export default defineComponent({
+  components: { LevelCard },
+  setup() {
+    const lessonsStore = useLessonsStore();
+    return { lessonsStore };
+  },
+  data() {
+    return {
+      levels: [] as any[],
+    };
+  },
+  async mounted() {
+    this.levels = await this.lessonsStore.getLevels();
+  },
+  methods: {
+    async onStartLearning(level: any) {
+      const redirectToTest = await this.lessonsStore.redirectToLevelTest(level.id);
+      if (redirectToTest) {
+          this.$router.push(redirectToTest);
+      } else {
+          this.$router.push(`/levels/${level.id}/lessons`);
+      }
+    },
+  },
+});
 </script>
-
-<style scoped>
-.level-list {
-  max-width: 800px;
-  margin: 0 auto;
-}
-</style>
