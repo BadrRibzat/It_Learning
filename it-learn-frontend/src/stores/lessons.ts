@@ -7,13 +7,7 @@ import type {
   Quiz,
   TestSubmission,
   LevelProgress,
-  FlashcardAnswer,
-  FlashcardSubmissionResponse,
-  QuizSubmissionResponse,
-  TestSubmissionResponse,
 } from '@/types/lessons';
-import { useProfileStore } from '@/stores/profile';
-import { storeToRefs } from 'pinia';
 
 export const useLessonsStore = defineStore('lessons', {
   state: () => ({
@@ -31,35 +25,17 @@ export const useLessonsStore = defineStore('lessons', {
     loading: false,
     error: null as string | null,
   }),
+
   getters: {
-    // Getter to check if all flashcards in a lesson are completed
-    isFlashcardsCompleted(state): (lessonId: string) => boolean {
-      return (lessonId: string) => {
-        const lesson = state.lessons.find(l => l.id === lessonId);
-        return !!lesson && lesson.progress.completed_flashcards >= 10;
-      };
-    },
-    // Getter to check if a quiz is unlocked for a lesson
-    isQuizUnlocked(state): (lessonId: string) => boolean {
-      return (lessonId: string) => {
-        const lesson = state.lessons.find(l => l.id === lessonId);
-        return !!lesson && lesson.progress.quiz_unlocked;
-      };
-    },
-    // Getter to check if a level test is available
-    isLevelTestAvailable(state): (levelId: string) => boolean {
-      return (levelId: string) => {
-        const progress = state.levelProgressMap[levelId];
-        return !!progress && progress.completed_lessons === progress.total_lessons;
-      };
-    },
+    // Add getters here if needed
   },
+
   actions: {
     async getLevels() {
       this.loading = true;
       try {
         const levelsResponse = await LessonService.getLevels();
-        this.levels = Array.isArray(levelsResponse.levels) ? levelsResponse.levels : [];
+        this.levels = Array.isArray(levelsResponse.levels) ? levelsResponse.levels : []; // Ensure levels is an array
       } catch (error: unknown) {
         if (error instanceof Error) {
           this.error = error.message;
@@ -91,7 +67,7 @@ export const useLessonsStore = defineStore('lessons', {
       this.loading = true;
       try {
         const lessons = await LessonService.getLessons(levelId);
-        this.lessons = Array.isArray(lessons) ? lessons : [];
+        this.lessons = Array.isArray(lessons) ? lessons : []; // Ensure lessons is an array
       } catch (error: unknown) {
         if (error instanceof Error) {
           this.error = error.message;
@@ -107,8 +83,7 @@ export const useLessonsStore = defineStore('lessons', {
       this.loading = true;
       try {
         const flashcards = await LessonService.getFlashcards(lessonId);
-        this.flashcards = Array.isArray(flashcards) ? flashcards : [];
-        this.lessonFlashcards.set(lessonId, this.flashcards);
+        this.flashcards = Array.isArray(flashcards) ? flashcards : []; // Ensure flashcards is an array
       } catch (error: unknown) {
         if (error instanceof Error) {
           this.error = error.message;
@@ -123,31 +98,27 @@ export const useLessonsStore = defineStore('lessons', {
     async updateLocalProgress(levelId: string, progress: LevelProgress) {
       this.levelProgressMap = {
         ...this.levelProgressMap,
-        [levelId]: progress,
+        [levelId]: progress
       };
     },
 
-    async submitFlashcardAnswer(lessonId: string, answer: FlashcardAnswer): Promise<FlashcardSubmissionResponse> {
+    // Modify submitFlashcardAnswer:
+    async submitFlashcardAnswer(lessonId: string, answer: FlashcardAnswer) {
       this.loading = true;
       try {
         const response = await LessonService.submitFlashcardAnswer(lessonId, answer);
-
+    
         // Update local progress
         const lesson = this.lessons.find(l => l.id === lessonId);
         if (lesson) {
           lesson.progress = response.progress;
-          this.updateLocalProgress(lesson.level_id, response.level_progress || {});
+          this.updateLocalProgress(lesson.level_id, response.level_progress);
         }
-
-        // Automatically redirect to quiz if all flashcards are completed
-        if (response.progress.completed_flashcards >= 10 && response.progress.quiz_unlocked) {
-          this.currentQuiz = await this.getQuiz(lesson.level_id, lessonId);
-        }
-
+    
         // Update profile points
         const profileStore = useProfileStore();
         await profileStore.updatePoints(response.points_earned);
-
+    
         return response;
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -155,45 +126,28 @@ export const useLessonsStore = defineStore('lessons', {
         } else {
           this.error = 'Unknown error';
         }
-        throw error;
       } finally {
         this.loading = false;
       }
     },
 
-    async getQuiz(levelId: string, lessonId: string): Promise<Quiz> {
+    async getQuiz(levelId: string, lessonId: string) {
       this.loading = true;
       try {
-        const quiz = await LessonService.getQuiz(lessonId);
+        const quiz = await LessonService.getQuiz(levelId, lessonId);
         this.currentQuiz = quiz;
-        return quiz;
       } catch (error: unknown) {
-        if (error instanceof Error) {
-          this.error = error.message;
-        } else {
-          this.error = 'Unknown error';
-        }
-        throw error;
+    // Error handling
       } finally {
         this.loading = false;
       }
+
     },
 
-    async submitQuiz(submission: QuizSubmission): Promise<QuizSubmissionResponse> {
+    async submitQuiz(submission: QuizSubmission) {
       this.loading = true;
       try {
         const response = await LessonService.submitQuiz(submission.lessonId, submission);
-
-        // Update lesson completion status
-        const lesson = this.lessons.find(l => l.id === submission.lessonId);
-        if (lesson) {
-          lesson.completed = response.passed;
-        }
-
-        // Update profile points
-        const profileStore = useProfileStore();
-        await profileStore.updatePoints(response.points_earned);
-
         return response;
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -201,13 +155,12 @@ export const useLessonsStore = defineStore('lessons', {
         } else {
           this.error = 'Unknown error';
         }
-        throw error;
       } finally {
         this.loading = false;
       }
     },
 
-    async getLevelTest(levelId: string): Promise<void> {
+    async getLevelTest(levelId: string) {
       this.loading = true;
       try {
         const test = await LessonService.getLevelTest(levelId);
@@ -218,26 +171,15 @@ export const useLessonsStore = defineStore('lessons', {
         } else {
           this.error = 'Unknown error';
         }
-        throw error;
       } finally {
         this.loading = false;
       }
     },
 
-    async submitLevelTest(levelId: string, submission: TestSubmission): Promise<TestSubmissionResponse> {
+    async submitLevelTest(levelId: string, submission: TestSubmission) {
       this.loading = true;
       try {
         const response = await LessonService.submitLevelTest(levelId, submission);
-
-        // Update level progress and unlock next level if passed
-        if (response.next_level_unlocked) {
-          const { currentLevel } = storeToRefs(this);
-          const nextLevel = this.levels.find(l => l.order === currentLevel.value?.order + 1);
-          if (nextLevel) {
-            this.currentLevel = nextLevel;
-          }
-        }
-
         return response;
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -245,26 +187,22 @@ export const useLessonsStore = defineStore('lessons', {
         } else {
           this.error = 'Unknown error';
         }
-        throw error;
       } finally {
         this.loading = false;
       }
     },
 
-    async getLevelProgress(levelId: string): Promise<LevelProgress> {
+    async getLevelProgress(levelId: string) {
       this.loading = true;
       try {
         const progress = await LessonService.getLevelProgress(levelId);
         this.levelProgress = progress;
-        this.updateLocalProgress(levelId, progress);
-        return progress;
       } catch (error: unknown) {
         if (error instanceof Error) {
           this.error = error.message;
         } else {
           this.error = 'Unknown error';
         }
-        throw error;
       } finally {
         this.loading = false;
       }
@@ -272,7 +210,7 @@ export const useLessonsStore = defineStore('lessons', {
 
     groupFlashcardsByLesson(flashcards: Flashcard[]): Map<string, Flashcard[]> {
       return flashcards.reduce((acc, flashcard) => {
-        const lessonId = flashcard.lesson_id;
+        const lessonId = flashcard.id;
         if (!acc.has(lessonId)) {
           acc.set(lessonId, []);
         }
@@ -281,28 +219,28 @@ export const useLessonsStore = defineStore('lessons', {
       }, new Map<string, Flashcard[]>());
     },
 
-    async saveQuizProgress(lessonId: string, progress: any): Promise<void> {
+    async saveQuizProgress(lessonId: string, progress: any) {
+      // TODO: Implement the logic to save quiz progress
       console.log(`Saving quiz progress for lesson ${lessonId}:`, progress);
     },
 
-    async unlockAllLessonsForBeginnerLevel(): Promise<void> {
+    async unlockAllLessonsForBeginnerLevel() {
       const beginnerLevel = this.levels.find(level => level.name === 'beginner');
       if (beginnerLevel) {
         await this.getLessons(beginnerLevel.id);
         this.lessons.forEach(lesson => {
           lesson.completed = true;
-          lesson.progress = { completed_flashcards: 10, total_flashcards: 10, quiz_unlocked: true };
         });
       }
     },
 
-    async redirectToLevelTest(levelId: string): Promise<string | null> {
-    const accessInfo = await LessonService.checkLevelAccess(levelId);
-    if (accessInfo.requiresTest) {
+    async redirectToLevelTest(levelId: string) {
+      await this.getLevelProgress(levelId);
+      const progress = this.levelProgress;
+      if (progress && progress.completed_lessons === progress.total_lessons) {
         return `/levels/${levelId}/test`;
+      }
+      return null;
     }
-    return null;
-}
-    },
   },
 });

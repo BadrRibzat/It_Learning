@@ -1,7 +1,7 @@
-import { useProfileStore } from '@/stores/profile';
-import { useLessonsStore } from '@/stores/lessons';
-import { useNotificationStore } from '@/stores/notification';
-import type { LevelProgress } from '@/types/lessons';
+import { useProfileStore } from '../stores/profile';
+import { useLessonsStore } from '../stores/lessons';
+import { useNotificationStore } from '../stores/notification';
+import type { LevelProgress } from '../types/lessons';
 import { storeToRefs } from 'pinia';
 
 interface FlashcardData {
@@ -34,7 +34,7 @@ type ProgressData = FlashcardData | QuizData | LessonData;
 export class ProgressTracker {
   private static notificationStore = useNotificationStore();
 
-  static async updateProgress(type: string, data: ProgressData): Promise<void> {
+  static async updateProgress(type: string, data: ProgressData) {
     const profileStore = useProfileStore();
     const lessonsStore = useLessonsStore();
     const { currentLevel } = storeToRefs(lessonsStore);
@@ -44,11 +44,11 @@ export class ProgressTracker {
         case 'flashcard':
           if ((data as FlashcardData).correct) {
             await profileStore.fetchStatistics();
-            this.notificationStore.success(
-              `Correct! +${(data as FlashcardData).points_earned} points earned`
-            );
+
+            this.notificationStore.success(`Correct! +${(data as FlashcardData).points_earned} points earned`);
+
             if ((data as FlashcardData).progress.quiz_unlocked) {
-              this.notificationStore.info('Quiz unlocked! Complete all flashcards to proceed.');
+              this.notificationStore.info('Quiz unlocked! Complete all flashcards to proceed');
               await profileStore.fetchAchievements();
             }
           } else {
@@ -59,12 +59,15 @@ export class ProgressTracker {
         case 'quiz':
           if ((data as QuizData).passed) {
             await profileStore.fetchStatistics();
+
             this.notificationStore.success(
               `Quiz completed! Score: ${(data as QuizData).score}% (+${(data as QuizData).points_earned} points)`
             );
+
             if ((data as QuizData).quiz_completed) {
               await profileStore.fetchAchievements();
             }
+            
             if ((data as QuizData).next_lesson_unlocked) {
               this.notificationStore.info('New lesson unlocked!');
             }
@@ -77,18 +80,19 @@ export class ProgressTracker {
 
         case 'lesson':
           await profileStore.fetchStatistics();
+          
           this.notificationStore.success('Lesson completed! +50 bonus points');
           await profileStore.fetchAchievements();
           break;
-
-        default:
-          throw new Error('Invalid progress type');
       }
 
       await lessonsStore.getLevelProgress(currentLevel.value?.id || '');
       await profileStore.fetchProgressCircle();
+
     } catch (error: unknown) {
-      this.notificationStore.error('Failed to update progress. Please try again later.');
+      this.notificationStore.error(
+        'Failed to update progress. Please try again later.'
+      );
       throw error;
     }
   }
@@ -97,7 +101,7 @@ export class ProgressTracker {
     const milestones = {
       lessons: [5, 10, 25, 50, 100],
       quizScore: [70, 80, 90, 100],
-      streak: [3, 7, 14, 30, 365],
+      streak: [3, 7, 14, 30, 365]
     };
 
     return (
@@ -110,13 +114,9 @@ export class ProgressTracker {
   static formatProgressMessage(type: string, data: ProgressData): string {
     switch (type) {
       case 'flashcard':
-        return `Completed ${(data as FlashcardData).progress.completed_flashcards}/${
-          (data as FlashcardData).progress.total_flashcards
-        } flashcards`;
+        return `Completed ${(data as FlashcardData).progress.completed_flashcards}/${(data as FlashcardData).progress.total_flashcards} flashcards`;
       case 'quiz':
-        return `Quiz Score: ${(data as QuizData).score}% (${(data as QuizData).correct_answers}/${
-          (data as QuizData).total_questions
-        } correct)`;
+        return `Quiz Score: ${(data as QuizData).score}% (${(data as QuizData).correct_answers}/${(data as QuizData).total_questions} correct)`;
       case 'lesson':
         return `Lesson completed! Total lessons completed: ${(data as LessonData).completed_lessons}`;
       default:
@@ -126,8 +126,7 @@ export class ProgressTracker {
 
   static handleProgressError(error: unknown): void {
     const notificationStore = useNotificationStore();
-    const errorMessage =
-      error instanceof Error ? error.message : 'An unexpected error occurred';
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     notificationStore.error(errorMessage);
   }
 }

@@ -5,7 +5,7 @@ from flask_jwt_extended.exceptions import RevokedTokenError, JWTExtendedExceptio
 from flask_cors import CORS
 from flask_restx import Api
 from config import config
-from services.progress_service import ProgressService  # Import ProgressService
+from services.ml_service import MLContentService
 from utils.exceptions import AppError
 from bson import ObjectId
 from utils.db import init_db, get_db, mongo_healthcheck
@@ -14,11 +14,11 @@ from werkzeug.exceptions import HTTPException
 import warnings
 import logging
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
+
 logger = logging.getLogger(__name__)
 
 class CustomJSONEncoder(JSONEncoder):
@@ -34,7 +34,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(config)
     app.json_encoder = CustomJSONEncoder
-
+    
     # Set JWT configurations
     app.config.update(
         JWT_ERROR_MESSAGE_KEY='error',
@@ -60,10 +60,12 @@ def create_app():
         # Skip auth check for options requests and non-api endpoints
         if request.method == 'OPTIONS':
             return None
+
         # Skip auth for login, register, and healthcheck endpoints
         public_endpoints = ['login', 'register', 'healthcheck', 'swagger', 'docs']
         if request.endpoint and any(ep in request.endpoint for ep in public_endpoints):
             return None
+
         # Check if endpoint requires auth
         view_func = app.view_functions.get(request.endpoint)
         if view_func and hasattr(view_func, 'view_class'):
@@ -72,6 +74,7 @@ def create_app():
                 for method in ['get', 'post', 'put', 'delete']
                 if hasattr(view_func.view_class, method)
             )
+            
             if auth_required and 'Authorization' not in request.headers:
                 return jsonify({
                     'error': 'Authorization required',
@@ -157,10 +160,10 @@ def create_app():
 
     # Configure CORS
     CORS(app, 
-         resources={r"/*": {"origins": config.CORS_ORIGINS.split(","), 
-                             "methods": ["GET", "POST", "PUT", "DELETE"],
-                             "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
-                             "supports_credentials": True}}
+        resources={r"/*": {"origins": config.CORS_ORIGINS.split(","), 
+                          "methods": ["GET", "POST", "PUT", "DELETE"],
+                          "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+                          "supports_credentials": True}}
     )
 
     # Import namespaces here to avoid circular imports
@@ -180,7 +183,7 @@ def create_app():
                 'type': 'apiKey',
                 'in': 'header',
                 'name': 'Authorization',
-                'description': "Type in the *'Value'* input box below: **'Bearer <JWT>'**, where JWT is the token"
+                'description': "Type in the *'Value'* input box below: **'Bearer &lt;JWT&gt;'**, where JWT is the token"
             },
         }
     )
@@ -190,7 +193,7 @@ def create_app():
     api.add_namespace(profile_ns)
     api.add_namespace(chatbot_ns)
     api.add_namespace(lessons_ns)
-
+    
     # Add healthcheck endpoint
     @app.route('/healthcheck')
     def health_check():
@@ -201,13 +204,16 @@ def create_app():
                 'application': 'running',
                 'status': 'healthy'
             }
+        
             is_healthy = all(
                 status for key, status in services_status.items() 
                 if key != 'status'
             )
             services_status['status'] = 'healthy' if is_healthy else 'unhealthy'
+        
             status_code = 200 if is_healthy else 503
             logger.info(f"Health check: {services_status}")
+        
             return jsonify(services_status), status_code
         except Exception as e:
             logger.error(f"Health check failed: {str(e)}")
@@ -216,12 +222,12 @@ def create_app():
                 'error': str(e)
             }), 503
 
-    # Initialize ProgressService
+    # Initialize ML service
     try:
-        ProgressService()  # Ensure ProgressService initializes without issues
-        logger.info("Progress service initialized successfully")
+        MLContentService()
+        logger.info("ML service initialized successfully")
     except Exception as e:
-        logger.error(f"Failed to initialize Progress service: {e}")
+        logger.error(f"Failed to initialize ML service: {e}")
         raise
 
     return app
@@ -229,3 +235,4 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
     app.run(host='0.0.0.0', port=5000, debug=config.DEBUG)
+

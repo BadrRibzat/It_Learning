@@ -1,13 +1,9 @@
-// Base Types
 export interface Level {
   id: string;
   name: string;
   order: number;
-  description?: string;
-  icon?: string;
   is_unlocked: boolean;
   is_current: boolean;
-  test_available: boolean; // Indicates if a level test is available
 }
 
 export interface Flashcard {
@@ -44,12 +40,11 @@ export interface Quiz {
 
 export interface Question {
   id: string;
-  type: 'fill_blank' | 'multiple_choice';
+  type: 'fill_blank';
   question: string;
   answer: string;
-  options?: string[]; // For multiple-choice questions
-  command?: string;
-  flashcard_id?: string;
+  command: string;
+  flashcard_id: string;
   order: number;
 }
 
@@ -61,6 +56,7 @@ export interface QuizSubmissionResponse {
   next_lesson_unlocked: boolean;
   points_earned: number;
   quiz_completed: boolean;
+  quiz_score: number;
   questions_with_answers: Array<{
     question_id: string;
     question: string;
@@ -103,7 +99,6 @@ export interface FlashcardSubmissionResponse {
     quiz_unlocked: boolean;
   };
   points_earned: number;
-  redirect_to_quiz?: boolean; // Indicates redirection to quiz after completing flashcards
 }
 
 export interface LevelTest {
@@ -172,3 +167,4 @@ export interface StoreState {
 export type LessonStatus = 'not_started' | 'in_progress' | 'completed';
 export type QuizStatus = 'locked' | 'available' | 'completed';
 export type LevelStatus = 'locked' | 'in_progress' | 'completed';
+
