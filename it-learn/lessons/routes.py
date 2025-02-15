@@ -71,13 +71,16 @@ flashcard_model = lessons_ns.model('Flashcard', {
 })
 
 lesson_model = lessons_ns.model('Lesson', {
-    'id': fields.String(required=True, description='Unique lesson identifier'),
-    'title': fields.String(required=True, description='Lesson title', example='Basic File Operations'),
-    'description': fields.String(description='Lesson overview and objectives'),
-    'order': fields.Integer(required=True, description='Lesson sequence number', example=1),
-    'completed': fields.Boolean(description='Lesson completion status'),
-    'progress': fields.Raw(description='Detailed progress statistics', 
-                         example={'completed_flashcards': 8, 'total_flashcards': 10})
+    'id': fields.String(required=True),
+    'title': fields.String(required=True),
+    'description': fields.String(),
+    'order': fields.Integer(required=True),
+    'completed': fields.Boolean(),
+    'progress': fields.Raw(example={
+        'completed': True,
+        'points': 10,
+        'total_points': 10
+    })
 })
 
 question_model = lessons_ns.model('Question', {
@@ -87,7 +90,6 @@ question_model = lessons_ns.model('Question', {
     'answer': fields.String(description='Correct answer', example='ls'),
     'order': fields.Integer(description='Question sequence number')
 })
-
 quiz_model = lessons_ns.model('Quiz', {
     'id': fields.String(description='Quiz identifier'),
     'lesson_id': fields.String(description='Associated lesson ID'),
@@ -129,54 +131,29 @@ test_submission_model = lessons_ns.model('TestSubmission', {
 })
 
 level_progress_response = lessons_ns.model('LevelProgressResponse', {
-    'current_level': fields.String(description='Current level name', example='Beginner'),
-    'completed_lessons': fields.Integer(description='Completed lesson count', example=3),
-    'total_lessons': fields.Integer(description='Total lessons in level', example=5),
-    'lessons_progress': fields.List(fields.Raw(description='Individual lesson progress')),
-    'quiz_scores': fields.List(fields.Integer(description='Previous quiz scores')),
-    'level_test_available': fields.Boolean(description='Level test availability'),
-    'next_level_unlocked': fields.Boolean(description='Next level status'),
-    'total_points': fields.Integer(description='Total points earned in level')
+    'current_level': fields.String(),
+    'completed_lessons': fields.Integer(),
+    'total_lessons': fields.Integer(),
+    'lessons_progress': fields.List(fields.Raw()),
+    'level_test_available': fields.Boolean(),
+    'test_status': fields.Raw(example={
+        'test_submitted': True,
+        'test_passed': True,
+        'highest_score': 0.85
+    }),
+    'total_points': fields.Integer()
 })
 
 @lessons_ns.route('/levels')
 class LevelList(Resource):
     @jwt_required()
     @lessons_ns.marshal_with(levels_response_model)
-    @lessons_ns.doc(
-        description='Get all available levels as an array with current progress',
-        security='Bearer Auth',
-        responses={
-            200: 'List of levels successfully retrieved',
-            401: 'Authentication required',
-            500: 'Server error'
-        }
-    )
     def get(self):
         """Get all available levels as an array with progression info"""
         try:
             user_id = get_jwt_identity()
-            level_service = LevelService()
-            
-            # Get level progression data
             progression_data = level_service.get_level_progression(user_id)
-            
-            # Ensure levels is always an array
-            if not progression_data.get('levels'):
-                progression_data['levels'] = []
-                
-            # Structure the response according to the model
-            response = {
-                'current_level': progression_data['current_level'],
-                'next_level': progression_data.get('next_level'),
-                'required_score': progression_data.get('required_score', 0.8),
-                'unlocked_levels': progression_data.get('unlocked_levels', ['beginner']),
-                'progress': progression_data.get('progress', 0),
-                'levels': progression_data['levels']
-            }
-            
-            return response
-            
+            return progression_data
         except Exception as e:
             logger.error(f"Error fetching levels: {str(e)}")
             raise AppError("Failed to fetch levels", 500)
@@ -298,21 +275,6 @@ class LevelAccess(Resource):
 class LessonsList(Resource):
     @jwt_required()
     @lessons_ns.marshal_list_with(lesson_model)
-    @lessons_ns.doc(
-        description='''Get all lessons for a specific level with progress tracking.
-        
-        Returns a list of lessons with their completion status and progress statistics.
-        Lessons are ordered by their sequence number.
-        ''',
-        params={'level_id': 'Level identifier'},
-        security='Bearer Auth',
-        responses={
-            200: 'List of lessons successfully retrieved',
-            401: 'Authentication required',
-            404: 'Level not found',
-            500: 'Server error'
-        }
-    )
     def get(self, level_id):
         """Get all lessons for a level with progress tracking"""
         try:
@@ -323,10 +285,7 @@ class LessonsList(Resource):
             if not level:
                 raise AppError("Level not found", 404)
 
-            lessons = list(db.lessons.find(
-                {'level': ObjectId(level_id)}
-            ).sort('order', 1))
-
+            lessons = list(db.lessons.find({'level': ObjectId(level_id)}).sort('order', 1))
             return [self._format_lesson(lesson, user_id) for lesson in lessons]
         except Exception as e:
             logger.error(f"Error fetching lessons: {str(e)}")
@@ -339,32 +298,18 @@ class LessonsList(Resource):
             'title': lesson['title'],
             'description': lesson.get('description', ''),
             'order': lesson['order'],
-            'completed': progress['completed_flashcards'] >= 10,
-            'progress': progress
+            'completed': progress['completed'],
+            'progress': {
+                'completed': progress['completed'],
+                'points': progress['points'],
+                'total_points': progress['total_points']
+            }
         }
 
 @lessons_ns.route('/lessons/<lesson_id>/flashcards')
 class LessonFlashcards(Resource):
     @jwt_required()
     @lessons_ns.marshal_list_with(flashcard_model)
-    @lessons_ns.doc(
-        description='''Get all flashcards for a specific lesson.
-        
-        Returns an ordered list of flashcards containing:
-        - Command information
-        - Examples
-        - Practice questions
-        - Proper formatting
-        ''',
-        params={'lesson_id': 'Lesson identifier'},
-        security='Bearer Auth',
-        responses={
-            200: 'List of flashcards successfully retrieved',
-            401: 'Authentication required',
-            404: 'Lesson not found',
-            500: 'Server error'
-        }
-    )
     def get(self, lesson_id):
         """Retrieve flashcards for interactive learning"""
         try:
@@ -374,10 +319,7 @@ class LessonFlashcards(Resource):
             if not lesson:
                 raise AppError("Lesson not found", 404)
 
-            flashcards = list(db.flashcards.find(
-                {'lesson': ObjectId(lesson_id)}
-            ).sort('order', 1))
-            
+            flashcards = list(db.flashcards.find({'lesson': ObjectId(lesson_id)}).sort('order', 1))
             return [self._format_flashcard(f) for f in flashcards]
         except Exception as e:
             logger.error(f"Error fetching flashcards: {str(e)}")
@@ -458,53 +400,20 @@ class SubmitFlashcardAnswer(Resource):
             logger.error(f"Error processing submission: {str(e)}")
             raise AppError("Failed to process submission", 500)
 
+
 @lessons_ns.route('/lessons/<lesson_id>/quiz')
 class LessonQuiz(Resource):
     @jwt_required()
     @lessons_ns.marshal_with(quiz_model)
-    @lessons_ns.doc(
-        description='''Get quiz questions for a lesson.
-
-        Returns quiz details if:
-        - User has completed sufficient flashcards
-        - Quiz is unlocked based on progress
-        - User has not already passed the quiz
-
-        Returns questions in randomized order.
-        ''',
-        params={'lesson_id': 'Lesson identifier'},
-        security='Bearer Auth',
-        responses={
-            200: 'Quiz details successfully retrieved',
-            401: 'Authentication required',
-            403: 'Quiz not unlocked',
-            404: 'Quiz not found',
-            500: 'Server error'
-        }
-    )
     def get(self, lesson_id):
-        """Retrieve quiz questions if unlocked"""
+        """Retrieve quiz questions"""
         try:
             user_id = get_jwt_identity()
-
-            # Check if quiz is unlocked
-            progress = progress_service.get_lesson_progress(user_id, lesson_id)
-            if not progress.get('quiz_unlocked', False):
-                raise AppError("Complete more flashcards to unlock quiz", 403)
-
-            # Get quiz and its questions
-            if not ObjectId.is_valid(lesson_id):
-                 raise AppError("Invalid lesson ID format", 400)
             quiz = db.quizzes.find_one({'lesson': ObjectId(lesson_id)})
             if not quiz:
-                 raise AppError("Quiz not found", 404)
+                raise AppError("Quiz not found", 404)
 
-            # Get questions
-            questions = list(db.questions.find(
-                {'quiz': quiz['_id']}
-            ).sort('order', 1))
-
-            # Format response
+            questions = list(db.questions.find({'quiz': quiz['_id']}).sort('order', 1))
             return {
                 'id': str(quiz['_id']),
                 'lesson_id': lesson_id,
@@ -517,111 +426,9 @@ class LessonQuiz(Resource):
                 'total_questions': len(questions),
                 'passing_score': quiz.get('passing_score', 0.8)
             }
-
-        except AppError as e:
-            raise e
         except Exception as e:
             logger.error(f"Error fetching quiz: {str(e)}")
             raise AppError("Failed to fetch quiz", 500)
-
-    @jwt_required()
-    @lessons_ns.expect(quiz_submission_model)
-    @lessons_ns.marshal_with(quiz_submission_response)
-    @lessons_ns.doc(
-        description='''Submit quiz answers for grading.
-
-        Processes quiz submission and:
-        - Calculates score
-        - Updates progress
-        - Awards points
-        - Unlocks next lesson if passed
-
-        Required score is 80% to pass.
-        ''',
-        params={'lesson_id': 'Lesson identifier'},
-        security='Bearer Auth',
-        responses={
-            200: 'Quiz submission processed successfully',
-            400: 'Invalid submission format',
-            401: 'Authentication required',
-            404: 'Quiz not found',
-            500: 'Server error'
-        }
-    )
-
-    def post(self, lesson_id):
-        """Submit and grade quiz answers"""
-        try:
-            user_id = get_jwt_identity()
-            data = lessons_ns.payload
-            if not ObjectId.is_valid(lesson_id):
-                raise AppError("Invalid lesson ID format", 400)
-
-            quiz = db.quizzes.find_one({'lesson': ObjectId(lesson_id)})
-            if not quiz:
-                raise AppError("Quiz not found", 404)
-
-            questions = list(db.questions.find(
-                {'quiz': quiz['_id']}
-            ).sort('order', 1))
-
-            if len(data['answers']) != len(questions):
-                raise AppError("Invalid number of answers", 400)
-
-            correct_answers = sum(
-                1 for q, a in zip(questions, data['answers'])
-                if a.strip().lower() == q['answer'].lower()
-            )
-
-            score = correct_answers / len(questions)
-            passed = score >= 0.8
-            points_earned = correct_answers * 20
-
-            # Record submission
-            submission = {
-                'user': ObjectId(user_id),
-                'quiz': quiz['_id'],
-                'answers': data['answers'],
-                'score': score,
-                'correct_answers': correct_answers,
-                'passed': passed,
-                'points_earned': points_earned,
-                'submitted_at': datetime.now(UTC)
-            }
-            db.quiz_submissions.insert_one(submission)
-
-            # Handle next lesson unlock if passed
-            next_lesson_unlocked = False
-            if passed:
-                current_lesson = db.lessons.find_one({'_id': ObjectId(lesson_id)})
-                next_lesson = db.lessons.find_one({
-                    'level': current_lesson['level'],
-                    'order': current_lesson['order'] + 1
-                })
-                if next_lesson:
-                    db.users.update_one(
-                        {'_id': ObjectId(user_id)},
-                        {
-                            '$addToSet': {'unlocked_lessons': next_lesson['_id']},
-                            '$inc': {'total_points': points_earned}
-                        }
-                    )
-                    next_lesson_unlocked = True
-
-            return {
-                'score': score * 100,
-                'correct_answers': correct_answers,
-                'total_questions': len(questions),
-                'passed': passed,
-                'next_lesson_unlocked': next_lesson_unlocked,
-                'points_earned': points_earned
-            }
-
-        except AppError as e:
-            raise e
-        except Exception as e:
-            logger.error(f"Quiz submission error: {str(e)}")
-            raise AppError("Failed to process quiz submission", 500)
 
 @lessons_ns.route('/levels/<level_id>/test')
 class LevelTest(Resource):
@@ -809,28 +616,28 @@ class LevelTest(Resource):
         """Verify user has completed all lessons in the level"""
         if not ObjectId.is_valid(level_id):
              raise AppError("Invalid level ID format", 400)
-        lessons = list(db.lessons.find({'level': ObjectId(level_id)}))
-
-        for lesson in lessons:
-            progress = progress_service.get_lesson_progress(user_id, str(lesson['_id']))
-            if not progress['completed_flashcards'] >= 10:
+         
+        level = db.levels.find_one({'_id': ObjectId(level_id)})
+        if not level:
+            raise AppError("Level not found", 404)
+    
+        level_name = level.get('name', '').lower()
+        if level_name == 'beginner':
+            return
+        
+        previous_level = db.levels.find_one({'order': level['order'] - 1})
+        if previous_level:
+            previous_test_passed = db.level_test_submissions.find_one({
+                'user': ObjectId(user_id),
+                'level': previous_level['_id'],
+                'passed': True,
+                'score': {'$gte': 0.8}
+            })
+            if not previous_test_passed:
                 raise AppError(
-                    "Must complete all lessons before taking level test",
+                    f"Must pass {previous_level['name']} level test first",
                     403
                 )
-
-            quiz = db.quizzes.find_one({'lesson': lesson['_id']})
-            if quiz:
-                submission = db.quiz_submissions.find_one({
-                    'user': ObjectId(user_id),
-                    'quiz': quiz['_id'],
-                    'passed': True
-                })
-                if not submission:
-                    raise AppError(
-                        "Must pass all lesson quizzes before taking level test",
-                        403
-                    )
 
     def _check_attempt_limits(self, user_id: str, test_id: ObjectId):
         """Check test attempt limits and cooldown period"""
@@ -886,31 +693,12 @@ class LevelTest(Resource):
 class LevelProgress(Resource):
     @jwt_required()
     @lessons_ns.marshal_with(level_progress_response)
-    @lessons_ns.doc(
-        description='''Get comprehensive level progress data.
-        
-        Returns:
-        - Lesson completion status
-        - Quiz scores
-        - Points earned
-        - Level test availability
-        - Overall progress statistics
-        ''',
-        params={'level_id': 'Level identifier'},
-        security='Bearer Auth',
-        responses={
-            200: 'Progress data retrieved successfully',
-            401: 'Authentication required',
-            404: 'Level not found',
-            500: 'Server error'
-        }
-    )
     def get(self, level_id):
         """Get comprehensive progress data for a level"""
         try:
             user_id = get_jwt_identity()
             if not ObjectId.is_valid(level_id):
-               raise AppError("Invalid level ID format", 400)
+                raise AppError("Invalid level ID format", 400)
             
             level = db.levels.find_one({'_id': ObjectId(level_id)})
             if not level:
@@ -923,62 +711,19 @@ class LevelProgress(Resource):
             for lesson in lessons:
                 progress = progress_service.get_lesson_progress(user_id, str(lesson['_id']))
                 lessons_progress.append(progress)
-                flashcard_points = progress.get('correct_answers', 0) * 10
-                total_points += flashcard_points
+                total_points += progress.get('points', 0)
 
-            # Get quiz scores and points
-            quiz_scores = []
-            for lesson in lessons:
-                quiz = db.quizzes.find_one({'lesson': lesson['_id']})
-                if quiz:
-                    submission = db.quiz_submissions.find_one(
-                        {
-                            'user': ObjectId(user_id), 
-                            'quiz': quiz['_id']
-                        },
-                        sort=[('submitted_at', -1)]
-                    )
-                    if submission:
-                        quiz_scores.append(int(submission['score'] * 100))
-                        total_points += submission.get('points_earned', 0)
-
-            # Calculate completion status
-            completed_lessons = sum(1 for p in lessons_progress if p['completed_flashcards'] >= 10)
-            all_quizzes_passed = all(
-                db.quiz_submissions.find_one({
-                    'user': ObjectId(user_id),
-                    'quiz': db.quizzes.find_one({'lesson': lesson['_id']})['_id'],
-                    'passed': True
-                }) 
-                for lesson in lessons 
-                if db.quizzes.find_one({'lesson': lesson['_id']})
-            )
-
-            # Check level test availability
-            level_test_available = (completed_lessons == len(lessons) and 
-                                  all_quizzes_passed)
-
-            # Check if next level is unlocked
-            user = db.users.find_one({'_id': ObjectId(user_id)})
-            next_level = db.levels.find_one({'order': level['order'] + 1})
-            next_level_unlocked = (next_level and 
-                                 str(next_level['_id']) in 
-                                 [str(level_id) for level_id in user.get('unlocked_levels', [])])
-
+            level_test = progress_service.get_level_progress(user_id, level_id)
+            
             return {
                 'current_level': level['name'],
-                'completed_lessons': completed_lessons,
+                'completed_lessons': sum(1 for p in lessons_progress if p['completed']),
                 'total_lessons': len(lessons),
                 'lessons_progress': lessons_progress,
-                'quiz_scores': quiz_scores,
-                'level_test_available': level_test_available,
-                'next_level_unlocked': next_level_unlocked,
+                'level_test_available': True,
+                'test_status': level_test,
                 'total_points': total_points
             }
-
-        except AppError as e:
-            raise e
         except Exception as e:
             logger.error(f"Level progress error: {str(e)}")
             raise AppError("Failed to fetch level progress", 500)
-

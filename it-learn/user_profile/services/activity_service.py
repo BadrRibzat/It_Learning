@@ -54,7 +54,7 @@ class ActivityService:
                 'timestamp': activity['timestamp'],
                 'points_earned': activity.get('points_earned', 0)
             }
-            
+        
             if activity['type'] == 'lesson_complete':
                 lesson = self.db.lessons.find_one({'_id': activity['lesson_id']})
                 if lesson:
@@ -62,23 +62,22 @@ class ActivityService:
                         'description': f"Completed lesson: {lesson['title']}",
                         'details': {
                             'lesson_name': lesson['title'],
-                            'accuracy': activity.get('accuracy', 0),
-                            'time_spent': activity.get('time_spent', 0)
+                            'points_earned': 10,
                         }
                     })
-            
-            elif activity['type'] == 'quiz_complete':
-                quiz = self.db.quizzes.find_one({'_id': activity['quiz_id']})
-                if quiz:
-                    lesson = self.db.lessons.find_one({'_id': quiz['lesson']})
+        
+            elif activity['type'] == 'level_test_complete':
+                level_test = self.db.level_tests.find_one({'_id': activity['level_test_id']})
+                if level_test:
                     base_activity.update({
-                        'description': f"Completed quiz for: {lesson['title']}",
+                        'description': f"Completed level test",
                         'details': {
                             'score': activity.get('score', 0),
-                            'passed': activity.get('passed', False)
+                            'passed': activity.get('passed', False),
+                            'points_earned': activity.get('points_earned', 0)
                         }
                     })
-            
+        
             return base_activity
         except Exception as e:
             logger.error(f"Error enriching activity data: {str(e)}")
@@ -88,10 +87,8 @@ class ActivityService:
     def _calculate_activity_points(activity_type):
         """Calculate points for different activity types"""
         points_table = {
-            'lesson_complete': 50,
-            'quiz_complete': 100,
-            'flashcard_correct': 10,
-            'level_test_pass': 200,
+            'lesson_complete': 10,
+            'level_test_pass': 50,
             'daily_streak': 20,
             'profile_update': 5
         }

@@ -17,22 +17,23 @@ class ProgressService:
         elif isinstance(obj, ObjectId):
             return str(obj)
         return obj
-    
-    def track_flashcard_progress(self, user_id: str, lesson_id: str, flashcard_id: str, is_correct: bool):
-        """Update user progress for flashcards"""
+
+    def track_lesson_progress(self, user_id: str, lesson_id: str, is_completed: bool):
+        """Update user progress for lessons"""
+        # Track lesson completion with 10 points per lesson
         self.db.lessons_progress.update_one(
             {'user': ObjectId(user_id), 'lesson': ObjectId(lesson_id)},
             {
-                '$set': {'last_flashcard': ObjectId(flashcard_id)},
-                '$inc': {'correct_answers': 1} if is_correct else {'incorrect_answers': 1}
+                '$set': {
+                    'last_lesson': ObjectId(lesson_id),
+                    'completed': is_completed
+                },
+                '$inc': {'points': 10 if is_completed else 0}
             },
             upsert=True
         )
-        
-        if self._should_unlock_quiz(user_id, lesson_id):
-            self._create_quiz_entry(user_id, lesson_id)
 
-    @cache(ttl=1800)
+    @cache(ttl=1800)  
     def get_lesson_progress(self, user_id: str, lesson_id: str) -> Dict:
         """Get detailed progress for a lesson"""
         progress = self.db.lessons_progress.find_one({
@@ -40,44 +41,24 @@ class ProgressService:
             'lesson': ObjectId(lesson_id)
         })
         
-        if not progress:
-            return {
-                'completed_flashcards': 0,
-                'total_flashcards': 10,
-                'quiz_unlocked': False
-            }
-            
-        # Find the quiz for this lesson
-        quiz = self.db.quizzes.find_one({'lesson': ObjectId(lesson_id)})
-        if not quiz:
-            return {
-                'completed_flashcards': progress.get('correct_answers', 0),
-                'total_flashcards': 10,
-                'quiz_unlocked': False
-            }
-
-        # Check if user has access to the quiz
-        quiz_entry = self.db.users.find_one({
-            '_id': ObjectId(user_id),
-            'available_quizzes': {'$in': [quiz['_id']]}
-        })
-
         return {
-            'completed_flashcards': progress.get('correct_answers', 0),
-            'total_flashcards': 10,
-            'quiz_unlocked': bool(quiz_entry)
+            'completed': progress.get('completed', False),
+            'points': progress.get('points', 0),
+            'total_points': 10  # Each lesson is worth 10 points when completed
         }
 
-    def _create_quiz_entry(self, user_id: str, lesson_id: str):
-        quiz = self.db.quizzes.find_one({'lesson': ObjectId(lesson_id)})
-        if quiz:  # Only update if quiz exists
-            self.db.users.update_one(
-                {'_id': ObjectId(user_id)},
-                {'$addToSet': {'available_quizzes': ObjectId(quiz['_id'])}},
-                upsert=True
-            )
+    def get_level_progress(self, user_id: str, level_id: str) -> Dict:
+        """Get user's progress for a specific level"""
+        level_tests = list(self.db.level_test_submissions.find({
+            'user': ObjectId(user_id),
+            'level': ObjectId(level_id)
+        }).sort('score', -1))  # Get highest score
 
-    def _should_unlock_quiz(self, user_id: str, lesson_id: str) -> bool:
-        progress = self.get_lesson_progress(user_id, lesson_id)
-        return progress['completed_flashcards'] >= 1
-
+        # Check if user has passed the level test (80% threshold)
+        test_passed = any(test['score'] >= 0.8 for test in level_tests)
+        
+        return {
+            'test_submitted': bool(level_tests),
+            'test_passed': test_passed,
+            'highest_score': max((test['score'] for test in level_tests), default=0)
+        }

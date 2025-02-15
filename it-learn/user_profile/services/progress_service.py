@@ -15,10 +15,29 @@ class ProgressService:
             if not user:
                 return None
 
-            level_progress = user.get('level_progress', 0)
-            points_progress = self._calculate_points_progress(user.get('total_points', 0))
+            # Get lessons progress
+            lessons_progress = list(self.db.lessons_progress.find({
+                'user': ObjectId(user_id)
+            }))
+
+            # Calculate completed lessons
+            total_lessons = len(lessons_progress)
+            completed_lessons = sum(1 for p in lessons_progress if p.get('completed', False))
+            level_progress = (completed_lessons / total_lessons * 100) if total_lessons > 0 else 0
+
+            # Get level tests progress
+            level_tests = list(self.db.level_test_submissions.find({
+                'user': ObjectId(user_id),
+                'passed': True
+            }))
+
+            # Calculate points progress
+            lesson_points = sum(p.get('points', 0) for p in lessons_progress)
+            test_points = sum(test.get('points_earned', 0) for test in level_tests)
+            total_points = lesson_points + test_points
+            points_progress = self._calculate_points_progress(total_points)
+
             streak_info = self._get_streak_info(user_id)
-            
             overall_progress = self._calculate_overall_progress(
                 level_progress,
                 points_progress,
@@ -30,6 +49,9 @@ class ProgressService:
                 'level_progress': level_progress,
                 'points_progress': points_progress,
                 'streak': streak_info['current_streak'],
+                'total_points': total_points,
+                'completed_lessons': completed_lessons,
+                'total_lessons': total_lessons,
                 'animations': self._get_progress_animations(overall_progress)
             }
         except Exception as e:
@@ -93,13 +115,27 @@ class ProgressService:
         if progress < 30:
             return '#FF6B6B'
         elif progress < 60:
-            return '#FFD93D'
-        elif progress < 90:
-            return '#4DABF7'
-        return '#51CF66'
+            return '#51CF66'
 
     @staticmethod
     def _check_milestone(progress):
         """Check if current progress hits a milestone"""
         milestones = [25, 50, 75, 100]
         return any(abs(progress - milestone) < 1 for milestone in milestones)
+from datetime import datetime
+from utils.exceptions import AppError
+
+def validate_language_code(language_code):
+    """Validate language code"""
+    allowed_languages = {'ar', 'en', 'fr', 'es', 'de', 'ko', 'ja', 'zh'}
+    if language_code not in allowed_languages:
+        raise AppError("Invalid language code", 400)
+    return True
+
+def validate_date_format(date_str):
+    """Validate date string format"""
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        raise AppError("Invalid date format. Use YYYY-MM-DD", 400)

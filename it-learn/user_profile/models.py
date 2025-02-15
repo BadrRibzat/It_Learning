@@ -45,10 +45,8 @@ def init_models(api):
         'total_points': fields.Integer(description='Total points earned'),
         'rank': fields.String(description='Current rank based on points'),
         'completed_lessons': fields.Integer(description='Number of completed lessons'),
-        'correct_answers': fields.Integer(description='Total correct answers'),
-        'accuracy_rate': fields.Float(description='Overall accuracy percentage'),
-        'quiz_average': fields.Float(description='Average quiz score'),
-        'time_spent': fields.Integer(description='Total learning time in minutes'),
+        'total_lessons': fields.Integer(description='Total available lessons'),
+        'level_tests_passed': fields.Integer(description='Number of level tests passed'),
         'achievements': fields.List(fields.Nested(achievement_model)),
         'streak': fields.Nested(learning_streak_model),
         'points_history': fields.List(fields.Nested(points_history_model))
@@ -100,6 +98,9 @@ def init_models(api):
         'level_progress': fields.Float(description='Level progress percentage'),
         'points_progress': fields.Float(description='Points progress percentage'),
         'streak': fields.Integer(description='Current streak'),
+        'total_points': fields.Integer(description='Total points earned'),
+        'completed_lessons': fields.Integer(description='Completed lessons count'),
+        'total_lessons': fields.Integer(description='Total lessons count'),
         'animations': fields.Raw(description='Animation settings')
     })
 

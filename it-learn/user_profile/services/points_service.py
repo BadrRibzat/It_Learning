@@ -34,23 +34,47 @@ class PointsService:
 
     def get_points_breakdown(self, user_id):
         """Get points breakdown by activity type"""
-        pipeline = [
-            {'$match': {'user_id': ObjectId(user_id)}},
-            {'$group': {
-                '_id': '$activity_type',
-                'total_points': {'$sum': '$points'},
-                'count': {'$sum': 1}
-            }}
-        ]
+        try:
+            # Get lesson points
+            lessons_points = self.db.lessons_progress.aggregate([
+                {'$match': {'user': ObjectId(user_id)}},
+                {'$group': {
+                    '_id': 'lessons',
+                    'total_points': {'$sum': '$points'},
+                    'count': {'$sum': 1}
+                }}
+            ])
+
+            # Get level test points
+            test_points = self.db.level_test_submissions.aggregate([
+                {'$match': {
+                    'user': ObjectId(user_id),
+                    'passed': True
+                }},
+                {'$group': {
+                    '_id': 'level_tests',
+                    'total_points': {'$sum': '$points_earned'},
+                    'count': {'$sum': 1}
+                }}
+            ])
+
+            breakdown = {}
+            for result in lessons_points:
+                breakdown['lessons'] = {
+                    'points': result['total_points'],
+                    'count': result['count']
+                }
         
-        breakdown = self.db.points_history.aggregate(pipeline)
-        return {
-            doc['_id']: {
-                'points': doc['total_points'],
-                'count': doc['count']
-            }
-            for doc in breakdown
-        }
+            for result in test_points:
+                breakdown['level_tests'] = {
+                    'points': result['total_points'],
+                    'count': result['count']
+                }
+
+            return breakdown
+        except Exception as e:
+            logger.error(f"Error getting points breakdown: {str(e)}")
+            return {}
 
     @staticmethod
     def calculate_rank(total_points):

@@ -167,7 +167,7 @@ def populate_initial_data():
             'alias': {
                 'explanation': 'Creates shortcuts for commands.',
                 'example': 'alias ll="ls -alh"',
-                'formatted_example': '```sh\nalias ll="ls -alh"\n```'
+                'formatted_example': '```sh\nalias ll="ls -alh\"\n```'
             },
             'unalias': {
                 'explanation': 'Removes command aliases.',
