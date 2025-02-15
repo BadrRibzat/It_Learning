@@ -5,6 +5,10 @@ export interface Level {
   order: number;
   is_unlocked: boolean;
   is_current: boolean;
+  test_passing_score?: number;
+  test_questions_count?: number;
+  description?: string;
+  test_available?: boolean;
 }
 
 export interface Flashcard {
@@ -20,14 +24,23 @@ export interface Flashcard {
 
 export interface Lesson {
   id: string;
+  level_id: string;
   title: string;
   description: string;
   order: number;
   completed: boolean;
+  content: {
+    flashcards: Flashcard[];
+    theory: string;
+    examples: string[];
+  };
   progress: {
-    completed_flashcards: number;
-    total_flashcards: number;
-    quiz_unlocked: boolean;
+    completed: boolean;
+    points: number;
+    total_points: number;
+    quiz_unlocked?: boolean;
+    completed_flashcards?: number;
+    total_flashcards?: number;
   };
 }
 
@@ -95,9 +108,9 @@ export interface FlashcardAnswer {
 export interface FlashcardSubmissionResponse {
   correct: boolean;
   progress: {
-    completed_flashcards: number;
-    total_flashcards: number;
-    quiz_unlocked: boolean;
+    completed: boolean;
+    points: number;
+    total_points: number;
   };
   points_earned: number;
 }
@@ -134,18 +147,29 @@ export interface TestSubmissionResponse {
   points_earned: number;
 }
 
+export interface LevelAccess {
+  has_access: boolean;
+  requires_test: boolean;
+  redirect_url: string | null;
+  test_id: string | null;
+  error: string | null;
+}
+
 export interface LevelProgress {
   current_level: string;
   completed_lessons: number;
   total_lessons: number;
   lessons_progress: Array<{
-    completed_flashcards: number;
-    total_flashcards: number;
-    quiz_unlocked: boolean;
+    lesson_id: string;
+    completed: boolean;
+    points: number;
   }>;
-  quiz_scores: number[];
   level_test_available: boolean;
-  next_level_unlocked: boolean;
+  test_status: {
+    test_submitted: boolean;
+    test_passed: boolean;
+    highest_score: number;
+  };
   total_points: number;
 }
 
@@ -168,4 +192,3 @@ export interface StoreState {
 export type LessonStatus = 'not_started' | 'in_progress' | 'completed';
 export type QuizStatus = 'locked' | 'available' | 'completed';
 export type LevelStatus = 'locked' | 'in_progress' | 'completed';
-

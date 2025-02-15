@@ -7,10 +7,24 @@
     </div>
     
     <div v-else>
-      <QuickStat title="Total Lessons" :value="stats?.total_lessons || 0" />
-      <QuickStat title="Completed Lessons" :value="stats?.completed_lessons || 0" />
-      <QuickStat title="Quiz Average" :value="`${(stats?.quiz_average || 0) * 100}%`" />
-      <QuickStat title="Streak" :value="stats?.streak?.current_streak || 0" />
+      <QuickStat 
+        title="Total Points" 
+        :value="stats?.total_points || 0" 
+        suffix=" pts" 
+      />
+      <QuickStat 
+        title="Completed Lessons" 
+        :value="`${stats?.completed_lessons || 0}/${stats?.total_lessons || 0}`" 
+      />
+      <QuickStat 
+        title="Level Tests Passed" 
+        :value="stats?.level_tests_passed || 0" 
+      />
+      <QuickStat 
+        title="Current Streak" 
+        :value="stats?.streak?.current_streak || 0" 
+        suffix=" days" 
+      />
     </div>
   </div>
 </template>

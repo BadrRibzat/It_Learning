@@ -14,33 +14,34 @@
 
         <!-- Quick Stats -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
-          <StatCard
-            title="Total Points"
-            :value="stats?.total_points || 0"
-            icon="TrophyIcon"
-            trend="up"
-            :percent="10"
-          />
-          <StatCard
-            title="Current Rank"
-            :value="stats?.rank || 'Novice'"
-            icon="ChartBarIcon"
-            variant="info"
-          />
-          <StatCard
-            title="Lessons Completed"
-            :value="stats?.completed_lessons || 0"
-            icon="BookOpenIcon"
-            trend="up"
-            :percent="5"
-          />
-          <StatCard
-            title="Current Streak"
-            :value="stats?.streak?.current_streak || 0"
-            icon="FireIcon"
-            variant="warning"
-            suffix="days"
-          />
+  <StatCard
+    title="Total Points"
+    :value="stats?.total_points || 0"
+    icon="TrophyIcon"
+    trend="up"
+    :percent="10"
+    suffix=" pts"
+  />
+  <StatCard
+    title="Lessons Completed"
+    :value="`${stats?.completed_lessons || 0}/${stats?.total_lessons || 0}`"
+    icon="BookOpenIcon"
+    trend="up"
+    :percent="5"
+  />
+  <StatCard
+    title="Level Tests Passed"
+    :value="stats?.level_tests_passed || 0"
+    icon="ChartBarIcon"
+    variant="info"
+  />
+  <StatCard
+    title="Current Streak"
+    :value="stats?.streak?.current_streak || 0"
+    icon="FireIcon"
+    variant="warning"
+    suffix=" days"
+  />
         </div>
       </div>
 
@@ -64,21 +65,22 @@
             Performance Metrics
           </h2>
           <div class="space-y-6">
-            <MetricItem
-              label="Quiz Average"
-              :value="stats?.quiz_average ?? null"
-              format="percentage"
-            />
-            <MetricItem
-              label="Accuracy Rate"
-              :value="stats?.accuracy_rate ?? null"
-              format="percentage"
-            />
-            <MetricItem
-              label="Time Spent Learning"
-              :value="stats?.time_spent ?? null"
-              format="time"
-            />
+  <MetricItem
+    label="Completed Lessons"
+    :value="stats?.completed_lessons"
+    :total="stats?.total_lessons"
+    format="lessons"
+  />
+  <MetricItem
+    label="Total Points"
+    :value="stats?.total_points"
+    format="points"
+  />
+  <MetricItem
+    label="Current Streak"
+    :value="stats?.streak?.current_streak"
+    format="days"
+  />
           </div>
         </div>
       </div>

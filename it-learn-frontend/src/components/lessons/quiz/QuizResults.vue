@@ -15,12 +15,14 @@
         </div>
       </div>
 
-      <div class="points-earned mb-6">
-        <span class="text-xl font-semibold text-primary-600">
-          +{{ results.points_earned }} points earned
-        </span>
-      </div>
-    </div>
+<div class="points-earned mb-6">
+  <span class="text-xl font-semibold text-primary-600">
+    +10 points earned for lesson completion
+  </span>
+  <span v-if="results.points_earned > 10" class="text-lg text-gray-600">
+    (+{{ results.points_earned - 10 }} bonus points for high score!)
+  </span>
+</div>
 
     <div class="question-review mb-8">
       <h3 class="text-lg font-semibold mb-4">Question Review</h3>

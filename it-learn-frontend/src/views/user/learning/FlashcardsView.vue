@@ -16,25 +16,7 @@
 
     <template v-else>
       <div class="max-w-3xl mx-auto">
-        <!-- Learning Timer -->
-        <div class="mb-4 flex justify-end">
-          <LearningTimer
-            :total-time="timeSpent"
-            @time-update="handleTimeUpdate"
-          />
-        </div>
 
-        <!-- Flashcard Progress -->
-        <div class="mb-6">
-          <FlashcardProgress
-            title="Flashcard Progress"
-            :current-index="currentIndex"
-            :total="totalFlashcards"
-            :correct-answers="correctAnswers"
-            :points="totalPoints"
-            :answered-cards="answeredCards"
-          />
-        </div>
 
         <!-- Current Flashcard -->
         <div class="flashcard-container bg-white rounded-lg shadow-lg">
@@ -63,37 +45,14 @@
           </FlashcardCard>
         </div>
 
-        <!-- Navigation and Progress -->
-        <div class="mt-6 flex items-center justify-between">
+        <!-- Quiz Access -->
+        <div class="mt-6 text-center">
           <button
-            v-if="currentIndex > 0"
-            @click="navigateToPrevious"
-            class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+            @click="goToQuiz"
+            class="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
           >
-            <span class="flex items-center">
-              <ArrowLeftIcon class="w-4 h-4 mr-2" />
-              Previous Card
-            </span>
+            Go to Quiz
           </button>
-          <div class="flex-1" />
-          <div v-if="isLastCard && allCorrect" class="text-center">
-            <button
-              @click="completeLesson"
-              class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              Complete Lesson
-            </button>
-          </div>
-          <div v-else-if="isLastCard" class="text-center">
-            <p>All flashcards completed!</p>
-            <p>Final Score: {{ accuracy }}% accuracy, {{ totalPoints }} points earned</p>
-            <button
-              @click="goToQuiz"
-              class="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-            >
-              Go to Quiz
-            </button>
-          </div>
         </div>
       </div>
     </template>
@@ -114,7 +73,7 @@ import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
 import LoadingSpinner from "@/components/common/LoadingSpinner.vue";
 import FlashcardCard from "@/components/lessons/flashcards/FlashcardCard.vue";
-import FlashcardProgress from "@/components/lessons/flashcards/FlashcardProgress.vue";
+import ProgressBar from "@/components/lessons/common/ProgressBar.vue";
 import CommandExample from "@/components/lessons/common/CommandExample.vue";
 import LearningTimer from "@/components/lessons/common/LearningTimer.vue";
 import LearningDebugComponent from './LearningDebugComponent.vue';
@@ -124,34 +83,26 @@ const router = useRouter();
 const toast = useToast();
 const lessonsStore = useLessonsStore();
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
-const allCardsCompleted = computed(() => correctAnswers.value === totalFlashcards.value);
 
 // State
 const loading = ref(true);
 const error = ref<string | null>(null);
 const currentIndex = ref(0);
-const startTime = ref(Date.now());
-const correctAnswers = ref(0);
-const totalPoints = ref(0);
-const answeredCards = ref<boolean[]>([]);
-const timeSpent = ref(0);
 
 // Computed
-const levelId = computed(() => route.params.levelId as string);
-const lessonId = computed(() => route.params.lessonId as string);
-const accuracy = computed(() => (correctAnswers.value / totalFlashcards.value) * 100);
+const levelId = computed(() => route.params['levelId'] as string);
+const lessonId = computed(() => route.params['lessonId'] as string);
 const currentFlashcard = computed(() => lessonsStore.flashcards[currentIndex.value]);
 const totalFlashcards = computed(() => lessonsStore.flashcards.length);
-const isLastCard = computed(() => currentIndex.value === totalFlashcards.value - 1);
-const allCorrect = computed(() => correctAnswers.value === totalFlashcards.value);
 
 const initializeFlashcards = async () => {
-  answeredCards.value = [];
   try {
     loading.value = true;
     error.value = null;
-    await lessonsStore.getFlashcards(lessonId.value);
-    answeredCards.value = new Array(lessonsStore.flashcards.length).fill(false);
+    // Load flashcards directly without store method
+    const response = await fetch(`/api/lessons/${lessonId.value}/flashcards`);
+    if (!response.ok) throw new Error('Failed to fetch flashcards');
+    lessonsStore.flashcards = await response.json();
   } catch (err) {
     error.value = err instanceof Error ? `Error: ${err.message}` : 'Failed to load flashcards. Please try again later.';
     toast.error(error.value);
@@ -170,45 +121,8 @@ const navigateToPrevious = () => {
 const handleAnswerSubmit = async (answer: string) => {
   try {
     const isCorrect = answer.trim().toLowerCase() === currentFlashcard.value?.answer.toLowerCase();
-
     if (isCorrect) {
-      correctAnswers.value++;
-      totalPoints.value += 10;
-      answeredCards.value[currentIndex.value] = true;
-
-      try {
-        const response = await lessonsStore.submitFlashcardAnswer(lessonId.value, {
-          flashcard_id: currentFlashcard.value.id,
-          user_answer: answer,
-          expected_answer: currentFlashcard.value.answer,
-          time_spent: timeSpent.value
-        });
-
-        console.log('Flashcard answer submission response:', response);
-
-        // Update local progress immediately
-        if (response && response.correct) {
-          const lessonProgress = lessonsStore.levelProgress?.lessons_progress?.find(
-            (lesson) => lesson.id === lessonId.value
-          );
-          if (lessonProgress) {
-            lessonProgress.completed_flashcards++;
-            lessonsStore.levelProgress.total_points += response.points_earned;
-          }
-          correctAnswers.value++; // Update correctAnswers ref
-          totalPoints.value += response.points_earned; // Update totalPoints ref
-        }
-
-      } catch (submissionError) {
-        console.error('Error submitting answer:', submissionError);
-        toast.error('Failed to submit answer.');
-      }
-
-      if (isLastCard.value && allCardsCompleted.value) {
-        await completeLesson();
-      }
-
-      toast.success('Correct answer! +10 points');
+      toast.success('Correct answer!');
     } else {
       toast.error('Incorrect answer. Try again!');
     }
@@ -227,7 +141,10 @@ const handleNext = () => {
 
 const goToQuiz = async () => {
   try {
-    await lessonsStore.getQuiz(levelId.value, lessonId.value);
+    // Load quiz directly without store method
+    const response = await fetch(`/api/levels/${levelId.value}/lessons/${lessonId.value}/quiz`);
+    if (!response.ok) throw new Error('Failed to fetch quiz');
+    lessonsStore.currentQuiz = await response.json();
     router.push({
       name: 'quiz',
       params: { levelId: levelId.value, lessonId: lessonId.value }
@@ -237,29 +154,6 @@ const goToQuiz = async () => {
   }
 };
 
-const completeLesson = async () => {
-  try {
-    await lessonsStore.completeLesson(lessonId.value);
-    await lessonsStore.getLessons(levelId.value);
-    router.push({
-      name: 'quiz',
-      params: { levelId: levelId.value, lessonId: lessonId.value }
-    });
-  } catch (error) {
-    toast.error('Failed to complete lesson');
-
-  } finally {
-    router.push({
-      name: 'quiz',
-      params: { levelId: levelId.value, lessonId: lessonId.value }
-    });
-  }
-};
-
-// Handle time updates
-const handleTimeUpdate = (seconds: number) => {
-  timeSpent.value = seconds;
-};
 
 // Debug data
 const debugData = computed(() => ({
@@ -267,9 +161,6 @@ const debugData = computed(() => ({
   lessonId: lessonId.value,
   currentFlashcard: currentFlashcard.value,
   currentIndex: currentIndex.value,
-  correctAnswers: correctAnswers.value,
-  totalPoints: totalPoints.value,
-  timeSpent: timeSpent.value,
   storeState: {
     loading: lessonsStore.loading,
     error: lessonsStore.error,
@@ -282,15 +173,6 @@ onMounted(() => {
   initializeFlashcards();
 });
 
-onUnmounted(() => {
-  if (correctAnswers.value > 0) {
-    lessonsStore.saveQuizProgress(lessonId.value, {
-      completed_flashcards: correctAnswers.value,
-      total_points: totalPoints.value,
-      time_spent: timeSpent.value
-    }).catch(console.error);
-  }
-});
 </script>
 
 <style scoped>

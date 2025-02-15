@@ -111,18 +111,19 @@ export interface PointsResponse {
   current_rank: string;
   points_history: PointsHistory[];
   points_breakdown: {
-    lessons: number;
-    quizzes: number;
-    achievements: number;
-    streak_bonuses: number;
-    daily_challenges: number;
-    community_contributions: number;
+    lessons: {
+      points: number;
+      count: number;
+    };
+    level_tests: {
+      points: number;
+      count: number;
+    };
   };
   next_rank: {
     name: string;
-    points_required: number;
-    progress: number;
-    benefits: string[];
+    points_needed: number;
+    progress_percentage: number;
   };
 }
 
@@ -131,6 +132,9 @@ export interface ProgressCircle {
   level_progress: number;
   points_progress: number;
   streak: number;
+  total_points: number;
+  completed_lessons: number;
+  total_lessons: number;
   animations: CircleAnimations;
 }
 

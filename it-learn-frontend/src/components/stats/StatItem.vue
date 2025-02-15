@@ -99,6 +99,8 @@ const formattedValue = computed(() => {
       return `${props.value} ${props.value === 1 ? 'day' : 'days'}`;
     case 'points':
       return `${props.value.toLocaleString()} pts`;
+    case 'lessons':
+      return `${props.value} ${props.value === 1 ? 'lesson' : 'lessons'}`;
     default:
       return props.value.toLocaleString();
   }

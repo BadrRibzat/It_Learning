@@ -4,7 +4,7 @@
       v-for="level in levels"
       :key="level.id"
       :level="level"
-      :progress="progress[level.id] || { completed_flashcards: 0, total_flashcards: 10 }"
+      :progress="progress[level.id]"
       @select="selectLevel"
     />
   </div>
@@ -27,10 +27,3 @@ const selectLevel = (level: Level) => {
   emit('select-level', level);
 };
 </script>
-
-<style scoped>
-.level-list {
-  max-width: 800px;
-  margin: 0 auto;
-}
-</style>

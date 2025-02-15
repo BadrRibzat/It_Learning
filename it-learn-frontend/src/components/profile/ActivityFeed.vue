@@ -105,19 +105,19 @@ const getActivityIcon = (type: string) => {
 const getActivityIconClass = (type: string) => {
   const baseClasses = 'p-2 rounded-full';
   const typeClasses = {
-    'lesson_complete': 'bg-blue-100 text-blue-600',
-    'quiz_complete': 'bg-green-100 text-green-600',
-    'profile_update': 'bg-purple-100 text-purple-600',
-    'daily_streak': 'bg-yellow-100 text-yellow-600',
-    'achievement_earned': 'bg-primary-100 text-primary-600'
-  };
+  'lesson_complete': 'bg-blue-100 text-blue-600',
+  'level_test_complete': 'bg-green-100 text-green-600',
+  'profile_update': 'bg-purple-100 text-purple-600',
+  'daily_streak': 'bg-yellow-100 text-yellow-600',
+  'achievement_earned': 'bg-primary-100 text-primary-600'
+};
   return `${baseClasses} ${typeClasses[type as keyof typeof typeClasses] || 'bg-gray-100 text-gray-600'}`;
 };
 
 const formatTimestamp = (timestamp: string) => {
   const date = new Date(timestamp);
   const now = new Date();
-  const diff = (now.getTime() - date.getTime()) / 1000; // diff in seconds
+  const diff = (now.getTime() - date.getTime()) / 1000;
 
   if (diff < 60) return 'just now';
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;

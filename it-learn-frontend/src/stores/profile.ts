@@ -165,7 +165,12 @@ export const useProfileStore = defineStore('profile', {
     async updatePoints(points: number) {
       if (this.profile?.learning_stats) {
         this.profile.learning_stats.total_points += points;
+        // Update progress circle if it exists
+        if (this.progressCircle) {
+          this.progressCircle.points_progress = (this.profile.learning_stats.total_points / 1000) * 100; // Assuming 1000 is max points for progress
+        }
       }
+      await ProfileService.updateProgress(points);
       await this.fetchProfile();
     },
 
@@ -173,7 +178,14 @@ export const useProfileStore = defineStore('profile', {
       this.loading = true;
       this.error = null;
       try {
-        this.progressCircle = await ProfileService.getProgressCircle();
+        const progress = await ProfileService.getProgressCircle();
+        this.progressCircle = {
+          ...progress,
+          points_progress: progress.points_progress,
+          completed_lessons: progress.completed_lessons,
+          total_lessons: progress.total_lessons,
+          total_points: progress.total_points
+        };
       } catch (error: unknown) {
         this.error = error instanceof Error ? error.message : 'Failed to load progress data';
         throw error;

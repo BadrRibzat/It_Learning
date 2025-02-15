@@ -130,6 +130,15 @@ class ProfileService {
     }
   }
 
+  static async updateProgress(points: number): Promise<void> {
+    try {
+      await axios.post(`${API_URL}/progress/update`, { points });
+    } catch (error) {
+      this.handleError(error, 'Failed to update progress');
+      throw error;
+    }
+  }
+
   static async updateSettings(settings: ProfileSettings): Promise<{ settings: ProfileSettings }> {
     try {
       const response: AxiosResponse<{ settings: ProfileSettings }> = await axios.put(
@@ -139,19 +148,6 @@ class ProfileService {
       return response.data;
     } catch (error) {
       this.handleError(error, 'Failed to update settings');
-      throw error;
-    }
-  }
-
-  static async trackActivity(activityType: string, data: Record<string, unknown>): Promise<void> {
-    try {
-      await axios.post(`${API_URL}/activity/track`, {
-        type: activityType,
-        data,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      this.handleError(error, 'Failed to track activity');
       throw error;
     }
   }

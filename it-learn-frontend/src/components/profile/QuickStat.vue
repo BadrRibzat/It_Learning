@@ -16,7 +16,7 @@ import { defineProps } from 'vue';
 const props = defineProps<{
   title: string;
   label: string;
-  value: number;
+  value: number | string;
   icon: string;
   suffix?: string;
 }>();

@@ -17,27 +17,29 @@
         :progress="profile?.overall_progress || 0"
         color="#4caf50"
       />
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <QuickStat
-          title="Total Points"
-          :label="'Total Points'"
-          :value="profile?.total_points || 0"
-          icon="TrophyIcon"
-        />
-        <QuickStat
-          title="Current Streak"
-          :label="'Current Streak'"
-          :value="profile?.current_streak || 0"
-          icon="FireIcon"
-          suffix="days"
-        />
-        <QuickStat
-          title="Achievements"
-          :label="'Achievements'"
-          :value="profile?.achievements.length || 0"
-          icon="StarIcon"
-        />
-      </div>
+    <QuickStat
+      title="Total Points"
+      :label="'Total Points'"
+      :value="profile?.total_points || 0"
+      icon="TrophyIcon"
+      suffix=" pts"
+    />
+    <QuickStat
+      title="Completed Lessons"
+      :label="'Completed Lessons'"
+      :value="`${profile?.completed_lessons || 0}/${profile?.total_lessons || 0}`"
+      icon="AcademicCapIcon"
+    />
+    <QuickStat
+      title="Current Streak"
+      :label="'Current Streak'"
+      :value="profile?.current_streak || 0"
+      icon="FireIcon"
+      suffix=" days"
+    />
+  </div>
     </div>
   </div>
 </template>

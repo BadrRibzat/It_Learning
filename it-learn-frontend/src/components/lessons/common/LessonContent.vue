@@ -41,6 +41,16 @@
           {{ currentStep === totalSteps ? 'Complete' : 'Next' }}
         </button>
       </div>
+
+      <!-- Quiz access always visible -->
+      <div class="quiz-access mt-4">
+        <button
+          @click="goToQuiz"
+          class="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+        >
+          Go to Quiz
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -71,5 +81,15 @@ const progressPercentage = computed(() => {
 
 const handleTimeUpdate = (time: number) => {
   emit('time-update', time);
+};
+
+const goToQuiz = () => {
+  router.push({
+    name: 'quiz',
+    params: {
+      levelId: props.levelId,
+      lessonId: props.lessonId
+    }
+  });
 };
 </script>

@@ -1,7 +1,6 @@
 <template>
   <div 
     class="level-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-    :class="{ 'opacity-75 cursor-not-allowed': !level.is_unlocked }"
   >
     <div class="p-6">
       <div class="flex items-center justify-between mb-4">
@@ -27,25 +26,19 @@
         <div class="flex items-center justify-between text-sm text-gray-600">
           <span>{{ progress?.completed_lessons || 0 }}/{{ progress?.total_lessons || 0 }} Lessons</span>
           <span>{{ progress?.total_points || 0 }} Points</span>
-          <span v-if="progress?.quiz_scores?.length > 0">
-            Avg. Quiz Score: {{ averageQuizScore }}%
-          </span>
-          <span v-if="progress?.level_test_available">
-            Level Test: Available
-          </span>
-          <span v-else-if="progress">
-            Level Test: Completed
-          </span>
         </div>
 
         <button
           @click="handleLevelSelect"
           class="w-full px-4 py-2 text-sm font-medium rounded-md transition-colors"
           :class="buttonClass"
-          :disabled="!level.is_unlocked"
         >
           {{ buttonText }}
         </button>
+
+        <p v-if="level.test_available && !level.is_unlocked" class="text-sm text-gray-600">
+          Pass the level test to unlock content
+        </p>
       </div>
     </div>
   </div>
@@ -53,6 +46,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useLessonsStore } from '@/stores/lessons';
 import type { Level, LevelProgress } from '@/types/lessons';
 import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
 
@@ -61,46 +56,49 @@ const props = defineProps<{
   progress?: LevelProgress;
 }>();
 
-const emit = defineEmits<{
-  (e: 'select', level: Level): void;
-}>();
+const router = useRouter();
+const store = useLessonsStore();
 
 const statusClass = computed(() => {
+  if (props.level.name.toLowerCase() === 'beginner') return 'bg-primary-100 text-primary-600';
   if (!props.level.is_unlocked) return 'bg-gray-100 text-gray-600';
-  if (props.level.is_current) return 'bg-primary-100 text-primary-600';
   return 'bg-green-100 text-green-600';
 });
 
 const statusText = computed(() => {
-  if (!props.level.is_unlocked) return 'Locked';
-  if (props.level.is_current) return 'Current';
-  return 'Available';
+  if (props.level.name.toLowerCase() === 'beginner') return 'Available';
+  return 'Available (Test Required)';
 });
 
 const buttonClass = computed(() => {
-  if (!props.level.is_unlocked) {
-    return 'bg-gray-100 text-gray-400 cursor-not-allowed';
+  if (props.level.name.toLowerCase() === 'beginner' || props.level.is_unlocked) {
+    return 'bg-primary-600 text-white hover:bg-primary-700';
   }
-  return 'bg-primary-600 text-white hover:bg-primary-700';
+  return 'bg-secondary-600 text-white hover:bg-secondary-700';
 });
 
 const buttonText = computed(() => {
-  if (!props.level.is_unlocked) return 'Locked';
-  if (props.level.is_current) return 'Continue';
+  if (props.level.name.toLowerCase() === 'beginner') return 'Start Level';
   return 'Start Level';
 });
 
-const handleLevelSelect = () => {
-  if (props.level.is_unlocked) {
-    emit('select', props.level);
+const handleLevelSelect = async () => {
+  const access = await store.checkLevelAccess(props.level.id);
+  
+  if (access.requires_test) {
+    // Redirect to test if not submitted or score < 80%
+    router.push({
+      name: 'level-test',
+      params: { levelId: props.level.id }
+    });
+  } else {
+    // Otherwise go to level content
+    router.push({
+      name: 'level',
+      params: { levelId: props.level.id }
+    });
   }
 };
-
-const averageQuizScore = computed(() => {
-  if (!props.progress?.quiz_scores?.length) return 0;
-  const sum = props.progress.quiz_scores.reduce((a, b) => a + b, 0);
-  return Math.round(sum / props.progress.quiz_scores.length);
-});
 </script>
 
 <style scoped>

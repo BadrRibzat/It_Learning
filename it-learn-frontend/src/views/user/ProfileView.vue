@@ -114,22 +114,31 @@
               </div>
             </div>
           </div>
-          <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-xl font-semibold mb-4">Quick Stats</h2>
-            <div class="space-y-4">
-              <QuickStat
-                title="Total Points"
-                label="Total Points"
-                :value="profile?.learning_stats?.total_points || 0"
-                icon="TrophyIcon"
-              />
-              <QuickStat
-                title="Current Streak"
-                label="Current Streak"
-                :value="profile?.learning_stats?.streak?.current_streak || 0"
-                icon="FireIcon"
-                suffix="days"
-              />
+         
+
+         <div class="bg-white rounded-lg shadow p-6">
+  <h2 class="text-xl font-semibold mb-4">Quick Stats</h2>
+  <div class="space-y-4">
+    <QuickStat
+      title="Total Points"
+      label="Total Points"
+      :value="profile?.learning_stats?.total_points || 0"
+      icon="TrophyIcon"
+      suffix=" pts"
+    />
+    <QuickStat
+      title="Completed Lessons"
+      label="Completed Lessons"
+      :value="`${profile?.learning_stats?.completed_lessons || 0}/${profile?.learning_stats?.total_lessons || 0}`"
+      icon="BookOpenIcon"
+    />
+    <QuickStat
+      title="Current Streak"
+      label="Current Streak"
+      :value="profile?.learning_stats?.streak?.current_streak || 0"
+      icon="FireIcon"
+      suffix=" days"
+    />
               <QuickStat
                 title="Achievements"
                 label="Achievements"

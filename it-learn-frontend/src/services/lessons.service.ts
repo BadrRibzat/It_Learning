@@ -11,7 +11,7 @@ import type {
   LevelTest,
   TestSubmission,
   TestSubmissionResponse,
-  LevelProgress
+  LevelProgress,
 } from '@/types/lessons';
 import { notifyError } from '@/utils/notifications';
 
@@ -75,7 +75,12 @@ class LessonService {
     throw new Error(errorMessage);
   }
 
-  private static async makeRequest<T>(url: string, method: 'get' | 'post', data?: any, options?: { timeout?: number; retry?: number }): Promise<T> {
+  private static async makeRequest<T>(
+    url: string,
+    method: 'get' | 'post',
+    data?: any,
+    options?: { timeout?: number; retry?: number }
+  ): Promise<T> {
     console.log(`Making request to ${url} with method ${method}`);
     if (data) {
       console.log('Request data:', data);
@@ -123,27 +128,56 @@ class LessonService {
     return this.makeRequest<Flashcard[]>(`${API_URL}/lessons/${lessonId}/flashcards`, 'get');
   }
 
-  static async submitFlashcardAnswer(lessonId: string, answer: FlashcardAnswer): Promise<FlashcardSubmissionResponse> {
-    return this.makeRequest<FlashcardSubmissionResponse>(`${API_URL}/flashcards/${lessonId}/submit`, 'post', answer);
+  static async submitFlashcardAnswer(
+    lessonId: string,
+    answer: FlashcardAnswer
+  ): Promise<FlashcardSubmissionResponse> {
+    return this.makeRequest<FlashcardSubmissionResponse>(
+      `${API_URL}/flashcards/${lessonId}/submit`,
+      'post',
+      answer
+    );
   }
 
   static async getQuiz(levelId: string, lessonId: string): Promise<Quiz> {
     return this.makeRequest<Quiz>(`${API_URL}/levels/${levelId}/lessons/${lessonId}/quiz`, 'get');
   }
 
-  static async submitQuiz(lessonId: string, submission: QuizSubmission): Promise<QuizSubmissionResponse> {
-    return this.makeRequest<QuizSubmissionResponse>(`${API_URL}/lessons/${lessonId}/quiz`, 'post', submission);
+  static async submitQuiz(
+    lessonId: string,
+    submission: QuizSubmission
+  ): Promise<QuizSubmissionResponse> {
+    return this.makeRequest<QuizSubmissionResponse>(
+      `${API_URL}/lessons/${lessonId}/quiz`,
+      'post',
+      submission
+    );
   }
 
   static async getLevelTest(levelId: string): Promise<LevelTest> {
     return this.makeRequest<LevelTest>(`${API_URL}/levels/${levelId}/test`, 'get');
   }
 
-  static async completeLesson(lessonId: string): Promise<void> {
-    return this.makeRequest<void>(`${API_URL}/lessons/${lessonId}/complete`, 'post');
+  static async completeLesson(lessonId: string, is_completed: boolean = true): Promise<void> {
+    return this.makeRequest<void>(`${API_URL}/lessons/${lessonId}/progress`, 'post', {
+      is_completed,
+    });
   }
 
-  static async submitLevelTest(levelId: string, submission: TestSubmission): Promise<TestSubmissionResponse> {
+  static async checkLevelAccess(levelId: string): Promise<{
+    has_access: boolean;
+    requires_test: boolean;
+    redirect_url: string | null;
+    test_id: string | null;
+    error: string | null;
+  }> {
+    return this.makeRequest(`${API_URL}/levels/${levelId}/access`, 'get');
+  }
+
+  static async submitLevelTest(
+    levelId: string,
+    submission: TestSubmission
+  ): Promise<TestSubmissionResponse> {
     return this.makeRequest<TestSubmissionResponse>(`${API_URL}/levels/${levelId}/test`, 'post', submission);
   }
 

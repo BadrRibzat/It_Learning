@@ -57,6 +57,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
+import type { Lesson } from '@/types/lessons';
 import LessonCard from '@/components/lessons/level/LessonCard.vue';
 import LevelTestModal from '@/components/lessons/level/LevelTestModal.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
@@ -77,8 +78,8 @@ const initializeLevel = async () => {
   try {
     loading.value = true;
     error.value = null;
-    await store.getLessons(levelId.value);
-    await store.getLevelTest(levelId.value);
+    await store.getLessons(route.params['levelId'] as string);
+    await store.getLevelTest(route.params['levelId'] as string);
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load level data';
   } finally {
@@ -87,28 +88,16 @@ const initializeLevel = async () => {
 };
 
 const isLessonUnlocked = (lesson: Lesson) => {
-  if (lesson.order === 1) return true;
-  const previousLesson = lessons.value.find((l: Lesson) => l.order === lesson.order - 1);
-  return previousLesson?.completed || false;
+  return true;
 };
 
 const handleLessonSelect = (lesson: Lesson) => {
-  if (lesson.completed) {
-    router.push({
-      name: 'flashcards',
-      params: { levelId: levelId.value, lessonId: lesson.id },
-    });
-  } else if (lesson.progress.quiz_unlocked) {
-    router.push({
-      name: 'quiz',
-      params: { levelId: levelId.value, lessonId: lesson.id },
-    });
-  } else {
-    router.push({
-      name: 'flashcards',
-      params: { levelId: levelId.value, lessonId: lesson.id },
-    });
-  }
+  if (!isLessonUnlocked(lesson)) return;
+  
+  router.push({
+    name: 'quiz',
+    params: { levelId: levelId.value, lessonId: lesson.id },
+  });
 };
 
 const navigateToTest = () => {
@@ -119,8 +108,19 @@ const navigateToTest = () => {
   showLevelTest.value = false;
 };
 
+const handleLevelAccess = async () => {
+  const access = await store.checkLevelAccess(levelId.value);
+  
+  if (access.requires_test) {
+    router.push({
+      name: 'level-test',
+      params: { levelId: levelId.value }
+    });
+  }
+};
+
 onMounted(() => {
-  initializeLevel();
+  handleLevelAccess();
 });
 </script>
 

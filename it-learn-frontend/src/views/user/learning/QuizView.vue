@@ -107,6 +107,7 @@ const initializeQuiz = async () => {
   }
 };
 
+
 const goToFlashcards = () => {
   router.push({
     name: 'flashcards',
@@ -114,9 +115,32 @@ const goToFlashcards = () => {
   });
 };
 
+const isQuizCompleted = computed(() => 
+  userAnswers.value.length === (quiz.value?.questions?.length || 0)
+);
+
+
 const handleAnswerSubmit = async (questionId: string, answer: string) => {
   userAnswers.value.push({ questionId, answer });
-  // Logic to handle answer submission and update progress can be added here
+
+  if (isQuizCompleted.value) {
+    try {
+      const response = await lessonsStore.submitQuiz({
+        lessonId: lessonId.value,
+        answers: userAnswers.value.map(a => a.answer)
+      });
+
+      if (response.passed) {
+        await lessonsStore.completeLesson(lessonId.value);
+        toast.success(`Lesson completed! +10 points earned`);
+        router.push({ name: 'level', params: { levelId: levelId.value }});
+      } else {
+        toast.error('Quiz not passed. Try again!');
+      }
+    } catch (error) {
+      toast.error('Failed to submit quiz');
+    }
+  }
 };
 
 onMounted(() => {

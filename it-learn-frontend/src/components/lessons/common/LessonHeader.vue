@@ -16,18 +16,24 @@
     </div>
 
     <div class="grid grid-cols-3 gap-6">
-      <QuickStat
-        label="Flashcards"
-        :value="lesson?.progress?.completed_flashcards || 0"
-        :total="lesson?.progress?.total_flashcards || 0"
-        icon="DocumentTextIcon"
-      />
-      <QuickStat
-        label="Quiz Status"
-        :value="quizStatus"
-        type="text"
-        icon="AcademicCapIcon"
-      />
+  <QuickStat
+    label="Status"
+    :value="lesson?.completed ? 'Completed' : 'In Progress'"
+    type="text"
+    icon="DocumentTextIcon"
+  />
+  <QuickStat
+    label="Points"
+    :value="lesson?.completed ? '10' : '0'"
+    icon="StarIcon"
+    suffix=" pts"
+  />
+  <QuickStat
+    label="Quiz"
+    :value="quizStatus"
+    type="text"
+    icon="AcademicCapIcon"
+  />
       <QuickStat
         label="Points Earned"
         :value="pointsEarned"

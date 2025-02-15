@@ -260,19 +260,18 @@ const handleTimeUpdate = (seconds: number) => {
 
 const submitTestResults = async () => {
   try {
-    const totalPoints = userAnswers.value.reduce((sum, a) => sum + a.points, 0);
-    const score = Math.round((totalPoints / (totalQuestions.value * 100)) * 100);
+    const correctAnswers = userAnswers.value.filter(a => a.isCorrect).length;
+    const score = Math.round((correctAnswers / totalQuestions.value) * 100);
     const passed = score >= (levelTest.value?.passing_score || 80);
-    const answers = userAnswers.value.map(a => a.userAnswer);
 
     await store.submitLevelTest(levelId.value, {
-      answers: answers,
+      answers: userAnswers.value.map(a => a.userAnswer)
     });
 
     if (passed) {
-      toast.success('Congratulations! You\'ve passed the level test!');
+      toast.success(`Congratulations! You've passed with ${score}%!`);
     } else {
-      toast.info('Keep practicing and try again when you\'re ready!');
+      toast.info('Keep practicing and try again!');
     }
   } catch (error) {
     toast.error('Failed to submit test results');

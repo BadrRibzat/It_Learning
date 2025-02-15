@@ -19,19 +19,20 @@
       <div class="space-y-4">
         <p class="text-sm text-gray-600">{{ lesson.description }}</p>
         
-        <ProgressBar 
-          :value="lesson.progress.completed_flashcards"
-          :max="lesson.progress.total_flashcards"
-          class="mb-2"
-        />
-        
         <div class="flex items-center justify-between text-sm text-gray-600">
-          <span>
-            {{ lesson.progress.completed_flashcards }}/{{ lesson.progress.total_flashcards }} Flashcards
+          <span v-if="lesson.completed" class="text-green-600">
+            Completed (+10 points)
           </span>
-          <span v-if="lesson.progress.quiz_unlocked" class="text-primary-600">
-            Quiz Available
+          <span v-else>
+            Not completed
           </span>
+          <button
+            v-if="!lesson.completed"
+            @click="$emit('take-quiz', lesson)"
+            class="text-primary-600 hover:text-primary-700"
+          >
+            Take Quiz
+          </button>
         </div>
 
         <button
@@ -59,20 +60,19 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'select', lesson: Lesson): void;
+  (e: 'take-quiz', lesson: Lesson): void;
 }>();
 
 const statusClass = computed(() => {
   if (!props.isUnlocked) return 'bg-gray-100 text-gray-600';
   if (props.lesson.completed) return 'bg-green-100 text-green-600';
-  if (props.lesson.progress.completed_flashcards > 0) return 'bg-primary-100 text-primary-600';
-  return 'bg-gray-100 text-gray-600';
+  return 'bg-primary-100 text-primary-600';
 });
 
 const statusText = computed(() => {
   if (!props.isUnlocked) return 'Locked';
   if (props.lesson.completed) return 'Completed';
-  if (props.lesson.progress.completed_flashcards > 0) return 'In Progress';
-  return 'Not Started';
+  return 'Available';
 });
 
 const buttonClass = computed(() => {
@@ -85,8 +85,8 @@ const buttonClass = computed(() => {
 const buttonText = computed(() => {
   if (!props.isUnlocked) return 'Locked';
   if (props.lesson.completed) return 'Review';
-  if (props.lesson.progress.quiz_unlocked && props.lesson.progress.completed_flashcards === props.lesson.progress.total_flashcards) return 'Take Quiz';
-  if (props.lesson.progress.completed_flashcards > 0) return 'Continue';
+  if (props.lesson.progress && props.lesson.progress.quiz_unlocked && props.lesson.progress.completed_flashcards === props.lesson.progress.total_flashcards) return 'Take Quiz';
+  if (props.lesson.progress && props.lesson.progress.completed_flashcards ? props.lesson.progress.completed_flashcards > 0 : false) return 'Continue';
   return 'Start Lesson';
 });
 

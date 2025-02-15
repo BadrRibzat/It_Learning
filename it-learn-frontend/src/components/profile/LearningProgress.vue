@@ -15,16 +15,14 @@
           :color="currentLevel?.animations?.circle_color || '#0284c7'"
         />
         <ProgressCircle
-          title="Level Progress"
-          :progress="currentLevel?.level_progress || 0"
+          title="Lessons Completed"
+          :progress="(stats?.completed_lessons || 0) / (stats?.total_lessons || 1) * 100"
           color="#10B981"
         />
         <ProgressCircle
-          title="Current Streak"
-          :progress="stats?.streak?.current_streak || 0"
-          :max-value="stats?.streak?.next_milestone || 10"
+          title="Points Progress"
+          :progress="currentLevel?.points_progress || 0"
           color="#6366F1"
-          show-days
         />
       </div>
 
@@ -33,38 +31,14 @@
         <div v-for="(item, index) in progressItems" :key="index" class="space-y-2">
           <div class="flex justify-between text-sm">
             <span class="text-gray-600">{{ item.label }}</span>
-            <span class="font-medium">{{ item.value }}%</span>
+            <span class="font-medium">{{ item.value }}{{ item.suffix }}</span>
           </div>
           <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
               class="h-full rounded-full transition-all duration-500"
               :class="item.color"
-              :style="{ width: `${item.value}%` }"
+              :style="{ width: `${item.progress}%` }"
             />
-          </div>
-        </div>
-      </div>
-
-      <!-- Milestones -->
-      <div v-if="currentLevel?.milestones?.length" class="mt-6">
-        <h3 class="text-lg font-medium mb-4">Current Milestones</h3>
-        <div class="space-y-4">
-          <div 
-            v-for="milestone in currentLevel.milestones" 
-            :key="milestone.id"
-            class="flex items-center space-x-4"
-          >
-            <div 
-              class="w-8 h-8 rounded-full flex items-center justify-center"
-              :class="milestone.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'"
-            >
-              <CheckCircleIcon v-if="milestone.completed" class="w-5 h-5" />
-              <ClockIcon v-else class="w-5 h-5" />
-            </div>
-            <div>
-              <p class="font-medium">{{ milestone.title }}</p>
-              <p class="text-sm text-gray-600">{{ milestone.description }}</p>
-            </div>
           </div>
         </div>
       </div>
@@ -74,7 +48,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { CheckCircleIcon, ClockIcon } from '@heroicons/vue/24/outline';
 import type { LearningStats, CurrentLevel } from '@/types/profile';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import ProgressCircle from './ProgressCircle.vue';
@@ -90,35 +63,26 @@ const progressItems = computed(() => {
 
   return [
     {
-      label: 'Lessons Completed',
-      value: Math.round((props.stats.completed_lessons || 0) / 100 * 100),
-      color: 'bg-blue-500'
+      label: 'Lessons Progress',
+      value: `${props.stats.completed_lessons || 0}/${props.stats.total_lessons || 0}`,
+      progress: ((props.stats.completed_lessons || 0) / (props.stats.total_lessons || 1)) * 100,
+      color: 'bg-blue-500',
+      suffix: ' lessons'
     },
     {
-      label: 'Quiz Performance',
-      value: Math.round((props.stats.quiz_average || 0) * 100),
-      color: 'bg-green-500'
+      label: 'Points Earned',
+      value: props.stats.total_points || 0,
+      progress: (props.stats.total_points || 0) / 1000 * 100,
+      color: 'bg-green-500',
+      suffix: ' points'
     },
     {
-      label: 'Accuracy Rate',
-      value: Math.round((props.stats.accuracy_rate || 0) * 100),
-      color: 'bg-purple-500'
+      label: 'Current Streak',
+      value: props.stats.streak?.current_streak || 0,
+      progress: ((props.stats.streak?.current_streak || 0) / 7) * 100,
+      color: 'bg-purple-500',
+      suffix: ' days'
     }
   ];
 });
 </script>
-
-<style scoped>
-.progress-bar {
-  width: 100%;
-  height: 100%;
-}
-
-.bg-blue-500 {
-  background-color: #3b82f6;
-}
-
-.bg-green-500 {
-  background-color: #10b981;
-}
-</style>

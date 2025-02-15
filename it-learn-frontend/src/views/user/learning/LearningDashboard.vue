@@ -16,26 +16,20 @@
 
     <template v-else>
       <!-- Current Level Progress -->
-      <div v-if="currentLevel" class="bg-white rounded-lg shadow p-6">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-bold">Current Level: {{ currentLevel.name }}</h2>
-          <button
-            v-if="currentLevel"
-            @click="continueCurrentLevel"
-            class="px-4 py-2 bg-primary-600 text-white rounded-md"
-          >
-            Continue Learning
-          </button>
-        </div>
-        <ProgressBar
-          :value="currentProgress.completed_lessons"
-          :max="currentProgress.total_lessons"
-          class="mb-2"
-        />
-        <p class="text-sm text-gray-600">
-          {{ currentProgress.completed_lessons }} / {{ currentProgress.total_lessons }} lessons completed
-        </p>
+        <div v-if="currentLevel" class="bg-white rounded-lg shadow p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold">Current Level: {{ currentLevel.name }}</h2>
+      <div class="text-sm text-gray-600">
+        {{ currentProgress.completed_lessons }}/{{ currentProgress.total_lessons }} Lessons
+        ({{ currentProgress.total_points }} points)
       </div>
+    </div>
+    <ProgressBar
+      :value="currentProgress.completed_lessons"
+      :max="currentProgress.total_lessons"
+      class="mb-2"
+    />
+  </div>
 
       <!-- Available Levels -->
       <div class="space-y-6">
@@ -118,21 +112,33 @@ const continueCurrentLevel = () => {
 };
 
 const handleLevelSelect = async (level: Level) => {
-  if (level.order > (currentLevel.value?.order || 1)) {
-    const redirectUrl = await store.redirectToLevelTest(level.id);
-    if (redirectUrl) {
-      router.push(redirectUrl);
-    } else {
+  try {
+    if (level.name.toLowerCase() === 'beginner') {
+      // Direct access to beginner level
       router.push({
         name: 'level',
-        params: { levelId: level.id },
+        params: { levelId: level.id }
       });
+      return;
     }
-  } else {
-    router.push({
-      name: 'level',
-      params: { levelId: level.id },
-    });
+
+    const access = await store.checkLevelAccess(level.id);
+    
+    if (access.requires_test) {
+      router.push({
+        name: 'level-test',
+        params: { levelId: level.id }
+      });
+    } else if (access.has_access) {
+      router.push({
+        name: 'level',
+        params: { levelId: level.id }
+      });
+    } else if (access.error) {
+      toast.error(access.error);
+    }
+  } catch (error) {
+    toast.error('Failed to access level');
   }
 };
 
