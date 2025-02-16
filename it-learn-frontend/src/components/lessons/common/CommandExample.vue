@@ -8,7 +8,6 @@
           <div class="w-3 h-3 rounded-full bg-green-500" />
         </div>
         <button 
-          v-if="canCopy"
           @click="copyToClipboard"
           class="text-gray-400 hover:text-white text-sm"
         >
@@ -40,7 +39,6 @@ const props = defineProps<{
   command: string;
   output?: string;
   description?: string;
-  canCopy?: boolean;
 }>();
 
 const copied = ref(false);
@@ -57,3 +55,9 @@ const copyToClipboard = async () => {
   }
 };
 </script>
+
+<style scoped>
+.command-example {
+  margin-bottom: 1rem;
+}
+</style>

@@ -21,7 +21,6 @@
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue';
 import type { Quiz } from '@/types/lessons';
-import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
 
 const props = defineProps<{
   quiz: Quiz;

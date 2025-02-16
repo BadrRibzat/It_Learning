@@ -31,7 +31,7 @@
         <div class="level-list">
           <LevelList
             :levels="availableLevels"
-            :progress-map="levelProgressMap"
+            :levelProgressMap="levelProgressMap"
             @select-level="handleLevelSelect"
           />
         </div>
@@ -59,7 +59,6 @@ const store = useLessonsStore();
 const loading = ref(true);
 const error = ref<string | null>(null);
 
-const currentLevel = computed(() => store.currentLevel);
 const availableLevels = computed(() => store.levels);
 const levelProgressMap = computed(() => store.levelProgressMap);
 const currentProgress = computed(() => store.levelProgress || {
@@ -69,7 +68,6 @@ const currentProgress = computed(() => store.levelProgress || {
 
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 const debugData = computed(() => ({
-  currentLevel: currentLevel.value,
   availableLevels: availableLevels.value,
   levelProgress: currentProgress.value,
 }));
@@ -79,7 +77,6 @@ const initializeDashboard = async () => {
     loading.value = true;
     error.value = null;
     await store.getLevels();
-    await store.getCurrentLevel();
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load dashboard';
   } finally {
@@ -98,21 +95,10 @@ const handleLevelSelect = async (level: Level) => {
       });
       return;
     }
-    const access = await store.checkLevelAccess(level.id);
-    
-    if (access.requires_test) {
-      router.push({
-        name: 'level-test',
-        params: { levelId: level.id }
-      });
-    } else if (access.has_access) {
-      router.push({
-        name: 'level',
-        params: { levelId: level.id }
-      });
-    } else if (access.error) {
-      console.error(access.error);
-    }
+    router.push({
+      name: 'level',
+      params: { levelId: level.id }
+    });
   } catch (error) {
     console.error('Failed to access level');
   }

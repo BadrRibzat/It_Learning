@@ -1,95 +1,68 @@
 <template>
-  <div class="bg-white rounded-lg shadow p-6" v-if="totalSteps > 0">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl font-bold text-gray-900">Lesson Content</h2>
-      <LearningTimer 
-        v-if="isActive"
-        :start-time="startTime"
-        @time-update="handleTimeUpdate"
-      />
+  <div class="lesson-content">
+    <ProgressBar :value="currentStep" :max="totalSteps" />
+
+    <div class="flex justify-between items-center mt-4">
+      <span>Progress: {{ currentStep }}/{{ totalSteps }}</span>
+      <span>{{ progressPercentage }}% Complete</span>
     </div>
 
-    <div class="space-y-6">
-      <ProgressBar
-        :value="currentStep"
-        :max="totalSteps"
-        class="mb-4"
-      />
+    <div v-if="content" class="content mt-4">
+      <slot name="content"></slot>
+    </div>
 
-      <div class="flex justify-between text-sm text-gray-600 mb-4">
-        <span>Progress: {{ currentStep }}/{{ totalSteps }}</span>
-        <span>{{ progressPercentage }}% Complete</span>
-      </div>
+    <div class="flex justify-between mt-4">
+      <button 
+        @click="$emit('previous')"
+        :disabled="currentStep === 1"
+        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50"
+      >
+        Previous
+      </button>
 
-      <div class="flex justify-between space-x-4">
-        <button
-          v-if="canNavigate"
-          @click="$emit('previous')"
-          :disabled="currentStep === 1"
-          class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
-          :class="currentStep === 1 ? 'bg-gray-100 text-gray-400' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
-        >
-          Previous
-        </button>
+      <button 
+        @click="$emit('next')"
+        :disabled="currentStep === totalSteps"
+        class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50"
+      >
+        {{ currentStep === totalSteps ? 'Complete' : 'Next' }}
+      </button>
+    </div>
 
-        <button
-          v-if="canNavigate"
-          @click="$emit('next')"
-          :disabled="currentStep === totalSteps"
-          class="px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-        >
-          {{ currentStep === totalSteps ? 'Complete' : 'Next' }}
-        </button>
-      </div>
-
-      <!-- Quiz access always visible -->
-      <div class="quiz-access mt-4">
-        <button
-          @click="goToQuiz"
-          class="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
-        >
-          Go to Quiz
-        </button>
-      </div>
+    <div class="quiz-access mt-4">
+      <button 
+        @click="goToQuiz"
+        class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+      >
+        Go to Quiz
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import LearningTimer from '@/components/lessons/common/LearningTimer.vue';
 import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
+import { computed } from 'vue';
 
 const props = defineProps<{
   currentStep: number;
   totalSteps: number;
-  canNavigate?: boolean;
-  isActive?: boolean;
+  content: any;
 }>();
 
-const emit = defineEmits<{
-  (e: 'previous'): void;
-  (e: 'next'): void;
-  (e: 'time-update', time: number): void;
-}>();
-
-const startTime = ref(Date.now());
+const emit = defineEmits(['previous', 'next']);
 
 const progressPercentage = computed(() => {
   return Math.round((props.currentStep / props.totalSteps) * 100);
 });
 
-const handleTimeUpdate = (time: number) => {
-  emit('time-update', time);
-};
-
 const goToQuiz = () => {
-  router.push({
-    name: 'quiz',
-    params: {
-      levelId: props.levelId,
-      lessonId: props.lessonId
-    }
-  });
+  emit('go-to-quiz');
 };
 </script>
+
+<style scoped>
+.lesson-content {
+  margin-top: 2rem;
+}
+</style>

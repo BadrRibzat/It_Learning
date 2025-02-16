@@ -22,14 +22,6 @@
             <h2 class="text-xl font-bold text-gray-900">Level {{ currentLevel?.order }} - {{ currentLevel?.name }}</h2>
             <p class="text-gray-600 mt-1">{{ currentLevel?.description }}</p>
           </div>
-          <div v-if="canTakeLevelTest">
-            <button
-              @click="showLevelTest = true"
-              class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-            >
-              Take Level Test
-            </button>
-          </div>
         </div>
       </div>
 
@@ -39,16 +31,10 @@
           :key="lesson.id"
           :lesson="lesson"
           :isUnlocked="isLessonUnlocked(lesson)"
+          :progress="lesson.progress"
           @select="handleLessonSelect"
         />
       </div>
-
-      <LevelTestModal
-        v-if="showLevelTest"
-        :level="currentLevel"
-        @close="showLevelTest = false"
-        @start-test="navigateToTest"
-      />
     </template>
   </div>
 </template>
@@ -59,7 +45,6 @@ import { useRoute, useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
 import type { Lesson } from '@/types/lessons';
 import LessonCard from '@/components/lessons/level/LessonCard.vue';
-import LevelTestModal from '@/components/lessons/level/LevelTestModal.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 
 const router = useRouter();
@@ -67,21 +52,16 @@ const route = useRoute();
 const store = useLessonsStore();
 const loading = ref(true);
 const error = ref<string | null>(null);
-const showLevelTest = ref(false);
 
 const levelId = computed(() => route.params.levelId as string);
 const currentLevel = computed(() => store.currentLevel);
 const lessons = computed(() => store.lessons);
-const canTakeLevelTest = computed(() => store.levelTest?.can_attempt);
 
 const initializeLevel = async () => {
   try {
     loading.value = true;
     error.value = null;
     await store.getLessons(levelId.value);
-    if (levelId.value !== 'beginner') {
-      await store.getLevelTest(levelId.value);
-    }
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load level data';
   } finally {
@@ -102,30 +82,8 @@ const handleLessonSelect = (lesson: Lesson) => {
   });
 };
 
-const navigateToTest = () => {
-  router.push({
-    name: 'level-test',
-    params: { ['levelId']: levelId.value },
-  });
-  showLevelTest.value = false;
-};
-
 const handleLevelAccess = async () => {
-  if (levelId.value === 'beginner') {
-    await initializeLevel();
-    return;
-  }
-
-  const access = await store.checkLevelAccess(levelId.value);
-
-  if (access.requires_test) {
-    router.push({
-      name: 'level-test',
-      params: { ['levelId']: levelId.value }
-    });
-  } else {
-    await initializeLevel();
-  }
+  await initializeLevel();
 };
 
 onMounted(() => {

@@ -1,4 +1,4 @@
-import axios, { AxiosError, isAxiosError, type AxiosRequestConfig } from 'axios';
+import axios, { AxiosError, isAxiosError } from 'axios';
 import type {
   Level,
   Lesson,
@@ -8,10 +8,6 @@ import type {
   QuizSubmissionResponse,
   FlashcardAnswer,
   FlashcardSubmissionResponse,
-  LevelTest,
-  TestSubmission,
-  TestSubmissionResponse,
-  LevelProgress,
 } from '@/types/lessons';
 import { notifyError } from '@/utils/notifications';
 
@@ -28,167 +24,115 @@ class LessonService {
     };
   }
 
-  private static getErrorType(error: unknown): string {
+  private static handleError(error: unknown): void {
     if (isAxiosError(error)) {
-      if (!error.response) {
-        return 'networkError';
-      } else {
-        return 'apiError';
-      }
+      notifyError(`API error: ${error.response?.data?.message || error.message}`);
     } else if (error instanceof Error) {
-      return 'genericError';
+      notifyError(`Error: ${error.message}`);
     } else {
-      return 'unknownError';
+      notifyError('An unexpected error occurred.');
     }
+    throw error;
   }
 
-  private static getErrorMessage(error: unknown, defaultMessage: string): string {
-    if (isAxiosError(error)) {
-      return error.response?.data?.message || error.message || defaultMessage;
-    } else if (error instanceof Error) {
-      return error.message;
-    } else {
-      return defaultMessage;
-    }
-  }
-
-  private static getNotificationMessage(errorType: string, errorMessage: string): string {
-    switch (errorType) {
-      case 'apiError':
-        return `API error: ${errorMessage}`;
-      case 'networkError':
-        return `Network error: ${errorMessage}`;
-      default:
-        return `Error: ${errorMessage}`;
-    }
-  }
-
-  private static handleError(error: unknown, defaultMessage: string): void {
-    const errorType = this.getErrorType(error);
-    const errorMessage = this.getErrorMessage(error, defaultMessage);
-    const notificationMessage = this.getNotificationMessage(errorType, errorMessage);
-    notifyError(notificationMessage);
-    if (errorType === 'networkError') {
-      // Retry the request after a short delay
-      setTimeout(() => {
-        // Retry logic here
-      }, 500);
-    }
-    throw new Error(errorMessage);
-  }
-
-  private static async makeRequest<T>(
-    url: string,
-    method: 'get' | 'post',
-    data?: any,
-    options?: { timeout?: number; retry?: number }
-  ): Promise<T> {
-    console.log(`Making request to ${url} with method ${method}`);
-    if (data) {
-      console.log('Request data:', data);
-    }
-    if (options) {
-      console.log('Request options:', options);
-    }
+  static async getLevels(): Promise<Level[]> {
     try {
-      const config: AxiosRequestConfig = {
-        method,
-        url,
+      const response = await axios.get(`${API_URL}/levels`, {
         headers: this.getAuthHeaders(),
-        data,
-      };
-      if (options?.timeout !== undefined) {
-        config.timeout = options.timeout;
-      }
-      const response = await axios(config);
-      console.log('Response:', response.data);
+      });
       return response.data;
     } catch (error) {
-      console.error('Error making request:', error);
-      console.error(LessonService.getErrorMessage(error, 'An error occurred'));
-      this.handleError(error, 'Failed to make request');
-      return null as unknown as T; // Add a return statement here
-    } finally {
-      console.log('Request completed');
+      this.handleError(error);
+      return [];
     }
-  }
-
-  static async getLevels(): Promise<{ levels: Level[] }> {
-    console.log('Fetching levels');
-    return this.makeRequest<{ levels: Level[] }>(`${API_URL}/levels`, 'get');
-  }
-
-  static async getCurrentLevel(): Promise<Level> {
-    return this.makeRequest<Level>(`${API_URL}/levels/current`, 'get');
   }
 
   static async getLessons(levelId: string): Promise<Lesson[]> {
-    return this.makeRequest<Lesson[]>(`${API_URL}/levels/${levelId}/lessons`, 'get');
+    try {
+      const response = await axios.get(`${API_URL}/levels/${levelId}/lessons`, {
+        headers: this.getAuthHeaders(),
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      return [];
+    }
   }
 
   static async getFlashcards(lessonId: string): Promise<Flashcard[]> {
-    return this.makeRequest<Flashcard[]>(`${API_URL}/lessons/${lessonId}/flashcards`, 'get');
+    try {
+      const response = await axios.get(`${API_URL}/lessons/${lessonId}/flashcards`, {
+        headers: this.getAuthHeaders(),
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      return [];
+    }
   }
 
   static async submitFlashcardAnswer(
     lessonId: string,
     answer: FlashcardAnswer
   ): Promise<FlashcardSubmissionResponse> {
-    return this.makeRequest<FlashcardSubmissionResponse>(
-      `${API_URL}/flashcards/${lessonId}/submit`,
-      'post',
-      answer
-    );
+    try {
+      const response = await axios.post(
+        `${API_URL}/flashcards/${lessonId}/submit`,
+        answer,
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      return { correct: false, progress: { completed: false, points: 0, total_points: 0 }, points_earned: 0 };
+    }
   }
 
-  static async getQuiz(levelId: string, lessonId: string): Promise<Quiz> {
-    return this.makeRequest<Quiz>(`${API_URL}/levels/${levelId}/lessons/${lessonId}/quiz`, 'get');
+  static async getQuiz(lessonId: string): Promise<Quiz> {
+    try {
+      const response = await axios.get(`${API_URL}/lessons/${lessonId}/quiz`, {
+        headers: this.getAuthHeaders(),
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      return { id: '', lesson_id: '', questions: [], total_questions: 0, passing_score: 0.8 };
+    }
   }
 
   static async submitQuiz(
     lessonId: string,
     submission: QuizSubmission
   ): Promise<QuizSubmissionResponse> {
-    return this.makeRequest<QuizSubmissionResponse>(
-      `${API_URL}/lessons/${lessonId}/quiz`,
-      'post',
-      submission
-    );
+    try {
+      const response = await axios.post(
+        `${API_URL}/lessons/${lessonId}/quiz`,
+        submission,
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      return { score: 0, correct_answers: 0, total_questions: 0, passed: false, points_earned: 0 };
+    }
   }
 
-  static async getLevelTest(levelId: string): Promise<LevelTest> {
-    return this.makeRequest<LevelTest>(`${API_URL}/levels/${levelId}/test`, 'get');
-  }
-
-  static async completeLesson(lessonId: string, is_completed: boolean = true): Promise<void> {
-    return this.makeRequest<void>(`${API_URL}/lessons/${lessonId}/progress`, 'post', {
-      is_completed,
-    });
-  }
-
-  static async checkLevelAccess(levelId: string): Promise<{
-    has_access: boolean;
-    requires_test: boolean;
-    redirect_url: string | null;
-    test_id: string | null;
-    error: string | null;
-  }> {
-    return this.makeRequest(`${API_URL}/levels/${levelId}/access`, 'get');
-  }
-
-  static async submitLevelTest(
-    levelId: string,
-    submission: TestSubmission
-  ): Promise<TestSubmissionResponse> {
-    return this.makeRequest<TestSubmissionResponse>(`${API_URL}/levels/${levelId}/test`, 'post', submission);
-  }
-
-  static async getLevelProgress(levelId: string): Promise<LevelProgress> {
-    return this.makeRequest<LevelProgress>(`${API_URL}/progress/${levelId}`, 'get');
-  }
-
-  static async getLesson(lessonId: string): Promise<Lesson> {
-    return this.makeRequest<Lesson>(`${API_URL}/lessons/${lessonId}`, 'get');
+  static async completeLesson(lessonId: string): Promise<void> {
+    try {
+      await axios.post(
+        `${API_URL}/lessons/${lessonId}/complete`,
+        {},
+        {
+          headers: this.getAuthHeaders(),
+        }
+      );
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 }
 

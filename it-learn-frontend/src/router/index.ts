@@ -84,12 +84,6 @@ const router = createRouter({
                   name: 'quiz',
                   component: () => import('../views/user/learning/QuizView.vue'),
                   props: true
-                },
-                {
-                  path: 'level/:levelId/test',
-                  name: 'level-test',
-                  component: () => import('../views/user/learning/LevelTestView.vue'),
-                  props: true
                 }
               ]
             }

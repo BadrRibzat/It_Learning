@@ -1,75 +1,24 @@
 <template>
-  <div 
-    class="flashcard-container"
-    :class="{ 'is-flipped': isFlipped }"
-  >
-    <!-- Front Side -->
-    <div 
-      class="flashcard-side front p-6"
-      @click="handleFlip"
-    >
-      <div class="h-full flex flex-col">
-        <div class="bg-gray-50 rounded-lg p-6 flex-grow">
-          <slot name="front"></slot>
-        </div>
-        <div class="mt-4 text-center text-gray-500">
-          <p>Click to flip card</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Back Side -->
-    <div class="flashcard-side back">
-      <div class="p-6 space-y-4">
-        <h3 class="text-lg font-semibold text-gray-900">
-          {{ flashcard.question }}
-        </h3>
-        
-        <div v-if="!hasSubmitted">
-          <input
-            v-model="userAnswer"
-            type="text"
-            class="w-full p-2 border border-gray-300 rounded-md"
-            placeholder="Type your answer..."
-            @keyup.enter="submitAnswer"
-          />
-
-          <button
-            @click="submitAnswer"
-            class="w-full mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-            :disabled="!userAnswer.trim()"
-          >
-            Submit Answer
-          </button>
-        </div>
-
-        <div v-else class="space-y-4">
-          <div :class="isCorrect ? 'text-green-600' : 'text-red-600'" class="text-center">
-            <p class="text-lg font-medium">
-              {{ isCorrect ? 'Correct!' : 'Incorrect!' }}
-            </p>
-            <p v-if="!isCorrect" class="mt-2 text-sm">
-              Correct answer: {{ flashcard.answer }}
-            </p>
-          </div>
-
-          <button
-            v-if="isCorrect"
-            @click="handleNext"
-            class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-          >
-            Next Card
-          </button>
-
-          <button
-            v-else
-            @click="tryAgain"
-            class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
+  <div class="flashcard-card bg-white p-6 rounded-lg shadow">
+    <h3 class="text-lg font-bold mb-4">{{ flashcard.command }}</h3>
+    <p class="text-gray-700">{{ flashcard.question }}</p>
+    <form @submit.prevent="handleSubmit">
+      <input
+        v-model="userAnswer"
+        type="text"
+        class="mt-4 px-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-600"
+        placeholder="Enter your answer"
+      />
+      <button
+        type="submit"
+        class="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 w-full"
+      >
+        Submit Answer
+      </button>
+    </form>
+    <div v-if="feedbackMessage" class="mt-4">
+      <p :class="isCorrect ? 'text-green-500' : 'text-red-500'">{{ feedbackMessage }}</p>
+      <p v-if="!isCorrect" class="text-gray-600">Correct answer: {{ flashcard.answer }}</p>
     </div>
   </div>
 </template>
@@ -80,84 +29,29 @@ import type { Flashcard } from '@/types/lessons';
 
 const props = defineProps<{
   flashcard: Flashcard;
-  showFeedback?: boolean;
 }>();
 
-const emit = defineEmits<{
-  (e: 'answer-submitted', answer: string): void;
-  (e: 'next'): void;
-}>();
+const emit = defineEmits(['submit-answer']);
 
-const isFlipped = ref(false);
 const userAnswer = ref('');
 const isCorrect = ref(false);
-const hasSubmitted = ref(false);
+const feedbackMessage = ref('');
 
-const handleFlip = () => {
-  if (!isFlipped.value) {
-    isFlipped.value = true;
-  }
-};
-
-const submitAnswer = () => {
-  if (!userAnswer.value.trim()) return;
+const handleSubmit = () => {
+  const correct = userAnswer.value.trim().toLowerCase() === props.flashcard.answer.toLowerCase();
+  isCorrect.value = correct;
+  feedbackMessage.value = correct ? 'Correct!' : 'Incorrect!';
   
-  hasSubmitted.value = true;
-  isCorrect.value = userAnswer.value.trim().toLowerCase() === props.flashcard.answer.toLowerCase();
-  emit('answer-submitted', userAnswer.value);
-};
-
-const handleNext = () => {
-  isFlipped.value = false;
-  hasSubmitted.value = false;
-  userAnswer.value = '';
-  emit('next');
-};
-
-const tryAgain = () => {
-  hasSubmitted.value = false;
-  userAnswer.value = '';
+  emit('submit-answer', {
+    flashcard_id: props.flashcard.id,
+    user_answer: userAnswer.value,
+    expected_answer: props.flashcard.answer,
+  });
 };
 </script>
 
 <style scoped>
-.flashcard-container {
-  perspective: 1000px;
-  height: 400px;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.6s;
-  background: transparent;
-}
-
-.flashcard-container.is-flipped {
-  transform: rotateY(180deg);
-}
-
-.flashcard-side {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: auto;
-}
-
-.front {
-  cursor: pointer;
-  background: white;
-  border: 1px solid #e5e7eb;
-}
-
-.back {
-  transform: rotateY(180deg);
-  background: white;
-  border: 1px solid #e5e7eb;
-}
-
-.flashcard-side .content {
-  padding: 1.5rem;
+.flashcard-card {
+  margin-bottom: 1rem;
 }
 </style>

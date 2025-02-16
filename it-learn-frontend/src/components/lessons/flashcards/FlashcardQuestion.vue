@@ -1,10 +1,7 @@
 <template>
   <div class="flashcard-question space-y-4">
     <div class="question-content">
-      <h3 class="text-lg font-semibold text-gray-900 mb-2">
-        {{ question }}
-      </h3>
-      
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ question }}</h3>
       <div class="answer-input space-y-2">
         <input
           v-model="localAnswer"
@@ -14,14 +11,10 @@
           :disabled="disabled"
           @keyup.enter="handleSubmit"
         />
-        
         <div v-if="showFeedback" class="feedback-message">
-          <p :class="feedbackClass" class="text-sm font-medium">
-            {{ feedbackMessage }}
-          </p>
+          <p :class="feedbackClass" class="text-sm font-medium">{{ feedbackMessage }}</p>
         </div>
       </div>
-
       <div class="mt-4 flex justify-center">
         <button
           v-if="!hasSubmitted"
@@ -65,7 +58,6 @@ const feedbackMessage = computed(() => {
 
 const handleSubmit = () => {
   if (!localAnswer.value || props.disabled) return;
-  
   hasSubmitted.value = true;
   emit('submit', localAnswer.value);
 };

@@ -1,7 +1,7 @@
 <template>
-  <div class="progress-bar w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+  <div class="progress-bar w-full bg-gray-200 rounded-full h-2.5">
     <div 
-      class="bg-primary-600 h-2.5 rounded-full" 
+      class="bg-primary-600 h-2.5 rounded-full"
       :style="{ width: `${percentage}%` }"
     ></div>
   </div>
@@ -13,14 +13,15 @@ import { computed } from 'vue';
 const props = defineProps<{
   value: number;
   max: number;
-  showPercentage?: boolean;
 }>();
 
-const percentage = computed(() => (props.value / props.max) * 100);
+const percentage = computed(() => {
+  return (props.value / props.max) * 100;
+});
 </script>
 
 <style scoped>
 .progress-bar {
-  position: relative;
+  overflow: hidden;
 }
 </style>

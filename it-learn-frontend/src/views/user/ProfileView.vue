@@ -93,8 +93,8 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-4 space-y-8">
-          <ProfileInfo 
-            :profile="profile?.profile_data"
+          <ProfileInfo
+            :profile="profile?.profile_data ?? null"
             :loading="updating"
             @update="handleProfileUpdate"
             @delete-account="handleDeleteAccount"
@@ -153,6 +153,13 @@
           <router-view></router-view>
         </div>
       </div>
+
+      <LearningDebugComponent
+        :level="{}"
+        :lessons="[]"
+        :storeState="{}"
+        :profile="profile"
+      />
 
       <ProfileSettingsModal
         v-if="showSettings"
@@ -224,6 +231,7 @@ import ProgressCircle from '@/components/profile/ProgressCircle.vue';
 import QuickStat from '@/components/profile/QuickStat.vue';
 import ProfileSettingsModal from '@/components/profile/ProfileSettingsModal.vue';
 import Avatar from '@/components/common/Avatar.vue';
+import LearningDebugComponent from '@/views/user/learning/LearningDebugComponent.vue';
 
 const router = useRouter();
 const toast = useToast();
