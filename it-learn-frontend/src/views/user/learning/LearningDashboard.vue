@@ -8,37 +8,33 @@
       <p class="text-red-600">{{ error }}</p>
       <button 
         @click="initializeDashboard" 
-        class="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md"
+        class="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
       >
         Retry
       </button>
     </div>
 
     <template v-else>
-      <!-- Current Level Progress -->
-        <div v-if="currentLevel" class="bg-white rounded-lg shadow p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-xl font-bold">Current Level: {{ currentLevel.name }}</h2>
-      <div class="text-sm text-gray-600">
-        {{ currentProgress.completed_lessons }}/{{ currentProgress.total_lessons }} Lessons
-        ({{ currentProgress.total_points }} points)
-      </div>
-    </div>
-    <ProgressBar
-      :value="currentProgress.completed_lessons"
-      :max="currentProgress.total_lessons"
-      class="mb-2"
-    />
-  </div>
+      <div class="max-w-3xl mx-auto">
+        <!-- Current Level -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Current Level: {{ currentLevel?.name }}
+          </h3>
+          <p class="text-gray-600">
+            Progress: {{ currentProgress.completed_lessons }}/{{ currentProgress.total_lessons }}
+          </p>
+          <ProgressBar :value="currentProgress.completed_lessons" :max="currentProgress.total_lessons" />
+        </div>
 
-      <!-- Available Levels -->
-      <div class="space-y-6">
-        <h2 class="text-xl font-bold">Available Levels</h2>
-        <LevelList
-          :levels="availableLevels"
-          :progress="levelProgressMap"
-          @select-level="handleLevelSelect"
-        />
+        <!-- Available Levels -->
+        <div class="level-list">
+          <LevelList
+            :levels="availableLevels"
+            :progress-map="levelProgressMap"
+            @select-level="handleLevelSelect"
+          />
+        </div>
       </div>
     </template>
 
@@ -91,37 +87,17 @@ const initializeDashboard = async () => {
   }
 };
 
-const continueCurrentLevel = () => {
-  if (currentLevel.value) {
-    const nextLesson = store.lessons.find(
-      (lesson) => !lesson.completed && lesson.progress.quiz_unlocked
-    );
-
-    if (nextLesson) {
-      router.push({
-        name: 'quiz',
-        params: { levelId: currentLevel.value.id, lessonId: nextLesson.id },
-      });
-    } else {
-      router.push({
-        name: 'level',
-        params: { levelId: currentLevel.value.id },
-      });
-    }
-  }
-};
-
 const handleLevelSelect = async (level: Level) => {
   try {
     if (level.name.toLowerCase() === 'beginner') {
-      // Direct access to beginner level
+      // Direct access to the beginner level
+      await store.getLessons(level.id);
       router.push({
         name: 'level',
         params: { levelId: level.id }
       });
       return;
     }
-
     const access = await store.checkLevelAccess(level.id);
     
     if (access.requires_test) {
@@ -135,10 +111,10 @@ const handleLevelSelect = async (level: Level) => {
         params: { levelId: level.id }
       });
     } else if (access.error) {
-      toast.error(access.error);
+      console.error(access.error);
     }
   } catch (error) {
-    toast.error('Failed to access level');
+    console.error('Failed to access level');
   }
 };
 
@@ -151,5 +127,6 @@ onMounted(() => {
 .learning-dashboard {
   max-width: 800px;
   margin: 0 auto;
+  padding: 1rem;
 }
 </style>

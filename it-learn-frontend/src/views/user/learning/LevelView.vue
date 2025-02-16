@@ -78,8 +78,10 @@ const initializeLevel = async () => {
   try {
     loading.value = true;
     error.value = null;
-    await store.getLessons(route.params['levelId'] as string);
-    await store.getLevelTest(route.params['levelId'] as string);
+    await store.getLessons(levelId.value);
+    if (levelId.value !== 'beginner') {
+      await store.getLevelTest(levelId.value);
+    }
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load level data';
   } finally {
@@ -103,19 +105,26 @@ const handleLessonSelect = (lesson: Lesson) => {
 const navigateToTest = () => {
   router.push({
     name: 'level-test',
-    params: { levelId: levelId.value },
+    params: { ['levelId']: levelId.value },
   });
   showLevelTest.value = false;
 };
 
 const handleLevelAccess = async () => {
+  if (levelId.value === 'beginner') {
+    await initializeLevel();
+    return;
+  }
+
   const access = await store.checkLevelAccess(levelId.value);
-  
+
   if (access.requires_test) {
     router.push({
       name: 'level-test',
-      params: { levelId: levelId.value }
+      params: { ['levelId']: levelId.value }
     });
+  } else {
+    await initializeLevel();
   }
 };
 

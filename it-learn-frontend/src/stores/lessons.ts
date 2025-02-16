@@ -11,6 +11,7 @@ import type {
 } from '../types/lessons';
 import { useProfileStore } from '../stores/profile';
 import router from '../router';
+import type { LevelAccess } from '@/types/lessons';
 
 export const useLessonsStore = defineStore('lessons', {
   state: () => ({
@@ -36,6 +37,16 @@ export const useLessonsStore = defineStore('lessons', {
   }),
 
   actions: {
+    handleError(error: unknown) {
+      this.loading = false;
+      if (error instanceof Error) {
+        this.error = error.message;
+      } else {
+        this.error = 'An unexpected error occurred.';
+      }
+      console.error(error);
+    },
+
     async getLevels(): Promise<void> {
       this.loading = true;
       try {
@@ -46,6 +57,9 @@ export const useLessonsStore = defineStore('lessons', {
         this.levels.forEach(level => {
           level.is_unlocked = true;
         });
+
+        // Fetch level progress for all levels
+        await Promise.all(this.levels.map(level => this.getLevelProgress(level.id)));
       } catch (error: unknown) {
         this.handleError(error);
       } finally {
@@ -57,7 +71,7 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         await LessonService.completeLesson(lessonId);
         
-        await ProgressTracker.updateProgress('lesson', {
+        await this.updateProgress('lesson', {
           completed: true,
           points: 10
         });
@@ -82,7 +96,7 @@ export const useLessonsStore = defineStore('lessons', {
       try {
         const response = await LessonService.submitLevelTest(levelId, submission);
         
-        await ProgressTracker.updateProgress('level_test', {
+        await this.updateProgress('level_test', {
           submitted: true,
           score: response.score,
           passed: response.score >= 80,
@@ -158,6 +172,45 @@ export const useLessonsStore = defineStore('lessons', {
         return null;
       } finally {
         this.loading = false;
+      }
+    },
+
+    async updateProgress(type: 'lesson' | 'level_test', payload: any): Promise<void> {
+      const profileStore = useProfileStore();
+      if (type === 'lesson') {
+        profileStore.updatePoints(payload.points);
+      } else if (type === 'level_test') {
+        profileStore.updatePoints(payload.points_earned);
+      }
+    },
+
+    async getLevelTest(levelId: string): Promise<void> {
+      this.loading = true;
+      try {
+        const levelTest = await LessonService.getLevelTest(levelId);
+        this.levelTest = levelTest;
+      } catch (error: unknown) {
+        this.handleError(error);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async advanceToNextLevel(levelId: string): Promise<void> {
+      try {
+        // Advance to the next level
+        console.log('Advancing to next level', levelId);
+      } catch (error) {
+        this.handleError(error);
+      }
+    },
+
+    async saveLevelTestProgress(levelId: string, progress: any): Promise<void> {
+      try {
+        // Save level test progress
+        console.log('Saving level test progress', levelId, progress);
+      } catch (error) {
+        this.handleError(error);
       }
     },
 

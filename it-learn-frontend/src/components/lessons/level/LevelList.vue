@@ -4,13 +4,14 @@
       v-for="level in levels"
       :key="level.id"
       :level="level"
-      :progress="progress[level.id]"
-      @select="selectLevel"
+      :progress="progress?.[level.id]"
+      @select="handleLevelSelect(level)"
     />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import LevelCard from './LevelCard.vue';
 import type { Level, LevelProgress } from '@/types/lessons';
 
@@ -23,7 +24,27 @@ const emit = defineEmits<{
   (e: 'select-level', level: Level): void;
 }>();
 
-const selectLevel = (level: Level) => {
+const handleLevelSelect = (level: Level) => {
   emit('select-level', level);
 };
 </script>
+
+<style scoped>
+.level-list {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .level-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .level-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+</style>

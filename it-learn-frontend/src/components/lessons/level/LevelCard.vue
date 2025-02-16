@@ -83,20 +83,28 @@ const buttonText = computed(() => {
 });
 
 const handleLevelSelect = async () => {
-  const access = await store.checkLevelAccess(props.level.id);
-  
-  if (access.requires_test) {
-    // Redirect to test if not submitted or score < 80%
-    router.push({
-      name: 'level-test',
-      params: { levelId: props.level.id }
-    });
-  } else {
-    // Otherwise go to level content
+  if (props.level.name.toLowerCase() === 'beginner') {
+    // Fetch lessons directly for beginner level
     router.push({
       name: 'level',
       params: { levelId: props.level.id }
     });
+  } else {
+    const access = await store.checkLevelAccess(props.level.id);
+
+    if (access.requires_test) {
+      // Redirect to test if not submitted or score < 80%
+      router.push({
+        name: 'level-test',
+        params: { levelId: props.level.id }
+      });
+    } else {
+      // Otherwise go to level content
+      router.push({
+        name: 'level',
+        params: { levelId: props.level.id }
+      });
+    }
   }
 };
 </script>

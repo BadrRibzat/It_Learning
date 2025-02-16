@@ -30,9 +30,11 @@ class LessonService {
 
   private static getErrorType(error: unknown): string {
     if (isAxiosError(error)) {
-      return 'apiError';
-    } else if (isAxiosError(error) && !error.response) {
-      return 'networkError';
+      if (!error.response) {
+        return 'networkError';
+      } else {
+        return 'apiError';
+      }
     } else if (error instanceof Error) {
       return 'genericError';
     } else {

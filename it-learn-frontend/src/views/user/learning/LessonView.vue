@@ -125,6 +125,15 @@ const initializeLesson = async () => {
   try {
     loading.value = true;
     error.value = null;
+
+    if (levelId.value !== 'beginner') {
+      const userProgress = await store.getUserProgress(levelId.value);
+      if (!userProgress || userProgress.score < 80) {
+        router.push({ name: 'level-test', params: { levelId: levelId.value } });
+        return;
+      }
+    }
+
     await store.getLessons(levelId.value);
     const lesson = store.lessons.find(l => l.id === lessonId.value);
 

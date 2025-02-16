@@ -15,76 +15,88 @@
     </div>
 
     <template v-else>
-      <!-- Test Header -->
-      <div v-if="!showResults" class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h2 class="text-xl font-bold text-gray-900">
-              Level {{ currentLevel?.order }} Test
-            </h2>
-            <p class="text-gray-600 mt-1">
-              Pass this test to advance to the next level
-            </p>
+      <div v-if="levelTest">
+        <!-- Test Header -->
+        <div v-if="!showResults" class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-xl font-bold text-gray-900">
+                Level {{ currentLevel?.order }} Test
+              </h2>
+              <p class="text-gray-600 mt-1">
+                Pass this test to advance to the next level
+              </p>
+            </div>
+            <LearningTimer
+              :total-time="timeSpent"
+              @time-update="handleTimeUpdate"
+            />
           </div>
-          <LearningTimer
-            :total-time="timeSpent"
-            @time-update="handleTimeUpdate"
-          />
-        </div>
 
-        <div class="grid grid-cols-3 gap-4 mb-6">
-          <QuickStat
-            title="Questions Completed"
-            label="Questions"
+          <button
+            @click="startTest"
+            class="w-full px-4 py-2 text-sm font-medium rounded-md transition-colors bg-primary-600 text-white hover:bg-primary-700"
+          >
+            Start Test
+          </button>
+
+          <div class="grid grid-cols-3 gap-4 mb-6">
+            <QuickStat
+              title="Questions Completed"
+              label="Questions"
+              :value="currentQuestionIndex + 1"
+              :total="totalQuestions"
+              icon="ClipboardListIcon"
+            />
+            <QuickStat
+              title="Time Spent"
+              label="Time"
+              :value="timeSpent"
+              suffix="s"
+              icon="ClockIcon"
+            />
+            <QuickStat
+              title="Score"
+              label="Current Score"
+              :value="currentScore"
+              suffix="%"
+              icon="ChartBarIcon"
+            />
+          </div>
+
+          <ProgressBar
             :value="currentQuestionIndex + 1"
-            :total="totalQuestions"
-            icon="ClipboardListIcon"
-          />
-          <QuickStat
-            title="Time Spent"
-            label="Time"
-            :value="timeSpent"
-            suffix="s"
-            icon="ClockIcon"
-          />
-          <QuickStat
-            title="Score"
-            label="Current Score"
-            :value="currentScore"
-            suffix="%"
-            icon="ChartBarIcon"
+            :max="totalQuestions"
+            :show-percentage="true"
           />
         </div>
 
-        <ProgressBar
-          :value="currentQuestionIndex + 1"
-          :max="totalQuestions"
-          :show-percentage="true"
+        <!-- Test Question -->
+        <div v-if="!showResults && currentQuestion">
+          <LevelTestQuestion
+            :question="currentQuestion"
+            :order="currentQuestionIndex + 1"
+            :total="totalQuestions"
+            :time-limit="questionTimeLimit"
+            @submit="handleAnswerSubmit"
+            @next="handleNext"
+            @timeout="handleTimeout"
+          />
+        </div>
+
+        <!-- Test Results -->
+        <LevelTestResults
+          v-else-if="showResults"
+          :answers="userAnswers"
+          :total-time="timeSpent"
+          :passing-score="levelTest?.passing_score || 80"
+          :achievements="unlockedAchievements"
+          @continue="handleContinue"
         />
       </div>
-
-      <!-- Test Question -->
-      <div v-if="!showResults && currentQuestion">
-        <LevelTestQuestion
-          :question="currentQuestion"
-          :order="currentQuestionIndex + 1"
-          :total="totalQuestions"
-          :time-limit="questionTimeLimit"
-          @submit="handleAnswerSubmit"
-          @next="handleNext"
-          @timeout="handleTimeout"
-        />
+      <div v-else>
+        <p>This level does not have a test.</p>
       </div>
-
-      <!-- Test Results -->
-      <LevelTestResults
-        v-else-if="showResults"
-        :answers="userAnswers"
-        :total-time="timeSpent"
-        :passing-score="levelTest?.passing_score || 80"
-        :achievements="unlockedAchievements"
-        @continue="handleContinue"
-      />
     </template>
 
     <!-- Debug Information -->
@@ -104,12 +116,23 @@ import LevelTestQuestion from '@/components/lessons/level/LevelTestQuestion.vue'
 import LevelTestResults from '@/components/lessons/level/LevelTestResults.vue';
 import LearningTimer from '@/components/lessons/common/LearningTimer.vue';
 import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
+import QuickStat from '@/components/stats/StatCard.vue';
 import LearningDebugComponent from './LearningDebugComponent.vue';
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const store = useLessonsStore();
+
+const startTest = () => {
+  // Start the test
+  currentQuestionIndex.value = 0;
+  timeSpent.value = 0;
+  userAnswers.value = [];
+  showResults.value = false;
+  startTime.value = Date.now();
+};
+
 const loading = ref(true);
 const error = ref<string | null>(null);
 const startTime = ref(Date.now());
@@ -127,7 +150,7 @@ const showResults = ref(false);
 const questionTimeLimit = 90;
 
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
-const levelId = computed(() => route.params.levelId as string);
+const levelId = computed(() => route.params['levelId'] as string);
 const currentLevel = computed(() => store.currentLevel);
 const levelTest = computed(() => store.levelTest);
 const currentQuestion = computed(() =>
@@ -200,9 +223,15 @@ const initializeTest = async () => {
       store.getLevelTest(levelId.value)
     ]);
 
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to load level test';
-    toast.error('Failed to load level test');
+  } catch (err: any) {
+    if (err.message.includes('404')) {
+      error.value = 'Level test not found. Please contact your administrator.';
+    } else if (err.message.includes('403')) {
+      error.value = 'You do not have permission to access this level test.';
+    } else {
+      error.value = err instanceof Error ? err.message : 'Failed to load level test';
+    }
+    toast.error(error.value);
   } finally {
     loading.value = false;
   }
@@ -299,7 +328,14 @@ const handleContinue = async () => {
 };
 
 onMounted(() => {
-  initializeTest();
+  if (levelId.value === 'beginner') {
+    router.push({
+      name: 'level',
+      params: { levelId: levelId.value }
+    });
+  } else {
+    initializeTest();
+  }
 });
 
 onBeforeUnmount(() => {
