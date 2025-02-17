@@ -65,7 +65,7 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 
 const levelId = computed(() => (route.params as LevelRouteParams).levelId);
-const currentLevel = computed(() => store.currentLevel);
+const currentLevel = computed(() => store.levels.find(level => level.id === levelId.value));
 const lessons = computed(() => store.lessons);
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 
@@ -74,7 +74,6 @@ const initializeLevel = async () => {
     loading.value = true;
     error.value = null;
     await store.getLevels();
-    await store.getCurrentLevel(levelId.value);
     await store.getLessons(levelId.value);
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load level data';

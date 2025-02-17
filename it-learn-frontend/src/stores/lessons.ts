@@ -5,7 +5,6 @@ import { useProfileStore } from '../stores/profile';
 
 export const useLessonsStore = defineStore('lessons', {
   state: () => ({
-    currentLevel: null as Level | null,
     levels: [] as Level[],
     lessons: [] as Lesson[],
     currentLesson: null as Lesson | null,
@@ -67,23 +66,6 @@ export const useLessonsStore = defineStore('lessons', {
         this.flashcards = await LessonService.getFlashcards(lessonId);
       } catch (error) {
         this.handleError(error);
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async getCurrentLevel(): Promise<Level | null> {
-      this.loading = true;
-      try {
-        const currentLevel = await LessonService.getCurrentLevel();
-        if (currentLevel) {
-          this.currentLevel = currentLevel;
-          return currentLevel;
-        }
-        return null;
-      } catch (error) {
-        this.handleError(error);
-        return null;
       } finally {
         this.loading = false;
       }

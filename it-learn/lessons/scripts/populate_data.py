@@ -132,7 +132,6 @@ def populate_initial_data():
             "full_name": "Test User",
             "is_staff": False,
             "is_active": True,
-            "current_level": level_ids[0],  # Set default current level to beginner
             "total_points": 0,
             "created_at": datetime.utcnow()
         }
@@ -146,7 +145,6 @@ def populate_initial_data():
             "full_name": "Admin",
             "is_staff": True,
             "is_active": True,
-            "current_level": level_ids[0],  # Set default current level to beginner
             "created_at": datetime.utcnow()
         }
         if not db.users.find_one({"email": "admin@admin.com"}):

@@ -109,46 +109,6 @@ class LessonsByLevel(Resource):
             logger.error(f"Error fetching lessons: {str(e)}")
             raise AppError("Failed to fetch lessons", 500)
 
-@lessons_ns.route('/current-level')
-class CurrentLevel(Resource):
-    @jwt_required()
-    @lessons_ns.doc(
-        description="Fetch the current level for the authenticated user.",
-        responses={
-            200: "Current level fetched successfully",
-            401: "Authentication required",
-            404: "Current level not found",
-            500: "Server error"
-        }
-    )
-    @lessons_ns.marshal_with(level_card_model)
-    def get(self):
-        """Get the current level for the authenticated user."""
-        try:
-            user_id = get_jwt_identity()
-            level_service = LevelService()
-            current_level = level_service.get_current_level(user_id)
-
-            if not current_level:
-                raise AppError("Current level not found", 404)
-
-            return {
-                'id': str(current_level['_id']),
-                'name': current_level['name'],
-                'description': current_level.get('description', ''),
-                'lessons': [{
-                    'id': str(lesson['_id']),
-                    'title': lesson['title'],
-                    'description': lesson.get('description', '')
-                } for lesson in current_level.get('lessons', [])]
-            }, 200
-
-        except AppError as e:
-            raise e
-        except Exception as e:
-            logger.error(f"Error fetching current level: {str(e)}")
-            raise AppError("Failed to fetch current level", 500)
-
 @lessons_ns.route('/lessons/<lesson_id>/flashcards')
 class LessonFlashcards(Resource):
     @jwt_required()

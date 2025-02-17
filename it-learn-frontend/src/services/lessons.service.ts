@@ -59,18 +59,6 @@ class LessonService {
     }
   }
 
-  static async getCurrentLevel(): Promise<Level | null> {
-    try {
-      const response = await axios.get(`${API_URL}/current-level`, {
-        headers: this.getAuthHeaders(),
-      });
-      return response.data;
-    } catch (error) {
-      this.handleError(error);
-      return null;
-    }
-  }
-
   static async getFlashcards(lessonId: string): Promise<Flashcard[]> {
     try {
       const response = await axios.get(`${API_URL}/lessons/${lessonId}/flashcards`, {

@@ -20,13 +20,3 @@ class LevelService:
         if not level:
             return []
         return list(self.db.lessons.find({'level': ObjectId(level_id)}).sort('order', 1))
-    
-    def get_current_level(self, user_id: str):
-        """Get the current level for a user"""
-        user = self.db.users.find_one({'_id': ObjectId(user_id)})
-        if user and 'current_level' in user:
-            level = self.db.levels.find_one({'_id': ObjectId(user['current_level'])})
-            if level:
-                level['lessons'] = list(self.db.lessons.find({'level': ObjectId(level['_id'])}).sort('order', 1))
-                return level
-        return None
