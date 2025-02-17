@@ -16,8 +16,6 @@
 
     <template v-else>
       <div class="max-w-3xl mx-auto">
-
-
         <!-- Current Flashcard -->
         <div class="flashcard-container bg-white rounded-lg shadow-lg">
           <FlashcardCard
@@ -65,24 +63,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useLessonsStore } from "@/stores/lessons";
 import { useToast } from "vue-toastification";
-import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
-
 import LoadingSpinner from "@/components/common/LoadingSpinner.vue";
 import FlashcardCard from "@/components/lessons/flashcards/FlashcardCard.vue";
-import ProgressBar from "@/components/lessons/common/ProgressBar.vue";
 import CommandExample from "@/components/lessons/common/CommandExample.vue";
-import LearningTimer from "@/components/lessons/common/LearningTimer.vue";
 import LearningDebugComponent from './LearningDebugComponent.vue';
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
-const lessonsStore = useLessonsStore();
-const isDevelopment = computed(() => import.meta.env.MODE === 'development');
+const store = useLessonsStore();
 
 // State
 const loading = ref(true);
@@ -92,17 +85,16 @@ const currentIndex = ref(0);
 // Computed
 const levelId = computed(() => route.params['levelId'] as string);
 const lessonId = computed(() => route.params['lessonId'] as string);
-const currentFlashcard = computed(() => lessonsStore.flashcards[currentIndex.value]);
-const totalFlashcards = computed(() => lessonsStore.flashcards.length);
+const currentFlashcard = computed(() => store.flashcards[currentIndex.value]);
+const totalFlashcards = computed(() => store.flashcards.length);
+
+const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 
 const initializeFlashcards = async () => {
   try {
     loading.value = true;
     error.value = null;
-    // Load flashcards directly without store method
-    const response = await fetch(`/api/lessons/${lessonId.value}/flashcards`);
-    if (!response.ok) throw new Error('Failed to fetch flashcards');
-    lessonsStore.flashcards = await response.json();
+    await store.getFlashcards(lessonId.value);
   } catch (err) {
     error.value = err instanceof Error ? `Error: ${err.message}` : 'Failed to load flashcards. Please try again later.';
     toast.error(error.value);
@@ -141,10 +133,7 @@ const handleNext = () => {
 
 const goToQuiz = async () => {
   try {
-    // Load quiz directly without store method
-    const response = await fetch(`/api/levels/${levelId.value}/lessons/${lessonId.value}/quiz`);
-    if (!response.ok) throw new Error('Failed to fetch quiz');
-    lessonsStore.currentQuiz = await response.json();
+    await store.getQuiz(lessonId.value);
     router.push({
       name: 'quiz',
       params: { levelId: levelId.value, lessonId: lessonId.value }
@@ -154,25 +143,21 @@ const goToQuiz = async () => {
   }
 };
 
-
-// Debug data
 const debugData = computed(() => ({
   levelId: levelId.value,
   lessonId: lessonId.value,
   currentFlashcard: currentFlashcard.value,
   currentIndex: currentIndex.value,
   storeState: {
-    loading: lessonsStore.loading,
-    error: lessonsStore.error,
-    flashcardsCount: lessonsStore.flashcards.length
+    loading: store.loading,
+    error: store.error,
+    flashcardsCount: store.flashcards.length
   }
 }));
 
-// Lifecycle hooks
 onMounted(() => {
   initializeFlashcards();
 });
-
 </script>
 
 <style scoped>

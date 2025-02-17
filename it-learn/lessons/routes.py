@@ -141,6 +141,7 @@ class LessonFlashcards(Resource):
                 'command': f['command'],
                 'explanation': f['explanation'],
                 'example': f['example'],
+                'formatted_example': f.get('formatted_example', ''),
                 'question': f['question'],
                 'answer': f['answer'],
                 'order': f['order']

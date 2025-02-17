@@ -1,4 +1,4 @@
-import axios, { AxiosError, isAxiosError } from 'axios';
+import axiosInstance, { AxiosError } from '@/utils/axios';
 import type {
   Level,
   Lesson,
@@ -11,21 +11,11 @@ import type {
 } from '@/types/lessons';
 import { notifyError } from '@/utils/notifications';
 
-const API_URL = `${import.meta.env['VITE_APP_API_URL']}/lessons`;
+const API_URL = '/lessons';
 
 class LessonService {
-  private static getAuthHeaders(): Record<string, string> {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      throw new Error('No access token found');
-    }
-    return {
-      Authorization: `Bearer ${token}`,
-    };
-  }
-
   private static handleError(error: unknown): void {
-    if (isAxiosError(error)) {
+    if (error instanceof AxiosError) {
       notifyError(`API error: ${error.response?.data?.message || error.message}`);
     } else if (error instanceof Error) {
       notifyError(`Error: ${error.message}`);
@@ -37,9 +27,7 @@ class LessonService {
 
   static async getLevels(): Promise<Level[]> {
     try {
-      const response = await axios.get(`${API_URL}/levels`, {
-        headers: this.getAuthHeaders(),
-      });
+      const response = await axiosInstance.get(`${API_URL}/levels`);
       return response.data;
     } catch (error) {
       this.handleError(error);
@@ -49,9 +37,7 @@ class LessonService {
 
   static async getLessons(levelId: string): Promise<Lesson[]> {
     try {
-      const response = await axios.get(`${API_URL}/levels/${levelId}/lessons`, {
-        headers: this.getAuthHeaders(),
-      });
+      const response = await axiosInstance.get(`${API_URL}/levels/${levelId}/lessons`);
       return response.data;
     } catch (error) {
       this.handleError(error);
@@ -61,9 +47,7 @@ class LessonService {
 
   static async getFlashcards(lessonId: string): Promise<Flashcard[]> {
     try {
-      const response = await axios.get(`${API_URL}/${lessonId}/flashcards`, {
-        headers: this.getAuthHeaders(),
-      });
+      const response = await axiosInstance.get(`${API_URL}/lessons/${lessonId}/flashcards`);
       return response.data;
     } catch (error) {
       this.handleError(error);
@@ -76,12 +60,9 @@ class LessonService {
     answer: FlashcardAnswer
   ): Promise<FlashcardSubmissionResponse> {
     try {
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         `${API_URL}/flashcards/${lessonId}/submit`,
-        answer,
-        {
-          headers: this.getAuthHeaders(),
-        }
+        answer
       );
       return response.data;
     } catch (error) {
@@ -92,9 +73,7 @@ class LessonService {
 
   static async getQuiz(lessonId: string): Promise<Quiz> {
     try {
-      const response = await axios.get(`${API_URL}/lessons/${lessonId}/quiz`, {
-        headers: this.getAuthHeaders(),
-      });
+      const response = await axiosInstance.get(`${API_URL}/lessons/${lessonId}/quiz`);
       return response.data;
     } catch (error) {
       this.handleError(error);
@@ -107,12 +86,9 @@ class LessonService {
     submission: QuizSubmission
   ): Promise<QuizSubmissionResponse> {
     try {
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         `${API_URL}/lessons/${lessonId}/quiz`,
-        submission,
-        {
-          headers: this.getAuthHeaders(),
-        }
+        submission
       );
       return response.data;
     } catch (error) {
@@ -123,13 +99,7 @@ class LessonService {
 
   static async completeLesson(lessonId: string): Promise<void> {
     try {
-      await axios.post(
-        `${API_URL}/lessons/${lessonId}/complete`,
-        {},
-        {
-          headers: this.getAuthHeaders(),
-        }
-      );
+      await axiosInstance.post(`${API_URL}/lessons/${lessonId}/complete`);
     } catch (error) {
       this.handleError(error);
     }
