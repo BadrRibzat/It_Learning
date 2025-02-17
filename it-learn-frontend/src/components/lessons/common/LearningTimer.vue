@@ -1,7 +1,7 @@
 <template>
   <div class="learning-timer">
     <div class="flex items-center space-x-2 text-sm text-gray-600">
-      <ClockIcon class="w-5 h-5" />
+      <ArrowPathIcon class="w-5 h-5" />
       <span>Time Remaining: {{ formattedTimeRemaining }}</span>
     </div>
   </div>
@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, defineEmits } from 'vue';
-import ClockIcon from '@heroicons/vue/24/outline/ClockIcon.vue';
+import ArrowPathIcon from '@heroicons/vue/24/outline/ArrowPathIcon.vue';
 
 const props = defineProps<{
   totalTime: number; // Total time in seconds

@@ -49,7 +49,11 @@ export const useLessonsStore = defineStore('lessons', {
     async getLessons(levelId: string): Promise<void> {
       this.loading = true;
       try {
-        this.lessons = await LessonService.getLessons(levelId);
+        const lessons = await LessonService.getLessons(levelId);
+        this.lessons = lessons.map(lesson => ({
+          ...lesson,
+          progress: lesson.progress || { completed: false, points: 0, total_points: 0 }
+        }));
       } catch (error) {
         this.handleError(error);
       } finally {
@@ -71,10 +75,10 @@ export const useLessonsStore = defineStore('lessons', {
     async getCurrentLevel(): Promise<Level | null> {
       this.loading = true;
       try {
-        const beginnerLevel = this.levels.find((level) => level.order === 1);
-        if (beginnerLevel) {
-          this.currentLevel = beginnerLevel;
-          return beginnerLevel;
+        const currentLevel = await LessonService.getCurrentLevel();
+        if (currentLevel) {
+          this.currentLevel = currentLevel;
+          return currentLevel;
         }
         return null;
       } catch (error) {

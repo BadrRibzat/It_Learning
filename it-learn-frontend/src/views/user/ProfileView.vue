@@ -21,7 +21,7 @@
             <div class="relative group">
               <div class="profile-picture-container">
                 <Avatar
-                  :src="profile?.profile_data?.profile_picture"
+                  :src="profile?.profile_data?.profile_picture ?? null"
                   :name="profile?.profile_data?.full_name || 'User'"
                   size="xl"
                   class="mb-4"
@@ -155,10 +155,15 @@
       </div>
 
       <LearningDebugComponent
-        :level="{}"
-        :lessons="[]"
-        :storeState="{}"
-        :profile="profile"
+        :debugData="{
+          level: profile?.current_level || {},
+          lessons: profile?.lessons || [],
+          storeState: {
+            profile: profileStore.$state,
+            auth: authStore.$state
+          },
+          profile: profile,
+        }"
       />
 
       <ProfileSettingsModal
@@ -278,7 +283,9 @@ const loadProfile = async () => {
     loading.value = true;
     error.value = null;
     await profileStore.fetchProfile();
-    profile.value = profileStore.profile;
+    if (profileStore.profile) {
+      profile.value = profileStore.profile; // Access profile from the store
+    }
     if (profile.value?.current_level?.animations?.celebration) {
       showCelebration.value = true;
     }

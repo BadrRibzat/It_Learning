@@ -7,15 +7,17 @@
       <span v-if="progress.completed" class="text-green-500 font-medium">Completed (+10 points)</span>
       <span v-else class="text-gray-500 font-medium">Not completed</span>
 
-      <button 
+      <button
         class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-        :disabled="progress.completed"
+        @click.stop="$emit('start-lesson', lesson)"
+        :disabled="!progress.completed"
       >
         {{ progress.completed ? 'View Quiz' : 'Start Lesson' }}
       </button>
     </div>
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { defineProps, defineEmits, computed } from 'vue';
@@ -30,7 +32,9 @@ const props = defineProps<{
   };
 }>();
 
-const emit = defineEmits(['select-lesson']);
+console.log('LessonCard props:', props);
+
+const emit = defineEmits(['select-lesson', 'start-lesson']);
 </script>
 
 <style scoped>

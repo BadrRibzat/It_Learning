@@ -14,12 +14,12 @@
       </button>
     </div>
 
-    <template v-else>
+    <div v-else>
       <div class="max-w-3xl mx-auto">
         <!-- Current Level -->
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h3 class="text-lg font-semibold text-gray-900">
-            Current Level: {{ currentLevel?.name }}
+            Current Level: {{ store.currentLevel?.name }}
           </h3>
           <p class="text-gray-600">
             Progress: {{ currentProgress.completed_lessons }}/{{ currentProgress.total_lessons }}
@@ -36,11 +36,11 @@
           />
         </div>
       </div>
-    </template>
-
-    <!-- Debug Information -->
-    <div v-if="isDevelopment" class="mt-8">
-      <LearningDebugComponent :debug-data="debugData" />
+      
+      <!-- Debug Information -->
+      <div v-if="isDevelopment" class="mt-8">
+        <LearningDebugComponent :debug-data="debugData" />
+      </div>
     </div>
   </div>
 </template>
@@ -49,6 +49,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useLessonsStore } from '@/stores/lessons';
+import type { Level } from '@/types/lessons';
 import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
 import LevelList from '@/components/lessons/level/LevelList.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
@@ -61,22 +62,19 @@ const error = ref<string | null>(null);
 
 const availableLevels = computed(() => store.levels);
 const levelProgressMap = computed(() => store.levelProgressMap);
-const currentProgress = computed(() => store.levelProgress || {
+const currentProgress = computed(() => store.levelProgressMap[store.currentLevel?.id || ''] || {
   completed_lessons: 0,
   total_lessons: 0,
 });
 
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
-const debugData = computed(() => ({
-  availableLevels: availableLevels.value,
-  levelProgress: currentProgress.value,
-}));
 
 const initializeDashboard = async () => {
   try {
     loading.value = true;
     error.value = null;
     await store.getLevels();
+    await store.getCurrentLevel();
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load dashboard';
   } finally {
@@ -103,6 +101,16 @@ const handleLevelSelect = async (level: Level) => {
     console.error('Failed to access level');
   }
 };
+
+const debugData = computed(() => ({
+  availableLevels: availableLevels.value,
+  levelProgressMap: levelProgressMap.value,
+  currentProgress: currentProgress.value,
+  storeState: {
+    loading: store.loading,
+    error: store.error
+  }
+}));
 
 onMounted(() => {
   initializeDashboard();
