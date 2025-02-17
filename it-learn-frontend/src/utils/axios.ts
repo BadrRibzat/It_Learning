@@ -27,12 +27,32 @@ instance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
 instance.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const config = error.config;
+
+    if (!config || !config.retry) {
+      config.retry = 0;
+    }
+
     if (error.response?.status === 431) {
       console.error('Request header fields too large:', error);
     }
+
+    if (config.retry < MAX_RETRIES) {
+      config.retry += 1;
+
+      // Delay before retry
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+
+      // Retry the request
+      return instance(config);
+    }
+
     return Promise.reject(error);
   }
 );

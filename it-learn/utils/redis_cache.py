@@ -96,6 +96,6 @@ def redis_healthcheck():
     if not client:
         return False
     try:
-        return client.ping()
+        return client.ping(password=config.REDIS_PASSWORD)
     except:
         return False
