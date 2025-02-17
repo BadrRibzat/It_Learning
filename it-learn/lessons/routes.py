@@ -15,6 +15,7 @@ flashcard_model = lessons_ns.model('Flashcard', {
     'command': fields.String(required=True, description='Command name or syntax'),
     'explanation': fields.String(description='Detailed explanation of the command'),
     'example': fields.String(description='Practical usage example'),
+    'formatted_example': fields.String(description='Formatted usage example'),
     'question': fields.String(description='Practice question about the command'),
     'answer': fields.String(description='Correct answer for the question'),
     'order': fields.Integer(description='Display order within lesson')

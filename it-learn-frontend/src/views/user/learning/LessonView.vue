@@ -90,6 +90,8 @@ import { useToast } from 'vue-toastification';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LessonHeader from '@/components/lessons/common/LessonHeader.vue';
 import LessonContent from '@/components/lessons/common/LessonContent.vue';
+import QuickStat from '@/components/lessons/common/QuickStat.vue';
+import ProgressBar from '@/components/lessons/common/ProgressBar.vue';
 import LearningDebugComponent from './LearningDebugComponent.vue';
 
 const router = useRouter();
@@ -126,14 +128,6 @@ const initializeLesson = async () => {
     loading.value = true;
     error.value = null;
 
-    if (levelId.value !== 'beginner') {
-      const userProgress = await store.getUserProgress(levelId.value);
-      if (!userProgress || userProgress.score < 80) {
-        router.push({ name: 'level-test', params: { levelId: levelId.value } });
-        return;
-      }
-    }
-
     await store.getLessons(levelId.value);
     const lesson = store.lessons.find(l => l.id === lessonId.value);
 
@@ -141,7 +135,7 @@ const initializeLesson = async () => {
       throw new Error('Lesson not found');
     }
 
-    await store.setCurrentLesson(lesson);
+    store.currentLesson = lesson;
     currentStep.value = lesson.progress.completed_flashcards + 1;
 
   } catch (err) {

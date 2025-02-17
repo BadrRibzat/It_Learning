@@ -1,7 +1,9 @@
 <template>
-  <div class="lesson-card bg-white p-6 rounded-lg shadow" @click="$emit('select-lesson', lesson)">
-    <h3 class="text-xl font-bold mb-4">{{ lesson.title }}</h3>
-    <p class="text-gray-600">{{ lesson.description }}</p>
+  <div class="lesson-card bg-white p-6 rounded-lg shadow">
+    <div class="lesson-card-content" @click="$emit('select-lesson', lesson)">
+      <h3 class="text-xl font-bold mb-4">{{ lesson.title }}</h3>
+      <p class="text-gray-600">{{ lesson.description }}</p>
+    </div>
 
     <div class="mt-4 flex justify-between items-center">
       <span v-if="progress.completed" class="text-green-500 font-medium">Completed (+10 points)</span>
@@ -18,9 +20,8 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
-import { defineProps, defineEmits, computed } from 'vue';
+import { defineProps, defineEmits } from 'vue';
 import type { Lesson } from '@/types/lessons';
 
 const props = defineProps<{
@@ -39,11 +40,14 @@ const emit = defineEmits(['select-lesson', 'start-lesson']);
 
 <style scoped>
 .lesson-card {
-  cursor: pointer;
   transition: transform 0.2s ease-in-out;
 }
 
 .lesson-card:hover {
   transform: scale(1.05);
+}
+
+.lesson-card-content {
+  cursor: pointer;
 }
 </style>

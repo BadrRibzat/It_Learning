@@ -53,6 +53,7 @@ import type { RouteParams } from 'vue-router';
 import LessonCard from '@/components/lessons/level/LessonCard.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LearningDebugComponent from './LearningDebugComponent.vue';
+import { notifyError } from '@/utils/notifications';
 
 interface LevelRouteParams extends RouteParams {
   levelId: string;
@@ -94,12 +95,14 @@ const handleStartLesson = async (lesson: Lesson) => {
   try {
     console.log('Fetching flashcards for lesson:', lesson.id);
     await store.getFlashcards(lesson.id);
+    console.log('Flashcards data:', store.flashcards); // Add this line
     router.push({
       name: 'flashcards',
       params: { levelId: levelId.value, lessonId: lesson.id },
     });
   } catch (error) {
     console.error('Failed to fetch flashcards:', error);
+    notifyError('Failed to fetch flashcards. Please try again.');
   }
 };
 

@@ -30,6 +30,7 @@ export interface Flashcard {
   question: string;
   answer: string;
   order: number;
+  formatted_example?: string;
 }
 
 export interface Quiz {

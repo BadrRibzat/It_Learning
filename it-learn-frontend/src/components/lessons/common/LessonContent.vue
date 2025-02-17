@@ -47,10 +47,9 @@ import { computed } from 'vue';
 const props = defineProps<{
   currentStep: number;
   totalSteps: number;
-  content: any;
 }>();
 
-const emit = defineEmits(['previous', 'next']);
+const emit = defineEmits(['previous', 'next', 'go-to-quiz']);
 
 const progressPercentage = computed(() => {
   return Math.round((props.currentStep / props.totalSteps) * 100);

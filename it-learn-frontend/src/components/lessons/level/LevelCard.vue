@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, computed } from 'vue';
+import { defineProps, defineEmits } from 'vue';
 import type { Level, LevelProgress } from '@/types/lessons';
 
 const props = defineProps<{

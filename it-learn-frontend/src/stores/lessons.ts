@@ -53,6 +53,7 @@ export const useLessonsStore = defineStore('lessons', {
           ...lesson,
           progress: lesson.progress || { completed: false, points: 0, total_points: 0 }
         }));
+        console.log('Lessons data:', lessons); // Add this line
       } catch (error) {
         this.handleError(error);
       } finally {
