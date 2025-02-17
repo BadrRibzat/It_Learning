@@ -1,10 +1,8 @@
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from bson import ObjectId
-from services.progress_service import ProgressService
 from services.level_service import LevelService
 from utils.exceptions import AppError
-from utils.db import get_db
 import logging
 
 logger = logging.getLogger(__name__)

@@ -5,12 +5,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 import random
 from datetime import datetime
-from pymongo import MongoClient
 import spacy
-from services.ml_service import MLContentService
 from werkzeug.security import generate_password_hash
 import logging
 from config import config
+from services.ml_service import MLContentService
 from utils.db import get_db
 
 # Configure logging
@@ -133,7 +132,7 @@ def populate_initial_data():
             "full_name": "Test User",
             "is_staff": False,
             "is_active": True,
-            "current_level": 1,
+            "current_level": level_ids[0],  # Set default current level to beginner
             "total_points": 0,
             "created_at": datetime.utcnow()
         }
@@ -147,6 +146,7 @@ def populate_initial_data():
             "full_name": "Admin",
             "is_staff": True,
             "is_active": True,
+            "current_level": level_ids[0],  # Set default current level to beginner
             "created_at": datetime.utcnow()
         }
         if not db.users.find_one({"email": "admin@admin.com"}):
@@ -158,7 +158,6 @@ def populate_initial_data():
     except Exception as e:
         logger.error(f"Error during data population: {str(e)}")
         raise
-
 
 def generate_wrong_answers(correct_answer: str) -> list:
     """Generates plausible wrong answers for a given correct answer."""
@@ -183,12 +182,10 @@ def generate_wrong_answers(correct_answer: str) -> list:
     random.shuffle(wrong_answers)
     return wrong_answers[:random.randint(3, 5)]
 
-
 def get_db():
     """Get database instance from utils.db."""
     from utils.db import get_db
     return get_db()
-
 
 if __name__ == "__main__":
     populate_initial_data()
