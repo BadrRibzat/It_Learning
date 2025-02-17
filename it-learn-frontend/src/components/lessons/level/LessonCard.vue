@@ -12,7 +12,7 @@
       <button
         class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
         @click.stop="$emit('start-lesson', lesson)"
-        :disabled="!progress.completed"
+        :disabled="progress.completed"
       >
         {{ progress.completed ? 'View Quiz' : 'Start Lesson' }}
       </button>

@@ -61,7 +61,7 @@ class LessonService {
 
   static async getFlashcards(lessonId: string): Promise<Flashcard[]> {
     try {
-      const response = await axios.get(`${API_URL}/lessons/${lessonId}/flashcards`, {
+      const response = await axios.get(`${API_URL}/${lessonId}/flashcards`, {
         headers: this.getAuthHeaders(),
       });
       return response.data;

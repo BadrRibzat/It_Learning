@@ -36,7 +36,7 @@
                 </p>
                 <CommandExample
                   :command="currentFlashcard.command"
-                  :output="currentFlashcard.formatted_example || ''"
+                  :output="currentFlashcard.formatted_example"
                   :description="currentFlashcard.example"
                   :can-copy="true"
                 />
@@ -99,7 +99,10 @@ const initializeFlashcards = async () => {
   try {
     loading.value = true;
     error.value = null;
-    await lessonsStore.getFlashcards(lessonId.value);
+    // Load flashcards directly without store method
+    const response = await fetch(`/api/lessons/${lessonId.value}/flashcards`);
+    if (!response.ok) throw new Error('Failed to fetch flashcards');
+    lessonsStore.flashcards = await response.json();
   } catch (err) {
     error.value = err instanceof Error ? `Error: ${err.message}` : 'Failed to load flashcards. Please try again later.';
     toast.error(error.value);

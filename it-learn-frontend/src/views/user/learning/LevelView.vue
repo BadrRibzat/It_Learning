@@ -31,7 +31,7 @@
           :key="lesson.id"
           :lesson="lesson"
           :progress="lesson.progress || { completed: false, points: 0, total_points: 0 }"
-          @select-lesson="handleLessonSelect"
+          @select="handleLessonSelect"
           @start-lesson="handleStartLesson"
         />
       </div>
@@ -53,7 +53,6 @@ import type { RouteParams } from 'vue-router';
 import LessonCard from '@/components/lessons/level/LessonCard.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import LearningDebugComponent from './LearningDebugComponent.vue';
-import { notifyError } from '@/utils/notifications';
 
 interface LevelRouteParams extends RouteParams {
   levelId: string;
@@ -66,7 +65,7 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 
 const levelId = computed(() => (route.params as LevelRouteParams).levelId);
-const currentLevel = computed(() => store.levels.find(level => level.id === levelId.value));
+const currentLevel = computed(() => store.currentLevel);
 const lessons = computed(() => store.lessons);
 const isDevelopment = computed(() => import.meta.env.MODE === 'development');
 
@@ -74,7 +73,6 @@ const initializeLevel = async () => {
   try {
     loading.value = true;
     error.value = null;
-    await store.getLevels();
     await store.getLessons(levelId.value);
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load level data';
@@ -95,14 +93,12 @@ const handleStartLesson = async (lesson: Lesson) => {
   try {
     console.log('Fetching flashcards for lesson:', lesson.id);
     await store.getFlashcards(lesson.id);
-    console.log('Flashcards data:', store.flashcards); // Add this line
     router.push({
       name: 'flashcards',
       params: { levelId: levelId.value, lessonId: lesson.id },
     });
   } catch (error) {
     console.error('Failed to fetch flashcards:', error);
-    notifyError('Failed to fetch flashcards. Please try again.');
   }
 };
 
