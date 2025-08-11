@@ -110,3 +110,4 @@ dist-ssr/
 uploads/profile_pictures/*
 !uploads/profile_pictures/.gitkeep
 !uploads/profile_pictures/test/
+.env
