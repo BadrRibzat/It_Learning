@@ -1,0 +1,33 @@
+/* src/index.css */
+:root {
+  --primary: #0A0F1A;
+  --secondary: #6B4E9A;
+  --accent: #00D4FF;
+  --neon: #FF00FF;
+  --text: #00D4FF;
+}
+
+body {
+  margin: 0;
+  font-family: 'Orbitron', 'Exo 2', sans-serif;
+  background: radial-gradient(circle at top, #0A0F1A, #1A1F2A);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.flashcard-container {
+  perspective: 1000px;
+  margin: 2rem;
+}
+
+.feature-card {
+  padding: 2rem;
+  background: rgba(10, 15, 26, 0.9);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 212, 255, 0.1), inset 0 0 15px rgba(255, 0, 255, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
