@@ -7,7 +7,17 @@ const Layout = () => {
   return (
     <>
       <Navbar />
-      <Outlet />  {/* This renders the matched route component */}
+      <main style={{
+        minHeight: 'calc(100vh - 140px)', // Full height minus navbar + footer
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        padding: '2rem 0',
+      }}>
+        <div className="container">
+          <Outlet />
+        </div>
+      </main>
       <Footer />
     </>
   );

@@ -1,0 +1,31 @@
+/* src/components/Flashcard/Flashcard.css */
+.flashcard {
+  background: var(--primary);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px var(--shadow);
+  padding: 1rem;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.flashcard-front, .flashcard-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+}
+
+.flashcard-front {
+  transform: rotateY(0deg);
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+}
+
+.hidden {
+  display: none;
+}

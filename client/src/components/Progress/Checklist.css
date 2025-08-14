@@ -1,0 +1,28 @@
+/* src/components/Progress/Checklist.css */
+.checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 1rem;
+}
+
+.check-item {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.passed {
+  background: #2ecc71;
+  color: white;
+}
+
+.failed {
+  background: #e74c3c;
+  color: white;
+}

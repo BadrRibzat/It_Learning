@@ -2,18 +2,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Canvas } from '@react-three/fiber'; // Removed unused useFrame
-import { useRef, Suspense } from 'react';
-
-const FormFrame = () => {
-  const meshRef = useRef();
-  return (
-    <mesh ref={meshRef} position={[0, 0, -1]}> {/* Move back to avoid overlap */}
-      <boxGeometry args={[4, 3, 0.1]} />
-      <meshStandardMaterial color="#2A2F4F" transparent opacity={0.3} /> {/* Lower opacity */}
-    </mesh>
-  );
-};
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -22,7 +10,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await login(email, password);
@@ -33,12 +21,8 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-container" style={{ position: 'relative', zIndex: 1 }}>
-      <Canvas style={{ position: 'absolute', height: '100%', width: '100%', zIndex: -1 }}>
-        <ambientLight />
-        <FormFrame />
-      </Canvas>
-      <div className="auth-form" style={{ position: 'relative', zIndex: 1 }}>
+    <div className="auth-container" style={{ padding: '4rem 1rem' }}>
+      <div className="auth-form">
         <h2>Login</h2>
         {error && <div className="error">{error}</div>}
         <form onSubmit={handleSubmit}>

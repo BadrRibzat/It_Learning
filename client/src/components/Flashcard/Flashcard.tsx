@@ -1,22 +1,24 @@
 // src/components/Flashcard/Flashcard.tsx
-import { Canvas useFrame } from '@react-three/fiber';
-import { useRef, Suspense } from 'react';
+import React, { useState } from 'react';
+import './Flashcard.css';
 
-const Flashcard = () => {
-  const meshRef = useRef();
+interface FlashcardProps {
+  question: string;
+  answer: string;
+}
+
+const Flashcard = ({ question, answer }: FlashcardProps) => {
   const [flipped, setFlipped] = useState(false);
 
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y = flipped ? Math.PI : 0;
-    }
-  });
-
   return (
-    <mesh ref={meshRef} onClick={() => setFlipped(!flipped)}>
-      <boxGeometry args={[2, 1, 0.1]} />
-      <meshStandardMaterial color="#E5BEEC" />
-    </mesh>
+    <div className="flashcard" onClick={() => setFlipped(!flipped)}>
+      <div className={`flashcard-front ${flipped ? 'hidden' : ''}`}>
+        <h3>{question}</h3>
+      </div>
+      <div className={`flashcard-back ${flipped ? '' : 'hidden'}`}>
+        <p>{answer}</p>
+      </div>
+    </div>
   );
 };
 

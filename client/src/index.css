@@ -1,33 +1,91 @@
 /* src/index.css */
 :root {
-  --primary: #0A0F1A;
-  --secondary: #6B4E9A;
-  --accent: #00D4FF;
-  --neon: #FF00FF;
-  --text: #00D4FF;
+  --primary: #ffffff; /* White */
+  --secondary: #f9f9f9; /* Light gray */
+  --accent: #6750a4; /* Purple accent */
+  --text: #2c3e50; /* Dark text */
+  --shadow: rgba(0, 0, 0, 0.1); /* Soft shadow */
 }
 
 body {
   margin: 0;
   font-family: 'Orbitron', 'Exo 2', sans-serif;
-  background: radial-gradient(circle at top, #0A0F1A, #1A1F2A);
+  background: var(--secondary);
   color: var(--text);
   line-height: 1.6;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.card {
+  background: var(--primary);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px var(--shadow);
+  padding: 2rem;
+  margin-bottom: 2rem;
 }
 
 .flashcard-container {
-  perspective: 1000px;
-  margin: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 2rem;
 }
 
-.feature-card {
-  padding: 2rem;
-  background: rgba(10, 15, 26, 0.9);
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 212, 255, 0.1), inset 0 0 15px rgba(255, 0, 255, 0.2);
+.flashcard {
+  background: var(--primary);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px var(--shadow);
   transition: transform 0.3s ease;
+  cursor: pointer;
 }
 
-.feature-card:hover {
+.flashcard:hover {
   transform: translateY(-5px);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar__inner {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.progress-bar__inner--correct {
+  background: #2ecc71; /* Green for correct answers */
+}
+
+.progress-bar__inner--incorrect {
+  background: #e74c3c; /* Red for incorrect answers */
+}
+
+.circular-progress {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--progress-color) 0%,
+    #dcdcdc 0%
+  );
+  animation: progressAnimation 1s linear forwards;
+}
+
+@keyframes progressAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -1,44 +1,38 @@
 // src/components/Layout/Footer.tsx
-import React from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useRef, Suspense } from 'react';
-
-const FooterLogo = () => {
-  const meshRef = useRef();
-  useFrame((state) => {
-    if (meshRef.current) meshRef.current.rotation.y += 0.005;
-  });
-  return (
-    <mesh ref={meshRef} position={[0, 0, 0]}>
-      <boxGeometry args={[1, 0.5, 0.1]} />
-      <meshStandardMaterial color="#E5BEEC" />
-    </mesh>
-  );
-};
-
 const Footer = () => {
   return (
-    <footer className="footer">
-      <div className="footer-container">
-        <div className="footer-section">
-          <Canvas style={{ height: '30px', width: '60px' }}>
-            <ambientLight />
-            <FooterLogo />
-          </Canvas>
-          <p style={{ fontSize: '0.9rem' }}>Master CLI commands through interactive learning</p>
+    <footer style={{
+      backgroundColor: '#f0f0f0',
+      padding: '1.5rem 2rem',
+      borderTop: '1px solid #ddd',
+      marginTop: 'auto',
+      fontSize: '0.9rem',
+      color: '#555',
+    }}>
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '2rem',
+        textAlign: 'center',
+      }}>
+        <div>
+          <h3 style={{ color: '#6750a4', marginBottom: '0.5rem' }}>IT-Learning</h3>
+          <p>Master CLI commands through interactive flashcards.</p>
         </div>
-        <div className="footer-section">
-          <h4 style={{ fontSize: '1.1rem' }}>Quick Links</h4>
-          <ul>
+        <div>
+          <h4 style={{ color: '#6750a4' }}>Quick Links</h4>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
             <li><a href="/">Home</a></li>
             <li><a href="/features">Features</a></li>
             <li><a href="/about">About</a></li>
           </ul>
         </div>
-        <div className="footer-section">
-          <h4 style={{ fontSize: '1.1rem' }}>Contact</h4>
-          <p style={{ fontSize: '0.9rem' }}>Email: badrribzat@gmail.com</p>
-          <p style={{ fontSize: '0.9rem' }}>© 2025 Badr Ribzat. All rights reserved.</p>
+        <div>
+          <h4 style={{ color: '#6750a4' }}>Contact</h4>
+          <p>Email: badrribzat@gmail.com</p>
+          <p>© 2025 Badr Ribzat. All rights reserved.</p>
         </div>
       </div>
     </footer>

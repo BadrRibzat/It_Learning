@@ -1,0 +1,31 @@
+/* src/components/Progress/CircularProgressBar.css */
+.circular-progress {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--progress-color) 0%,
+    #dcdcdc 0%
+  );
+  animation: progressAnimation 1s linear forwards;
+}
+
+@keyframes progressAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--text);
+}

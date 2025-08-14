@@ -11,9 +11,6 @@ export default defineConfig({
     }
   },
   plugins: [react()],
-  optimizeDeps: {
-    include: ['three', '@react-three/fiber', '@react-three/drei']
-  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src') // Maps @ to src directory
