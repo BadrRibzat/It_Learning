@@ -1,5 +1,5 @@
 // server/data/stacks/docker.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const dockerStack = {
   id: 'docker',
@@ -249,7 +249,7 @@ export const dockerStack = {
       valid_answers: ['docker logs myapp'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'docker_qa_1',
@@ -311,5 +311,5 @@ export const dockerStack = {
       valid_answers: ['downloads image', 'pulls from registry'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };

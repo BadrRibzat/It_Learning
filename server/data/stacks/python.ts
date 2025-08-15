@@ -1,5 +1,5 @@
 // server/data/stacks/python.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const pythonStack = {
   id: 'python',
@@ -249,7 +249,7 @@ export const pythonStack = {
       valid_answers: ['pip install -r requirements.txt'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'python_qa_1',
@@ -311,5 +311,5 @@ export const pythonStack = {
       valid_answers: ['# comment', 'hash symbol'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };

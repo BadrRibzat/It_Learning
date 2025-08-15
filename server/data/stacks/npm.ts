@@ -1,5 +1,5 @@
 // server/data/stacks/npm.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const npmStack = {
   id: 'npm',
@@ -249,7 +249,7 @@ export const npmStack = {
       valid_answers: ['npm install -g typescript'],
       answer_match: { mode: 'regex', pattern: '^npm\\s+install\\s+-g\\s+typescript', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'npm_qa_1',
@@ -311,5 +311,5 @@ export const npmStack = {
       valid_answers: ['lock versions', 'ensure consistent installs'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };

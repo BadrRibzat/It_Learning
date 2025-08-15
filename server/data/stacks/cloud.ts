@@ -1,5 +1,5 @@
 // server/data/stacks/cloud.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const cloudStack = {
   id: 'cloud',
@@ -249,7 +249,7 @@ export const cloudStack = {
       valid_answers: ['aws ec2 create-vpc --cidr-block 10.0.0.0/16'],
       answer_match: { mode: 'regex', pattern: '^aws\\s+ec2\\s+create-vpc\\s+--cidr-block\\s+\\S+', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'cloud_qa_1',
@@ -311,5 +311,5 @@ export const cloudStack = {
       valid_answers: ['simple storage service', 's3'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };

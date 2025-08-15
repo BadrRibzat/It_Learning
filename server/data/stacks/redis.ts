@@ -1,5 +1,5 @@
 // server/data/stacks/redis.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const redisStack = {
   id: 'redis',
@@ -249,7 +249,7 @@ export const redisStack = {
       valid_answers: ['FLUSHDB'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'redis_qa_1',
@@ -311,5 +311,5 @@ export const redisStack = {
       valid_answers: ['EXISTS key', 'EXISTS'],
       answer_match: { mode: 'regex', pattern: '^EXISTS\\s+\\S+', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };

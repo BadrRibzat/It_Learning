@@ -1,5 +1,5 @@
 // server/data/stacks/git.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const gitStack = {
   id: 'git',
@@ -249,7 +249,7 @@ export const gitStack = {
       valid_answers: ['git rebase -i HEAD~3'],
       answer_match: { mode: 'regex', pattern: '^git\\s+rebase\\s+-i\\s+HEAD~\\d+', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'git_qa_1',
@@ -311,5 +311,5 @@ export const gitStack = {
       valid_answers: ['git reset --soft HEAD~1'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };

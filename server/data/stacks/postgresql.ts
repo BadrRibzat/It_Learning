@@ -1,5 +1,5 @@
 // server/data/stacks/postgresql.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const postgresqlStack = {
   id: 'postgresql',
@@ -249,7 +249,7 @@ export const postgresqlStack = {
       valid_answers: ['CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'pg_qa_1',
@@ -311,5 +311,5 @@ export const postgresqlStack = {
       valid_answers: ['\\q'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };

@@ -1,6 +1,4 @@
 // server/data/index.ts
-import { Stack } from './types';
-
 import { bashStack } from './stacks/bash';
 import { dockerStack } from './stacks/docker';
 import { gitStack } from './stacks/git';
@@ -25,4 +23,4 @@ export const allStacks = [
   postgresqlStack,
   pythonStack,
   redisStack
-] as Stack[];
+];

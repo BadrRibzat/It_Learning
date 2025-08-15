@@ -1,5 +1,5 @@
 // server/data/stacks/bash.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const bashStack = {
   id: 'bash',
@@ -129,7 +129,7 @@ export const bashStack = {
       valid_answers: ['ps aux | grep nginx'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'bash_qa_1',
@@ -171,5 +171,5 @@ export const bashStack = {
       valid_answers: ['@ separate, * single', 'dollar at vs dollar star'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };

@@ -1,5 +1,5 @@
 // server/data/stacks/kubernetes.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const kubernetesStack = {
   id: 'kubernetes',
@@ -249,7 +249,7 @@ export const kubernetesStack = {
       valid_answers: ['kubectl port-forward pod/my-pod 8080:80'],
       answer_match: { mode: 'regex', pattern: '^kubectl\\s+port-forward\\s+pod\\/\\S+\\s+\\d+:\\d+', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'k8s_qa_1',
@@ -311,5 +311,5 @@ export const kubernetesStack = {
       valid_answers: ['list of nodes', 'cluster nodes'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };

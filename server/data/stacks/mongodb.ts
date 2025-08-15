@@ -1,5 +1,5 @@
 // server/data/stacks/mongodb.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const mongodbStack = {
   id: 'mongodb',
@@ -249,7 +249,7 @@ export const mongodbStack = {
       valid_answers: ['db.users.createIndex({ email: 1 })'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'mongodb_qa_1',
@@ -311,5 +311,5 @@ export const mongodbStack = {
       valid_answers: ['exit', 'Ctrl+C'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };

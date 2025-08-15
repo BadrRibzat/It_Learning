@@ -1,5 +1,5 @@
 // server/data/stacks/linux.ts
-import { Flashcard, QAItem } from '../flashcards';
+import { Flashcard, QAItem } from '../types';
 
 export const linuxStack = {
   id: 'linux',
@@ -249,7 +249,7 @@ export const linuxStack = {
       valid_answers: ['find /home -name "*.log" -mtime -7'],
       answer_match: { mode: 'regex', pattern: '^find\\s+[^\\s]+\\s+-name\\s+"\\.log"\\s+-mtime\\s+-\\d+', case_sensitive: false }
     }
-  ],
+  ] as Flashcard[],
   qa_mode: [
     {
       qaId: 'linux_qa_1',
@@ -311,5 +311,5 @@ export const linuxStack = {
       valid_answers: ['ps aux', 'top'],
       answer_match: { mode: 'normalized', case_sensitive: false }
     }
-  ]
+  ] as QAItem[]
 };
