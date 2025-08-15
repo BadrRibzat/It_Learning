@@ -3,29 +3,24 @@ const Features = () => {
   const features = [
     {
       title: "Interactive Flashcards",
-      desc: "Flip cards to learn commands with explanations and real questions."
+      desc: "Flip cards to learn commands with real-world explanations and use cases."
     },
     {
-      title: "Real-Time Validation",
-      desc: "Instant feedback on your answers — learn faster with immediate correction."
+      title: "Smart Answer Validation",
+      desc: "Accepts variations (e.g., 'ls -l' or 'ls') with regex and normalization."
     },
     {
-      title: "Progress Tracking",
-      desc: "Visual progress bars and checklists show your mastery per category."
+      title: "Progress Rings & Mastery Tracking",
+      desc: "Visual indicators show your progress per tech stack — from beginner to expert."
     },
     {
-      title: "Review Failed Cards",
-      desc: "Save incorrect answers and review them later — no need to restart."
-    },
-    {
-      title: "Multi-Language UI",
-      desc: "Learn in Arabic, French, Spanish, German, or English (commands in English)."
+      // ... rest unchanged
     }
   ];
 
   return (
     <div className="features-page container" style={{ padding: '3rem 1rem' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Platform Features</h1>
+      <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Why This Works</h1>
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -35,6 +30,9 @@ const Features = () => {
           <div key={i} className="card" style={{
             padding: '1.5rem',
             textAlign: 'center',
+            border: '1px solid #e9ecef',
+            borderRadius: '10px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           }}>
             <h3>{f.title}</h3>
             <p>{f.desc}</p>
