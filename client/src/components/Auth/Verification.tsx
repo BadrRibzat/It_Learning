@@ -3,15 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Verification = () => {
-  const [status, setStatus] = useState('loading');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Verifying your email...');
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     const verify = async () => {
-      const params = new URLSearchParams(location.search);
-      const token = params.get('token');
+      // Extract token from /verify/TOKEN (not ?token=TOKEN)
+      const pathParts = location.pathname.split('/');
+      const token = pathParts[2]; // /verify/:token
 
       if (!token) {
         setStatus('error');
@@ -21,14 +22,19 @@ const Verification = () => {
 
       try {
         const res = await fetch(`/api/auth/verify/${token}`);
-        if (res.ok) {
-          setStatus('success');
-          setMessage('Your email has been verified! You can now log in.');
-        } else {
-          const data = await res.json();
+        const data = await res.json();
+
+        if (!res.ok) {
           setStatus('error');
           setMessage(data.message || 'Verification failed. Link may be expired.');
+          return;
         }
+
+        // ✅ Save token and go to login
+        localStorage.setItem('token', data.token);
+        setStatus('success');
+        setMessage('Your email has been verified! Redirecting to dashboard...');
+        setTimeout(() => navigate('/dashboard'), 1500);
       } catch (err) {
         setStatus('error');
         setMessage('Network error. Please try again.');
@@ -36,28 +42,12 @@ const Verification = () => {
     };
 
     verify();
-  }, [location]);
+  }, [location, navigate]);
 
   return (
     <div style={{ padding: '4rem 1rem', textAlign: 'center' }}>
       <h2>Email Verification</h2>
       <p>{message}</p>
-      {status === 'success' && (
-        <button
-          onClick={() => navigate('/login')}
-          style={{
-            background: '#2ecc71',
-            color: 'white',
-            border: 'none',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            marginTop: '1rem',
-            cursor: 'pointer'
-          }}
-        >
-          Go to Login
-        </button>
-      )}
       {status === 'error' && (
         <button
           onClick={() => navigate('/register')}

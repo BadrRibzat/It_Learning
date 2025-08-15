@@ -76,6 +76,7 @@ export const loginUser = async (req: Request, res: Response) => {
   });
 };
 
+// controllers/authController.ts
 export const verifyEmail = async (req: Request, res: Response) => {
   const { token } = req.params;
   try {
@@ -90,9 +91,19 @@ export const verifyEmail = async (req: Request, res: Response) => {
     await initProgressDoc(user._id.toString());
 
     const freshToken = generateToken(user._id.toString());
-    const url = `${process.env.CLIENT_URL}/verified?token=${freshToken}`;
-    return res.redirect(url);
-  } catch {
+
+    // ✅ Return JSON instead of redirect
+    return res.json({
+      success: true,
+      message: 'Email verified successfully',
+      token: freshToken,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email
+      }
+    });
+  } catch (error) {
     return res.status(400).json({ message: 'Invalid or expired token' });
   }
 };
