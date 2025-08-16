@@ -1,6 +1,8 @@
-import { createContext, useContext, useState } from 'react';
+// src/context/AuthContext.tsx
+import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import * as jwtDecode from 'jwt-decode'; // ✅ Correcting import
 
 interface AuthContextType {
   user: any;
@@ -15,23 +17,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
 
+  // ✅ Restore user from localStorage
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded: any = jwtDecode.jwtDecode(token); // ✅ Call jwtDecode.jwtDecode()
+        setUser({ token, ...decoded });
+      } catch (err) {
+        localStorage.removeItem('token');
+        console.error('Invalid token, logging out');
+      }
+    }
+  }, []);
+
   const login = async (email: string, password: string) => {
     try {
       const res = await axios.post('/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      setUser(res.data);
+      const { token, ...userData } = res.data;
+      localStorage.setItem('token', token);
+      setUser(userData);
       navigate('/dashboard');
-    } catch (err) {
-      throw new Error('Login failed');
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || 'Login failed');
     }
   };
 
   const register = async (username: string, email: string, password: string) => {
     try {
-      await axios.post('/api/auth/register', { username, email, password });
-      navigate('/verify-email');
-    } catch (err) {
-      throw new Error('Registration failed');
+      await axios.post('/api/auth/register', {
+        username,
+        email,
+        password,
+        confirmPassword: password
+      });
+      navigate('/login'); // ✅ Better UX
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || 'Registration failed');
     }
   };
 
@@ -53,20 +75,3 @@ export const useAuth = () => {
   if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };
-
-const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
-  const navigate = useNavigate();
-
-  // ✅ Check localStorage on load
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUser({ token, ...decoded });
-      } catch (err) {
-        localStorage.removeItem('token');
-      }
-    }
-  }, []);

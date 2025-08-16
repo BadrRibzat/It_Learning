@@ -18,6 +18,7 @@ import Verification from './components/Auth/Verification';
 
 // Import layout and auth
 import Layout from './components/Layout/Layout';
+import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/Layout/PrivateRoute';
 
 const router = createBrowserRouter(
@@ -52,5 +53,7 @@ const router = createBrowserRouter(
 );
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <RouterProvider router={router} />
+  <AuthProvider>
+    <RouterProvider router={router} />
+  </AuthProvider>
 );
