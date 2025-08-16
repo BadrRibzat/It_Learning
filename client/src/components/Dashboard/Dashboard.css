@@ -1,24 +1,147 @@
 /* src/components/Dashboard/Dashboard.css */
+:root {
+  --primary-bg: #121212;
+  --secondary-bg: #1e1e1e;
+  --card-bg: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --accent-color: #6750a4;
+  --success-color: #4caf50;
+  --error-color: #f44336;
+  --border-color: #333333;
+  --shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
 .dashboard {
+  min-height: 100vh;
+  background: var(--primary-bg);
+  color: var(--text-primary);
+  font-family: 'Orbitron', sans-serif;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.logout-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+  background: #5c4096;
+}
+
+.dashboard-main {
   padding: 2rem;
+  display: grid;
+  gap: 2rem;
 }
 
-.circular-progress {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: conic-gradient(
-    var(--progress-color) 0%,
-    #dcdcdc 0%
-  );
-  animation: progressAnimation 1s linear forwards;
+.progress-section {
+  grid-column: span 2;
 }
 
-@keyframes progressAnimation {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.progress-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.progress-card h2 {
+  margin: 0 0 1rem;
+  color: var(--accent-color);
+}
+
+.progress-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.flashcards-section {
+  grid-column: span 2;
+}
+
+.flashcards-section h2 {
+  margin: 0 0 1rem;
+  color: var(--accent-color);
+}
+
+.flashcards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.flashcard-item {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease;
+}
+
+.flashcard-item:hover {
+  transform: translateY(-4px);
+}
+
+.flashcard-header {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+  color: var(--accent-color);
+}
+
+.flashcard-body {
+  margin-top: 0.5rem;
+}
+
+.status-icon {
+  font-size: 1.2rem;
+  color: var(--success-color);
+  margin-right: 0.5rem;
+}
+
+.status-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.progress-bar {
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.progress-bar::before {
+  content: '';
+  display: block;
+  height: 100%;
+  background: var(--success-color);
+  width: 60%; /* Dynamic in real app */
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: center;
 }

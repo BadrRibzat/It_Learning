@@ -1,6 +1,7 @@
 // src/components/Auth/Register.tsx
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Register = () => {
   const [username, setUsername] = useState('');
@@ -9,7 +10,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -21,44 +22,21 @@ const Register = () => {
       return setError('Passwords do not match');
     }
 
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password, confirmPassword }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        return setError(data.message || 'Registration failed');
-      }
-
-      // ✅ User created, but not logged in — must verify email
+    const result = await register(username, email, password);
+    if (result === 'success') {
       setSuccess(true);
-    } catch (err) {
-      setError('Network error. Please try again.');
+    } else {
+      setError(result);
     }
   };
 
   if (success) {
     return (
-      <div className="auth-container" style={{ padding: '4rem 1rem', textAlign: 'center' }}>
+      <div style={{ padding: '4rem 1rem', textAlign: 'center' }}>
         <h2>Check Your Email</h2>
         <p>We've sent a verification link to <strong>{email}</strong>.</p>
         <p>Please click the link to verify your account.</p>
-        <button
-          onClick={() => navigate('/login')}
-          style={{
-            background: '#6750a4',
-            color: 'white',
-            border: 'none',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            marginTop: '1rem',
-            cursor: 'pointer'
-          }}
-        >
+        <button onClick={() => navigate('/login')} style={{ background: '#6750a4', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '8px' }}>
           Back to Login
         </button>
       </div>
@@ -69,93 +47,54 @@ const Register = () => {
     <div className="auth-container" style={{ padding: '4rem 1rem' }}>
       <div className="auth-form" style={{ maxWidth: '400px', margin: '0 auto' }}>
         <h2>Create Account</h2>
-        {error && <div className="error" style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
-        
+        {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
         <form onSubmit={handleSubmit}>
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <label>Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px'
-              }}
+              style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '6px' }}
             />
           </div>
-
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <label>Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px'
-              }}
+              style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '6px' }}
             />
           </div>
-
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <label>Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px'
-              }}
+              style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '6px' }}
             />
           </div>
-
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <label>Confirm Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px'
-              }}
+              style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '6px' }}
             />
           </div>
-
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              background: '#6750a4',
-              color: 'white',
-              border: 'none',
-              padding: '0.75rem',
-              borderRadius: '8px',
-              fontSize: '1rem',
-              cursor: 'pointer',
-              fontWeight: 600
-            }}
-          >
+          <button type="submit" style={{ width: '100%', background: '#6750a4', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '8px' }}>
             Register
           </button>
         </form>
-
-        <p className="auth-link" style={{ marginTop: '1.5rem' }}>
-          Already have an account? <Link to="/login" style={{ color: '#6750a4' }}>Login</Link>
+        <p style={{ marginTop: '1.5rem' }}>
+          Already have an account? <a onClick={() => navigate('/login')} style={{ color: '#6750a4', cursor: 'pointer' }}>Login</a>
         </p>
       </div>
     </div>
