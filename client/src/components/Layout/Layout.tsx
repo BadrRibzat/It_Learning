@@ -3,15 +3,12 @@ import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
-const Layout = () => {
+const Layout = ({ children }: { children?: React.ReactNode }) => {
   return (
     <>
       <Navbar />
       <main style={{
-        minHeight: 'calc(100vh - 140px)', // Full height minus navbar + footer
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
+        minHeight: 'calc(100vh - 140px)',
         padding: '2rem 0',
       }}>
         <div className="container">

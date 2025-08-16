@@ -1,15 +1,14 @@
 // src/components/Layout/PrivateRoute.tsx
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
+import { Navigate, useLocation } from 'react-router-dom';
 
-const PrivateRoute = () => {
+export default function PrivateRoute({ children }: { children: JSX.Element }) {
   const { user } = useAuth();
+  const location = useLocation();
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return <Outlet />;
-};
-
-export default PrivateRoute;
+  return children;
+}

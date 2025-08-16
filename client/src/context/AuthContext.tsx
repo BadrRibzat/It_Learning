@@ -53,3 +53,20 @@ export const useAuth = () => {
   if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };
+
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
+
+  // ✅ Check localStorage on load
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUser({ token, ...decoded });
+      } catch (err) {
+        localStorage.removeItem('token');
+      }
+    }
+  }, []);

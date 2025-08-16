@@ -6,7 +6,6 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
-  const passed = [true, false, true, true, false]; // Example data
 
   return (
     <div className="dashboard">
@@ -14,7 +13,7 @@ const Dashboard = () => {
       <button onClick={logout}>Logout</button>
       <div className="progress-section">
         <CircularProgressBar correct={3} total={5} />
-        <Checklist passed={passed} />
+        <Checklist passed={[true, false, true, true, false]} />
       </div>
     </div>
   );
