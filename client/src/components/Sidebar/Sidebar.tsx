@@ -145,4 +145,3 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
 
 export default Sidebar;
 
-

@@ -18,27 +18,31 @@ const Flashcard = ({ cardId, stackId, question, answer, validAnswers, answerMatc
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const { user } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const isCorrect = validAnswers.some(ans => ans.toLowerCase() === input.toLowerCase());
     setFeedback(isCorrect ? 'correct' : 'incorrect');
 
-    // Send result to backend
-    await fetch('/api/progress/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({
-        userId: user?._id,
-        stackId,
-        cardId,
-        isCorrect
-      })
-    });
+    // Submit to backend
+    try {
+      const token = localStorage.getItem('token');
+      await fetch('/api/progress/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userId: user?._id,
+          stackId,
+          cardId,
+          isCorrect
+        })
+      });
+    } catch (err) {
+      console.error('Failed to submit progress');
+    }
 
-    // Auto-flip after 1s
     setTimeout(() => setFlipped(true), 1000);
   };
 
@@ -65,17 +69,6 @@ const Flashcard = ({ cardId, stackId, question, answer, validAnswers, answerMatc
         </div>
         <div className="flashcard-back">
           <p><strong>Answer:</strong> <code>{answer}</code></p>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setFlipped(false);
-              setInput('');
-              setFeedback(null);
-            }}
-            className="flashcard-reset"
-          >
-            Reset
-          </button>
         </div>
       </div>
     </div>

@@ -1,4 +1,8 @@
 // src/components/Home/Home.tsx
+import React from 'react';
+import logo from '../../assets/logo.png'; // Adjust path if needed
+
+// src/components/Home/Home.tsx
 const Home = () => {
   return (
     <div className="home-container" style={{ textAlign: 'center', padding: '3rem 1rem', lineHeight: 1.7 }}>

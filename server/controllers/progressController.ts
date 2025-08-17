@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthedRequest } from '../middleware/auth';
 import UserProgress from '../models/UserProgress';
 import { data } from '../data/flashcards';
@@ -19,6 +19,37 @@ const ensureUserProgress = async (userId: string) => {
     };
   }
   return UserProgress.create({ userId, stacks: stacksState });
+};
+
+export const getChecklist = async (req: Request, res: Response) => {
+  const { stackId } = req.params;
+  const userId = (req as any).userId;
+
+  try {
+    const progressDoc = await UserProgress.findOne({ userId });
+    if (!progressDoc) {
+      return res.status(404).json({ passed: [] });
+    }
+
+    const stackProgress = progressDoc.stacks[stackId] || { passed: [], failed: [] };
+    const passed = stackProgress.passed;
+
+    // Assuming you have flashcards data to map IDs
+    const stack = data.stacks.find(s => s.id === stackId);
+    const total = stack?.flashcards.length || 0;
+
+    // Create boolean array for checklist
+    const checklist = Array(total).fill(false);
+    stack?.flashcards.forEach((card, index) => {
+      if (passed.includes(card.cardId)) {
+        checklist[index] = true;
+      }
+    });
+
+    res.json({ passed: checklist });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
 export const getProgress = async (req: AuthedRequest, res: Response) => {

@@ -1,43 +1,28 @@
 // src/hooks/useProgress.ts
 import { useState, useEffect } from 'react';
 
-interface ProgressRing {
-  correct: number;
-  total: number;
-}
-
-interface ProgressChecklist {
-  passed: boolean[];
-}
-
 export const useProgress = (stackId: string) => {
-  const [ring, setRing] = useState<ProgressRing | null>(null);
-  const [checklist, setChecklist] = useState<ProgressChecklist | null>(null);
+  const [ring, setRing] = useState(null);
+  const [checklist, setChecklist] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProgress = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (!token) throw new Error('No token');
+        if (!token) return;
 
-        const res = await fetch(`/api/progress/ring/${stackId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error('Failed to fetch ring');
-        const ringData = await res.json();
-        setRing(ringData);
+        const headers = { 'Authorization': `Bearer ${token}` };
 
-        const checklistRes = await fetch(`/api/progress/checklist/${stackId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!checklistRes.ok) throw new Error('Failed to fetch checklist');
-        const checklistData = await checklistRes.json();
-        setChecklist(checklistData);
+        const [ringRes, checklistRes] = await Promise.all([
+          fetch(`/api/progress/ring/${stackId}`, { headers }),
+          fetch(`/api/progress/checklist/${stackId}`, { headers })
+        ]);
 
-      } catch (err: any) {
-        setError(err.message);
+        if (ringRes.ok) setRing(await ringRes.json());
+        if (checklistRes.ok) setChecklist(await checklistRes.json());
+      } catch (err) {
+        console.error('Failed to fetch progress:', err);
       } finally {
         setLoading(false);
       }
@@ -46,5 +31,5 @@ export const useProgress = (stackId: string) => {
     fetchProgress();
   }, [stackId]);
 
-  return { ring, checklist, loading, error };
+  return { ring, checklist, loading };
 };

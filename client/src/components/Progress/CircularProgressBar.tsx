@@ -8,13 +8,15 @@ interface ProgressBarProps {
 }
 
 const CircularProgressBar = ({ correct, total }: ProgressBarProps) => {
-  const percentage = (correct / total) * 100;
+  const safeCorrect = correct || 0;
+  const safeTotal = total || 1;
+  const percentage = (safeCorrect / safeTotal) * 100;
   const progressColor = percentage >= 50 ? '#2ecc71' : '#e74c3c';
 
   return (
     <div className="circular-progress" style={{ '--progress-color': progressColor }}>
       <span className="progress-text">
-        {correct} vs {total}
+        {safeCorrect} vs {safeTotal}
       </span>
     </div>
   );
