@@ -1,32 +1,41 @@
+// controllers/flashcardController.ts
 import { Request, Response } from 'express';
 import { data } from '../data/flashcards';
 import { isAnswerValid } from '../utils/validate';
 
+/**
+ * GET /api/flashcards/stacks
+ * Returns a lightweight list of all stacks (for sidebar/menu)
+ */
 export const getStacks = (req: Request, res: Response) => {
-  // Send only light metadata for sidebar lists
   const lite = data.stacks.map(s => ({
     id: s.id,
     name: s.name,
     description: s.description,
-    totalCardCount: s.totalCardCount
+    totalCardCount: s.totalCardCount || s.flashcards.length
   }));
   res.json({ stacks: lite, ui: data.ui_translations });
 };
 
+/**
+ * GET /api/flashcards/stacks/:stackId
+ * Returns the full stack object with flashcards and QA mode
+ */
 export const getStackCards = (req: Request, res: Response) => {
   const { stackId } = req.params;
-  const { mode = 'flashcard', offset = '0', limit = '50' } = req.query as any;
   const stack = data.stacks.find(s => s.id === stackId);
-  if (!stack) return res.status(404).json({ message: 'Stack not found' });
 
-  if (mode === 'qa') {
-    const start = parseInt(offset); const end = start + parseInt(limit);
-    return res.json({ items: stack.qa_mode.slice(start, end), total: stack.qa_mode.length });
+  if (!stack) {
+    return res.status(404).json({ message: 'Stack not found' });
   }
-  const start = parseInt(offset); const end = start + parseInt(limit);
-  res.json({ items: stack.flashcards.slice(start, end), total: stack.flashcards.length });
+
+  return res.json(stack);
 };
 
+/**
+ * POST /api/flashcards/validate
+ * Validates a user's answer for a specific flashcard
+ */
 export const validateAnswer = (req: Request, res: Response) => {
   const { stackId, cardId, input } = req.body as { stackId: string; cardId: string; input: string };
 
@@ -39,4 +48,3 @@ export const validateAnswer = (req: Request, res: Response) => {
   const ok = isAnswerValid(input, card.valid_answers, card.answer_match);
   res.json({ correct: ok });
 };
-
