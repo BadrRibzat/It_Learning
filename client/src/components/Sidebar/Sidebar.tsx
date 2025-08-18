@@ -99,30 +99,6 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
       </nav>
 
       {/* Progress Section */}
-      <div className="sidebar-progress">
-        <h4>Your Progress</h4>
-        <div className="progress-container">
-          {loading ? (
-            <div className="loading-progress">
-              <div className="loading-spinner"></div>
-              <p>Loading...</p>
-            </div>
-          ) : (
-            <>
-              <CircularProgressBar
-                correct={progress?.correct || 0}
-                total={progress?.total || 1}
-              />
-              <div className="progress-stats">
-                <p className="progress-percentage">{progressPercentage}%</p>
-                <p className="progress-details">
-                  {progress?.correct || 0} of {progress?.total || 0} completed
-                </p>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
 
       {/* Theme Toggle */}
       <div className="sidebar-theme">

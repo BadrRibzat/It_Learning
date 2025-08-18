@@ -1,15 +1,17 @@
-// Enhanced Dashboard.tsx with modern layout and animations
+// src/components/Dashboard/Dashboard.tsx
 import { useAuth } from '../../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { useProgress } from '../../hooks/useProgress';
 import Sidebar from '../Sidebar/Sidebar';
 import Flashcards from '../Flashcards/Flashcards';
+import ErrorBoundary from '../ErrorBoundary/ErrorBoundary';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const [activeStack, setActiveStack] = useState('bash');
-  const { ring, loading } = useProgress(activeStack);
+  const { ring, loading: progressLoading } = useProgress(activeStack);
+
   const [stats, setStats] = useState({
     totalCards: 0,
     completedCards: 0,
@@ -17,22 +19,32 @@ const Dashboard = () => {
     streak: 0
   });
 
-  // Calculate stats based on progress
+  // ✅ Safely calculate stats only when ring exists
   useEffect(() => {
-    if (ring) {
-      const accuracy = ring.total > 0 ? Math.round((ring.correct / ring.total) * 100) : 0;
-      setStats({
-        totalCards: ring.total,
-        completedCards: ring.correct,
-        accuracy: accuracy,
-        streak: Math.floor(accuracy / 10) // Simple streak calculation
-      });
-    }
-  }, [ring]);
+      if (ring && typeof ring.total === 'number' && ring.total > 0) {
+        const accuracy = Math.round((ring.correct / ring.total) * 100);
+        setStats({
+          totalCards: ring.total,
+          completedCards: ring.correct,
+          accuracy,
+          streak: Math.floor(accuracy / 10)
+        });
+      } else {
+        setStats({
+          totalCards: 0,
+          completedCards: 0,
+          accuracy: 0,
+          streak: 0
+        });
+      }
+    }, [ring]);
+
+  const safeCorrect = typeof ring?.correct === 'number' ? ring.correct : 0;
+  const safeTotal = typeof ring?.total === 'number' && ring.total > 0 ? ring.total : 1;
 
   const handleStackChange = (stackId: string) => {
     setActiveStack(stackId);
-    // Add smooth transition effect
+    // Optional: add animation
     const mainContent = document.querySelector('.dashboard-main');
     if (mainContent) {
       mainContent.classList.add('fade-in');
@@ -44,92 +56,52 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-layout">
-      {/* Enhanced Sidebar */}
+      {/* Sidebar with logout in footer */}
       <Sidebar
         activeStack={activeStack}
         onSelectStack={handleStackChange}
         progress={ring}
-        loading={loading}
+        loading={progressLoading}
       />
 
       {/* Main Content */}
       <main className="dashboard-main">
-        {/* Enhanced Header */}
-        <header className="dashboard-header">
-          <div className="header-content">
-            <div className="header-title">
-              <h1>CLI Mastery Dashboard</h1>
-              <p className="header-subtitle">
-                Master command-line interfaces with interactive learning
-              </p>
-            </div>
-            <div className="header-actions">
-              <div className="user-greeting">
-                <span>Welcome back, {user?.email?.split('@')[0] || 'User'}!</span>
-              </div>
-              <button onClick={logout} className="logout-btn">
-                <span className="logout-icon">🚪</span>
-                <span>Logout</span>
-              </button>
-            </div>
+        {/* Compact Stats Bar */}
+        <div className="stats-bar">
+          <div className="stat-item">
+            <span className="stat-icon">📚</span>
+            <span className="stat-label">Total</span>
+            <span className="stat-value">{stats.totalCards}</span>
           </div>
-        </header>
-
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">📚</div>
-            <div className="stat-content">
-              <h3>Total Cards</h3>
-              <p className="value">{stats.totalCards}</p>
-              <span className="stat-label">Available to learn</span>
-            </div>
+          <div className="stat-item">
+            <span className="stat-icon">✅</span>
+            <span className="stat-label">Done</span>
+            <span className="stat-value">{stats.completedCards}</span>
           </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">✅</div>
-            <div className="stat-content">
-              <h3>Completed</h3>
-              <p className="value">{stats.completedCards}</p>
-              <span className="stat-label">Cards mastered</span>
-            </div>
+          <div className="stat-item">
+            <span className="stat-icon">🎯</span>
+            <span className="stat-label">Acc</span>
+            <span className="stat-value">{stats.accuracy}%</span>
           </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">🎯</div>
-            <div className="stat-content">
-              <h3>Accuracy</h3>
-              <p className="value">{stats.accuracy}%</p>
-              <span className="stat-label">Success rate</span>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon">🔥</div>
-            <div className="stat-content">
-              <h3>Streak</h3>
-              <p className="value">{stats.streak}</p>
-              <span className="stat-label">Day streak</span>
-            </div>
+          <div className="stat-item">
+            <span className="stat-icon">🔥</span>
+            <span className="stat-label">Streak</span>
+            <span className="stat-value">{stats.streak}</span>
           </div>
         </div>
 
-        {/* Current Stack Info */}
+        {/* Current Stack Progress */}
         <div className="current-stack-info">
           <div className="stack-header">
-            <h2>
-              Currently Learning: <span className="stack-name">{activeStack.toUpperCase()}</span>
-            </h2>
+            <h2>Currently Learning: <span className="stack-name">{activeStack.toUpperCase()}</span></h2>
             <div className="stack-progress">
               <div className="progress-bar">
-                <div 
+                <div
                   className="progress-bar__inner progress-bar__inner--correct"
-                  style={{ 
-                    width: ring ? `${(ring.correct / ring.total) * 100}%` : '0%' 
-                  }}
+                  style={{ width: ring ? `${(ring.correct / ring.total) * 100}%` : '0%' }}
                 ></div>
               </div>
-              <span className="progress-text">
+              <span className="main-progress-text">
                 {ring ? `${ring.correct}/${ring.total} completed` : 'Loading...'}
               </span>
             </div>
@@ -138,7 +110,9 @@ const Dashboard = () => {
 
         {/* Flashcards Section */}
         <div className="flashcards-section">
-          <Flashcards stackId={activeStack} />
+          <ErrorBoundary>
+            <Flashcards stackId={activeStack} />
+          </ErrorBoundary>
         </div>
       </main>
     </div>
@@ -146,4 +120,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

@@ -166,38 +166,11 @@ body.dark-mode .sidebar-link.active {
   color: #4facfe;
 }
 
-.sidebar-progress {
-  padding: 2rem 1.5rem;
-  text-align: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  position: relative;
-}
-
-.sidebar-progress::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 1.5rem;
-  right: 1.5rem;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-}
-
-.sidebar-progress h4 {
-  margin: 0 0 1rem;
-  font-size: 1rem;
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-body.dark-mode .sidebar-progress h4 {
-  color: var(--dark-text-primary);
-}
-
-.sidebar-progress p {
-  margin: 1rem 0 0;
-  font-size: 0.85rem;
+.main-progress-text {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
   color: var(--text-secondary);
+  text-align: center;
 }
 
 body.dark-mode .sidebar-progress p {
@@ -252,40 +225,6 @@ body.dark-mode .dashboard-header {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-.logout-btn {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.logout-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.logout-btn:hover::before {
-  left: 100%;
-}
-
-.logout-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
 }
 
 /* Stats cards */

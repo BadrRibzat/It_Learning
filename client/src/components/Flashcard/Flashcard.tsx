@@ -47,32 +47,43 @@ const Flashcard = ({ cardId, stackId, question, answer, validAnswers, answerMatc
   };
 
   return (
-    <div className={`flashcard ${flipped ? 'flipped' : ''}`} onClick={() => setFlipped(!flipped)}>
-      <div className="flashcard-inner">
-        <div className="flashcard-front">
-          <h3>{question}</h3>
-          <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type the command..."
-              className="flashcard-input"
-            />
-            <button type="submit" className="flashcard-submit">Check</button>
-          </form>
-          {feedback && (
-            <div className={`feedback ${feedback}`}>
-              {feedback === 'correct' ? '✅ Correct!' : '❌ Try again'}
-            </div>
-          )}
-        </div>
-        <div className="flashcard-back">
-          <p><strong>Answer:</strong> <code>{answer}</code></p>
+      <div className={`flashcard ${flipped ? 'flipped' : ''}`} onClick={() => setFlipped(!flipped)}>
+        <div className="flashcard-inner">
+          <div className="flashcard-front">
+            <h3>{question}</h3>
+            <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type the command..."
+                className="flashcard-input"
+              />
+              <button type="submit" className="flashcard-submit">Check</button>
+            </form>
+            {feedback && (
+              <div className={`feedback ${feedback}`}>
+                {feedback === 'correct' ? '✅ Correct!' : '❌ Try again'}
+              </div>
+            )}
+          </div>
+          <div className="flashcard-back">
+            <p><strong>Answer:</strong> <code>{answer}</code></p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setFlipped(false);
+                setInput('');
+                setFeedback(null);
+              }}
+              className="flashcard-reset"
+            >
+              Reset
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
 };
 
 export default Flashcard;

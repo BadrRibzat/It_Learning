@@ -411,5 +411,49 @@ body.dark-mode .no-cards-message p {
     margin-top: 1rem;
   }
 
+.mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  width: fit-content;
+}
 
+.mode-toggle button {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-toggle button.active {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: white;
+  font-weight: 600;
+}
+
+.flashcard-nav {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.next-btn {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.next-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
 
