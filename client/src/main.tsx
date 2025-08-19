@@ -6,6 +6,9 @@ import {
   RouterProvider,
 } from 'react-router-dom';
 
+// Import i18n configuration
+import './i18n';
+
 // Import components
 import App from './App';
 import Home from './components/Home/Home';

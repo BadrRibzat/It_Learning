@@ -9,6 +9,7 @@ const Flashcards = ({ stackId }) => {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mode, setMode] = useState<'flashcard' | 'qa'>('flashcard');
+  const [showGrid, setShowGrid] = useState(false);
 
   useEffect(() => {
     const fetchStack = async () => {
@@ -30,8 +31,8 @@ const Flashcards = ({ stackId }) => {
     fetchStack();
   }, [stackId]);
 
-  if (loading) return <p>Loading flashcards...</p>;
-  if (!data) return <p>Stack not found</p>;
+  if (loading) return <div className="loading-spinner">Loading flashcards...</div>;
+  if (!data) return <div className="error-message">Stack not found</div>;
 
   const flashcards = Array.isArray(data.flashcards) ? data.flashcards : [];
   const qaMode = Array.isArray(data.qa_mode) ? data.qa_mode : [];
@@ -40,62 +41,132 @@ const Flashcards = ({ stackId }) => {
 
   return (
     <div className="flashcards-container">
-      <h2>{data.name?.en || 'Untitled Stack'}</h2>
-      <p>{data.description?.en || 'No description available'}</p>
+      <div className="flashcards-header">
+        <h2 className="stack-title">{data.name?.en || 'Untitled Stack'}</h2>
+        <p className="stack-description">{data.description?.en || 'No description available'}</p>
+        
+        {/* Progress indicator */}
+        <div className="flashcards-progress">
+          <div className="progress-info">
+            <span className="current-card">{currentIndex + 1}</span>
+            <span className="separator">/</span>
+            <span className="total-cards">{flashcards.length}</span>
+          </div>
+          <div className="progress-bar-container">
+            <div 
+              className="progress-bar-fill"
+              style={{ width: `${((currentIndex + 1) / flashcards.length) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
 
       {/* Mode Toggle */}
       <div className="mode-toggle">
         <button
           onClick={() => setMode('flashcard')}
-          className={mode === 'flashcard' ? 'active' : ''}
+          className={`mode-btn ${mode === 'flashcard' ? 'active' : ''}`}
         >
-          Flashcards
+          🃏 Flashcards
         </button>
         <button
           onClick={() => setMode('qa')}
-          className={mode === 'qa' ? 'active' : ''}
+          className={`mode-btn ${mode === 'qa' ? 'active' : ''}`}
         >
-          QA Mode
+          ❓ Q&A Mode
         </button>
       </div>
 
       {/* Flashcards Mode */}
       {mode === 'flashcard' && flashcards.length > 0 && (
-        <div className="flashcard-single">
-          <Flashcard
-            key={currentCard.cardId}
-            cardId={currentCard.cardId}
-            stackId={stackId}
-            question={currentCard.question_translations?.en || 'No question'}
-            answer={currentCard.command || 'No answer'}
-            validAnswers={Array.isArray(currentCard.valid_answers) ? currentCard.valid_answers : [currentCard.command]}
-            answerMatch={currentCard.answer_match || { mode: 'exact' }}
-          />
-          <div className="flashcard-nav">
-            {currentIndex < flashcards.length - 1 ? (
-              <button onClick={() => setCurrentIndex(currentIndex + 1)} className="next-btn">
-                Next Flashcard →
-              </button>
-            ) : (
-              <button disabled className="next-btn">
-                🎉 All Done!
-              </button>
-            )}
+        <div className="flashcard-section">
+          <div className="flashcard-controls">
+            <button
+              onClick={() => setShowGrid(!showGrid)}
+              className={`view-toggle ${showGrid ? 'grid-view' : 'single-view'}`}
+            >
+              {showGrid ? '📋 Single View' : '🔲 Grid View'}
+            </button>
           </div>
+
+          {showGrid ? (
+            /* Grid View */
+            <div className="flashcards-grid">
+              {flashcards.slice(0, 15).map((card, index) => (
+                <div key={card.cardId} className="flashcard-grid-item">
+                  <div className="card-number">{index + 1}</div>
+                  <Flashcard
+                    cardId={card.cardId}
+                    stackId={stackId}
+                    question={card.question_translations?.en || 'No question'}
+                    answer={card.command || 'No answer'}
+                    validAnswers={Array.isArray(card.valid_answers) ? card.valid_answers : [card.command]}
+                    answerMatch={card.answer_match || { mode: 'exact' }}
+                  />
+                </div>
+              ))}
+              {flashcards.length > 15 && (
+                <div className="more-cards-indicator">
+                  +{flashcards.length - 15} more cards
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Single View */
+            <div className="flashcard-single">
+              <div className="card-counter">
+                Card {currentIndex + 1} of {flashcards.length}
+              </div>
+              <Flashcard
+                key={currentCard.cardId}
+                cardId={currentCard.cardId}
+                stackId={stackId}
+                question={currentCard.question_translations?.en || 'No question'}
+                answer={currentCard.command || 'No answer'}
+                validAnswers={Array.isArray(currentCard.valid_answers) ? currentCard.valid_answers : [currentCard.command]}
+                answerMatch={currentCard.answer_match || { mode: 'exact' }}
+              />
+              <div className="flashcard-navigation">
+                <button 
+                  onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+                  disabled={currentIndex === 0}
+                  className="nav-btn prev-btn"
+                >
+                  ← Previous
+                </button>
+                <button 
+                  onClick={() => setCurrentIndex(Math.min(flashcards.length - 1, currentIndex + 1))}
+                  disabled={currentIndex === flashcards.length - 1}
+                  className="nav-btn next-btn"
+                >
+                  Next →
+                </button>
+              </div>
+              {currentIndex === flashcards.length - 1 && (
+                <div className="completion-message">
+                  🎉 You've completed all flashcards!
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* QA Mode */}
       {mode === 'qa' && qaMode.length > 0 && (
         <div className="qa-section">
-          <h3>Conceptual Questions</h3>
-          {qaMode.map(qa => (
-            <QAItem
-              key={qa.qaId}
-              question={qa.question_translations?.en || 'No question'}
-              explanation={qa.explanation_translations?.en || 'No explanation'}
-            />
-          ))}
+          <h3 className="qa-title">Conceptual Questions</h3>
+          <div className="qa-grid">
+            {qaMode.map((qa, index) => (
+              <div key={qa.qaId} className="qa-item-wrapper">
+                <div className="qa-number">{index + 1}</div>
+                <QAItem
+                  question={qa.question_translations?.en || 'No question'}
+                  explanation={qa.explanation_translations?.en || 'No explanation'}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

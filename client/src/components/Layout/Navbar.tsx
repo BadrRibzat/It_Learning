@@ -1,7 +1,9 @@
 // Enhanced Navbar.tsx with theme toggle and modern styling
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
+import LanguageSelector from '../LanguageSelector/LanguageSelector';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
 
@@ -9,6 +11,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -23,7 +26,7 @@ const Navbar = () => {
       <div className="navbar-container">
         <Link to="/" className="logo" onClick={handleLinkClick}>
           <img src="/logo.png" alt="CLI Mastery" className="logo-image" />
-          <span className="logo-text">CLI Mastery</span>
+          <span className="logo-text">{t('app_title')}</span>
         </Link>
         
         <button 
@@ -45,7 +48,7 @@ const Navbar = () => {
               className={isActive('/') ? 'active' : ''}
               onClick={handleLinkClick}
             >
-              Home
+              {t('home', 'Home')}
             </Link>
           </li>
           <li>
@@ -54,7 +57,7 @@ const Navbar = () => {
               className={isActive('/features') ? 'active' : ''}
               onClick={handleLinkClick}
             >
-              Features
+              {t('features', 'Features')}
             </Link>
           </li>
           <li>
@@ -63,7 +66,7 @@ const Navbar = () => {
               className={isActive('/about') ? 'active' : ''}
               onClick={handleLinkClick}
             >
-              About
+              {t('about', 'About')}
             </Link>
           </li>
           
@@ -75,7 +78,7 @@ const Navbar = () => {
                   className={isActive('/dashboard') ? 'active' : ''}
                   onClick={handleLinkClick}
                 >
-                  Dashboard
+                  {t('dashboard')}
                 </Link>
               </li>
               <li>
@@ -86,7 +89,7 @@ const Navbar = () => {
                   }}
                   className="nav-logout-btn"
                 >
-                  Logout
+                  {t('logout')}
                 </button>
               </li>
             </>
@@ -98,7 +101,7 @@ const Navbar = () => {
                   className={isActive('/login') ? 'active' : ''}
                   onClick={handleLinkClick}
                 >
-                  Login
+                  {t('login')}
                 </Link>
               </li>
               <li>
@@ -107,11 +110,15 @@ const Navbar = () => {
                   className={`register-btn ${isActive('/register') ? 'active' : ''}`}
                   onClick={handleLinkClick}
                 >
-                  Register
+                  {t('register')}
                 </Link>
               </li>
             </>
           )}
+          
+          <li className="navbar-controls">
+            <LanguageSelector />
+          </li>
           
           <li className="theme-toggle-container">
             <ThemeToggle />
@@ -123,5 +130,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
 

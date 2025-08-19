@@ -457,3 +457,385 @@ body.dark-mode .no-cards-message p {
   cursor: not-allowed;
 }
 
+
+/* Enhanced Flashcards Styles */
+
+.flashcards-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stack-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 0.5rem;
+}
+
+.stack-description {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin: 0 0 1.5rem;
+  opacity: 0.9;
+}
+
+.flashcards-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-info {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.current-card {
+  color: #4facfe;
+  font-size: 1.3rem;
+}
+
+.separator {
+  color: var(--text-secondary);
+  margin: 0 0.5rem;
+}
+
+.total-cards {
+  color: var(--text-secondary);
+}
+
+.progress-bar-container {
+  width: 200px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4facfe, #00f2fe);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Mode Toggle Enhanced */
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  margin: 2rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  width: fit-content;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.mode-btn {
+  padding: 1rem 2rem;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  font-weight: 500;
+  position: relative;
+}
+
+.mode-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mode-btn.active {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: white;
+  font-weight: 600;
+}
+
+/* Flashcard Controls */
+.flashcard-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.view-toggle {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.view-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Grid View */
+.flashcards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.flashcard-grid-item {
+  position: relative;
+}
+
+.card-number {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+}
+
+.more-cards-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  font-weight: 500;
+  min-height: 200px;
+  transition: all 0.3s ease;
+}
+
+.more-cards-indicator:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(79, 172, 254, 0.5);
+  color: #4facfe;
+}
+
+/* Single View */
+.flashcard-single {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.card-counter {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.flashcard-navigation {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.nav-btn {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.prev-btn:hover:not(:disabled) {
+  border-color: rgba(245, 87, 108, 0.5);
+  color: #f5576c;
+}
+
+.next-btn:hover:not(:disabled) {
+  border-color: rgba(79, 172, 254, 0.5);
+  color: #4facfe;
+}
+
+.completion-message {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 1rem;
+  box-shadow: 0 4px 12px rgba(67, 233, 123, 0.3);
+}
+
+/* QA Section Enhanced */
+.qa-section {
+  margin-top: 2rem;
+}
+
+.qa-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.qa-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.qa-item-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.qa-number {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
+/* Loading and Error States */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.error-message {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(245, 87, 108, 0.1);
+  border: 1px solid rgba(245, 87, 108, 0.3);
+  border-radius: 16px;
+  color: #f5576c;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .stack-description,
+body.dark-mode .total-cards,
+body.dark-mode .separator {
+  color: var(--dark-text-secondary);
+}
+
+body.dark-mode .progress-info,
+body.dark-mode .card-counter,
+body.dark-mode .mode-btn,
+body.dark-mode .view-toggle,
+body.dark-mode .nav-btn {
+  color: var(--dark-text-primary);
+}
+
+body.dark-mode .qa-title {
+  color: var(--dark-text-primary);
+}
+
+body.dark-mode .loading-spinner {
+  color: var(--dark-text-secondary);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .flashcards-header {
+    padding: 1.5rem;
+  }
+  
+  .stack-title {
+    font-size: 1.8rem;
+  }
+  
+  .flashcards-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .flashcard-navigation {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .nav-btn {
+    width: 100%;
+  }
+  
+  .mode-toggle {
+    width: 100%;
+  }
+  
+  .mode-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+  }
+  
+  .qa-item-wrapper {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .qa-number {
+    align-self: flex-start;
+  }

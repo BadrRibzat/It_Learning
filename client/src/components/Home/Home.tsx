@@ -1,126 +1,221 @@
 // src/components/Home/Home.tsx
 import React from 'react';
-import logo from '../../assets/logo.png'; // Adjust path if needed
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import './Home.css';
 
-// src/components/Home/Home.tsx
 const Home = () => {
+  const { t } = useTranslation();
+
   return (
-    <div className="home-container" style={{ textAlign: 'center', padding: '3rem 1rem', lineHeight: 1.7 }}>
+    <div className="home-container">
       {/* Hero Section */}
-      <section className="hero">
-        <h1 style={{
-          fontSize: '3.5rem',
-          margin: '0 0 1rem',
-          color: '#2c3e50',
-          fontWeight: 700,
-        }}>
-          Master the Command Line
-        </h1>
-        <p style={{
-          fontSize: '1.3rem',
-          color: '#555',
-          maxWidth: '700px',
-          margin: '0 auto 2rem',
-        }}>
-          For frontend devs, backend engineers, DevOps, and self-taught coders — this is how you gain real control over your systems.
-        </p>
-        <button
-          onClick={() => (window.location.href = '/register')}
-          style={{
-            background: '#6750a4',
-            color: 'white',
-            border: 'none',
-            padding: '1rem 2rem',
-            borderRadius: '8px',
-            fontSize: '1.1rem',
-            cursor: 'pointer',
-            fontWeight: 600,
-          }}
-        >
-          Start Learning Free
-        </button>
+      <section className="hero-section">
+        <div className="hero-background">
+          <div className="floating-elements">
+            <div className="floating-element">💻</div>
+            <div className="floating-element">🚀</div>
+            <div className="floating-element">⚡</div>
+            <div className="floating-element">🔧</div>
+            <div className="floating-element">📊</div>
+          </div>
+        </div>
+        <div className="hero-content">
+          <h1 className="hero-title">
+            Master the <span className="gradient-text">Command Line</span>
+            <br />Like a Pro
+          </h1>
+          <p className="hero-subtitle">
+            Transform from tutorial follower to confident engineer. Learn the CLI commands that power real-world systems through interactive flashcards and hands-on practice.
+          </p>
+          <div className="hero-stats">
+            <div className="stat-item">
+              <span className="stat-number">11</span>
+              <span className="stat-label">Tech Stacks</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-number">500+</span>
+              <span className="stat-label">Commands</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-number">5</span>
+              <span className="stat-label">Languages</span>
+            </div>
+          </div>
+          <div className="hero-actions">
+            <Link to="/register" className="cta-button primary">
+              Start Learning Free
+              <span className="button-arrow">→</span>
+            </Link>
+            <Link to="/features" className="cta-button secondary">
+              Explore Features
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* Why CLI Matters */}
-      <section style={{ marginTop: '5rem', maxWidth: '900px', margin: '0 auto' }}>
-        <h2 style={{ fontSize: '2.2rem', color: '#2c3e50' }}>Why CLI Skills Are Non-Negotiable</h2>
-        <p>
-          In modern software development, the command line is not optional — it’s the foundation.
-        </p>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '1.5rem',
-          margin: '2rem 0',
-        }}>
-          <div style={cardStyle}>
-            <h3>🛠️ DevOps & Deployment</h3>
-            <p>Deploy containers, scale services, debug pods — all with <code>kubectl</code>, <code>docker</code>, and shell scripts.</p>
+      <section className="why-cli-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Why CLI Skills Are Non-Negotiable</h2>
+            <p className="section-subtitle">
+              In modern software development, the command line isn't optional — it's the foundation of everything you build.
+            </p>
           </div>
-          <div style={cardStyle}>
-            <h3>💾 Data & Databases</h3>
-            <p>Backup PostgreSQL, query MongoDB, flush Redis — without GUIs, using only CLI tools.</p>
-          </div>
-          <div style={cardStyle}>
-            <h3>🔧 System Maintenance</h3>
-            <p>Monitor logs, manage processes, fix permissions — Linux CLI is the first responder.</p>
-          </div>
-          <div style={cardStyle}>
-            <h3>☁️ Cloud Engineering</h3>
-            <p>Spin up VMs, manage buckets, configure networks — AWS, GCP, and Azure all start in the terminal.</p>
+          <div className="benefits-grid">
+            <div className="benefit-card">
+              <div className="benefit-icon">🛠️</div>
+              <h3>DevOps & Deployment</h3>
+              <p>Deploy containers, scale services, debug pods — all with kubectl, docker, and shell scripts.</p>
+              <div className="benefit-tags">
+                <span className="tag">Docker</span>
+                <span className="tag">Kubernetes</span>
+                <span className="tag">CI/CD</span>
+              </div>
+            </div>
+            <div className="benefit-card">
+              <div className="benefit-icon">💾</div>
+              <h3>Data & Databases</h3>
+              <p>Backup PostgreSQL, query MongoDB, flush Redis — without GUIs, using only CLI tools.</p>
+              <div className="benefit-tags">
+                <span className="tag">PostgreSQL</span>
+                <span className="tag">MongoDB</span>
+                <span className="tag">Redis</span>
+              </div>
+            </div>
+            <div className="benefit-card">
+              <div className="benefit-icon">🔧</div>
+              <h3>System Administration</h3>
+              <p>Monitor logs, manage processes, fix permissions — Linux CLI is your first responder.</p>
+              <div className="benefit-tags">
+                <span className="tag">Linux</span>
+                <span className="tag">Bash</span>
+                <span className="tag">Monitoring</span>
+              </div>
+            </div>
+            <div className="benefit-card">
+              <div className="benefit-icon">☁️</div>
+              <h3>Cloud Engineering</h3>
+              <p>Spin up VMs, manage buckets, configure networks — AWS, GCP, and Azure all start in the terminal.</p>
+              <div className="benefit-tags">
+                <span className="tag">AWS</span>
+                <span className="tag">GCP</span>
+                <span className="tag">Azure</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section style={{ marginTop: '5rem' }}>
-        <h2>Learn Like a Pro</h2>
-        <div style={flashcardStyle}>
-          <p><strong>Front:</strong> <em>"kubectl get pods"</em> – List all running pods</p>
-          <p><strong>Back:</strong> "How do you check the status of your Kubernetes pods?"</p>
-          <input
-            placeholder="Type the command..."
-            style={inputStyle}
-          />
-          <button style={checkButtonStyle}>Check</button>
+      <section className="how-it-works-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Learn Like a Pro</h2>
+            <p className="section-subtitle">
+              Interactive flashcards that adapt to your learning style
+            </p>
+          </div>
+          <div className="demo-flashcard">
+            <div className="flashcard-demo">
+              <div className="demo-front">
+                <h4>Question</h4>
+                <p>List all running pods in Kubernetes</p>
+                <div className="demo-input-group">
+                  <input 
+                    type="text" 
+                    placeholder="Type the command..."
+                    className="demo-input"
+                  />
+                  <button className="demo-check-btn">Check</button>
+                </div>
+              </div>
+              <div className="demo-back">
+                <h4>Answer</h4>
+                <code>kubectl get pods</code>
+                <p className="demo-explanation">
+                  This command displays all pods in the current namespace with their status, age, and restart count.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tech Stacks */}
+      <section className="tech-stacks-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Master Essential Technologies</h2>
+            <p className="section-subtitle">
+              From basics to advanced, cover the tools that power modern development
+            </p>
+          </div>
+          <div className="tech-grid">
+            <div className="tech-item">
+              <span className="tech-icon">🐚</span>
+              <span className="tech-name">Bash</span>
+            </div>
+            <div className="tech-item">
+              <span className="tech-icon">🐳</span>
+              <span className="tech-name">Docker</span>
+            </div>
+            <div className="tech-item">
+              <span className="tech-icon">📚</span>
+              <span className="tech-name">Git</span>
+            </div>
+            <div className="tech-item">
+              <span className="tech-icon">☸️</span>
+              <span className="tech-name">Kubernetes</span>
+            </div>
+            <div className="tech-item">
+              <span className="tech-icon">☁️</span>
+              <span className="tech-name">Cloud</span>
+            </div>
+            <div className="tech-item">
+              <span className="tech-icon">🐧</span>
+              <span className="tech-name">Linux</span>
+            </div>
+            <div className="tech-item">
+              <span className="tech-icon">🍃</span>
+              <span className="tech-name">MongoDB</span>
+            </div>
+            <div className="tech-item">
+              <span className="tech-icon">📦</span>
+              <span className="tech-name">NPM</span>
+            </div>
+            <div className="tech-item">
+              <span className="tech-icon">🐘</span>
+              <span className="tech-name">PostgreSQL</span>
+            </div>
+            <div className="tech-item">
+              <span className="tech-icon">🐍</span>
+              <span className="tech-name">Python</span>
+            </div>
+            <div className="tech-item">
+              <span className="tech-icon">🔴</span>
+              <span className="tech-name">Redis</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="cta-section">
+        <div className="container">
+          <div className="cta-content">
+            <h2>Ready to Level Up Your CLI Skills?</h2>
+            <p>Join thousands of developers who've transformed their careers through command line mastery.</p>
+            <Link to="/register" className="cta-button primary large">
+              Start Your Journey
+              <span className="button-arrow">→</span>
+            </Link>
+          </div>
         </div>
       </section>
     </div>
   );
-};
-
-// Reusable styles
-const cardStyle = {
-  background: '#f8f9fa',
-  padding: '1.5rem',
-  borderRadius: '10px',
-  border: '1px solid #e9ecef',
-};
-
-const flashcardStyle = {
-  background: 'white',
-  border: '1px solid #ddd',
-  borderRadius: '10px',
-  padding: '2rem',
-  maxWidth: '600px',
-  margin: '2rem auto',
-  boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: '0.75rem',
-  margin: '1rem 0',
-  border: '1px solid #ddd',
-  borderRadius: '6px',
-};
-
-const checkButtonStyle = {
-  background: '#2ecc71',
-  color: 'white',
-  border: 'none',
-  padding: '0.5rem 1rem',
-  borderRadius: '6px',
 };
 
 export default Home;
