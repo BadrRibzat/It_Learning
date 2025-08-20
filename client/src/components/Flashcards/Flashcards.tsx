@@ -5,30 +5,33 @@ import QAItem from '../QA/QAItem';
 import './Flashcards.css';
 
 const Flashcards = ({ stackId }) => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mode, setMode] = useState<'flashcard' | 'qa'>('flashcard');
   const [showGrid, setShowGrid] = useState(false);
 
   useEffect(() => {
-    const fetchStack = async () => {
+    let cancelled = false;
+
+    (async () => {
       try {
         const token = localStorage.getItem('token');
         const res = await fetch(`/api/flashcards/stacks/${stackId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         const payload = await res.json();
         if (!res.ok) throw new Error(payload.message || 'Failed to load');
-        setData(payload);
+        if (!cancelled) setData(payload);
       } catch (err) {
         console.error('Failed to load stack:', err);
+        if (!cancelled) setData(null);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    };
+    })();
 
-    fetchStack();
+    return () => { cancelled = true; };
   }, [stackId]);
 
   if (loading) return <div className="loading-spinner">Loading flashcards...</div>;
@@ -36,7 +39,6 @@ const Flashcards = ({ stackId }) => {
 
   const flashcards = Array.isArray(data.flashcards) ? data.flashcards : [];
   const qaMode = Array.isArray(data.qa_mode) ? data.qa_mode : [];
-
   const currentCard = flashcards[currentIndex];
 
   return (
@@ -44,8 +46,7 @@ const Flashcards = ({ stackId }) => {
       <div className="flashcards-header">
         <h2 className="stack-title">{data.name?.en || 'Untitled Stack'}</h2>
         <p className="stack-description">{data.description?.en || 'No description available'}</p>
-        
-        {/* Progress indicator */}
+
         <div className="flashcards-progress">
           <div className="progress-info">
             <span className="current-card">{currentIndex + 1}</span>
@@ -53,31 +54,35 @@ const Flashcards = ({ stackId }) => {
             <span className="total-cards">{flashcards.length}</span>
           </div>
           <div className="progress-bar-container">
-            <div 
+            <div
               className="progress-bar-fill"
-              style={{ width: `${((currentIndex + 1) / flashcards.length) * 100}%` }}
-            ></div>
+              style={{ width: `${((currentIndex + 1) / Math.max(1, flashcards.length)) * 100}%` }}
+            />
           </div>
         </div>
       </div>
 
       {/* Mode Toggle */}
-      <div className="mode-toggle">
+      <div className="mode-toggle" role="tablist" aria-label="Study mode">
         <button
           onClick={() => setMode('flashcard')}
           className={`mode-btn ${mode === 'flashcard' ? 'active' : ''}`}
+          role="tab"
+          aria-selected={mode === 'flashcard'}
         >
           🃏 Flashcards
         </button>
         <button
           onClick={() => setMode('qa')}
           className={`mode-btn ${mode === 'qa' ? 'active' : ''}`}
+          role="tab"
+          aria-selected={mode === 'qa'}
         >
           ❓ Q&A Mode
         </button>
       </div>
 
-      {/* Flashcards Mode */}
+      {/* FLASHCARDS MODE */}
       {mode === 'flashcard' && flashcards.length > 0 && (
         <div className="flashcard-section">
           <div className="flashcard-controls">
@@ -90,51 +95,57 @@ const Flashcards = ({ stackId }) => {
           </div>
 
           {showGrid ? (
-            /* Grid View */
             <div className="flashcards-grid">
               {flashcards.slice(0, 15).map((card, index) => (
                 <div key={card.cardId} className="flashcard-grid-item">
                   <div className="card-number">{index + 1}</div>
                   <Flashcard
+                    variant="grid"
                     cardId={card.cardId}
                     stackId={stackId}
                     question={card.question_translations?.en || 'No question'}
                     answer={card.command || 'No answer'}
-                    validAnswers={Array.isArray(card.valid_answers) ? card.valid_answers : [card.command]}
+                    validAnswers={
+                      Array.isArray(card.valid_answers) ? card.valid_answers : [card.command]
+                    }
                     answerMatch={card.answer_match || { mode: 'exact' }}
                   />
                 </div>
               ))}
               {flashcards.length > 15 && (
-                <div className="more-cards-indicator">
-                  +{flashcards.length - 15} more cards
-                </div>
+                <div className="more-cards-indicator">+{flashcards.length - 15} more cards</div>
               )}
             </div>
           ) : (
-            /* Single View */
             <div className="flashcard-single">
               <div className="card-counter">
                 Card {currentIndex + 1} of {flashcards.length}
               </div>
+
               <Flashcard
                 key={currentCard.cardId}
+                variant="single"
                 cardId={currentCard.cardId}
                 stackId={stackId}
                 question={currentCard.question_translations?.en || 'No question'}
                 answer={currentCard.command || 'No answer'}
-                validAnswers={Array.isArray(currentCard.valid_answers) ? currentCard.valid_answers : [currentCard.command]}
+                validAnswers={
+                  Array.isArray(currentCard.valid_answers)
+                    ? currentCard.valid_answers
+                    : [currentCard.command]
+                }
                 answerMatch={currentCard.answer_match || { mode: 'exact' }}
               />
+
               <div className="flashcard-navigation">
-                <button 
+                <button
                   onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
                   disabled={currentIndex === 0}
                   className="nav-btn prev-btn"
                 >
                   ← Previous
                 </button>
-                <button 
+                <button
                   onClick={() => setCurrentIndex(Math.min(flashcards.length - 1, currentIndex + 1))}
                   disabled={currentIndex === flashcards.length - 1}
                   className="nav-btn next-btn"
@@ -142,17 +153,16 @@ const Flashcards = ({ stackId }) => {
                   Next →
                 </button>
               </div>
+
               {currentIndex === flashcards.length - 1 && (
-                <div className="completion-message">
-                  🎉 You've completed all flashcards!
-                </div>
+                <div className="completion-message">🎉 You’ve completed all flashcards!</div>
               )}
             </div>
           )}
         </div>
       )}
 
-      {/* QA Mode */}
+      {/* QA MODE */}
       {mode === 'qa' && qaMode.length > 0 && (
         <div className="qa-section">
           <h3 className="qa-title">Conceptual Questions</h3>
@@ -174,3 +184,4 @@ const Flashcards = ({ stackId }) => {
 };
 
 export default Flashcards;
+
