@@ -40,3 +40,4 @@ const UserProgressSchema = new Schema<IUserProgress>({
 
 export default model<IUserProgress>('UserProgress', UserProgressSchema);
 
+

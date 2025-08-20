@@ -10,3 +10,4 @@ router.get('/verify/:token', verifyEmail);
 router.post('/logout', logoutUser);
 
 export default router;
+

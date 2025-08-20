@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 import { getStacks, getStackCards, validateAnswer } from '../controllers/flashcardController';
 import { requireAuth } from '../middleware/auth';
@@ -9,4 +10,5 @@ router.get('/stacks/:stackId', requireAuth, getStackCards); // ?mode=flashcard|q
 router.post('/validate', requireAuth, validateAnswer);
 
 export default router;
+
 

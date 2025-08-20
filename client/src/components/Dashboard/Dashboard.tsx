@@ -19,25 +19,25 @@ const Dashboard = () => {
     streak: 0
   });
 
-  // ✅ Safely calculate stats only when ring exists
+  // Safely calculate stats only when ring exists
   useEffect(() => {
-      if (ring && typeof ring.total === 'number' && ring.total > 0) {
-        const accuracy = Math.round((ring.correct / ring.total) * 100);
-        setStats({
-          totalCards: ring.total,
-          completedCards: ring.correct,
-          accuracy,
-          streak: Math.floor(accuracy / 10)
-        });
-      } else {
-        setStats({
-          totalCards: 0,
-          completedCards: 0,
-          accuracy: 0,
-          streak: 0
-        });
-      }
-    }, [ring]);
+    if (ring && typeof ring.correct === 'number' && typeof ring.total === 'number' && ring.total > 0) {
+      const accuracy = Math.round((ring.correct / ring.total) * 100);
+      setStats({
+        totalCards: ring.total,
+        completedCards: ring.correct,
+        accuracy,
+        streak: Math.floor(accuracy / 10)
+      });
+    } else {
+      setStats({
+        totalCards: 0,
+        completedCards: 0,
+        accuracy: 0,
+        streak: 0
+      });
+    }
+  }, [ring]);
 
   const safeCorrect = typeof ring?.correct === 'number' ? ring.correct : 0;
   const safeTotal = typeof ring?.total === 'number' && ring.total > 0 ? ring.total : 1;
@@ -98,11 +98,11 @@ const Dashboard = () => {
               <div className="progress-bar">
                 <div
                   className="progress-bar__inner progress-bar__inner--correct"
-                  style={{ width: ring ? `${(ring.correct / ring.total) * 100}%` : '0%' }}
+                  style={{ width: `${(safeCorrect / safeTotal) * 100}%` }}
                 ></div>
               </div>
               <span className="main-progress-text">
-                {ring ? `${ring.correct}/${ring.total} completed` : 'Loading...'}
+                {ring ? `${safeCorrect}/${ring.total ?? 0} completed` : 'Loading...'}
               </span>
             </div>
           </div>

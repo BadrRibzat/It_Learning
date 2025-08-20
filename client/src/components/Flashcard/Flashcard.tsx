@@ -51,7 +51,7 @@ const Flashcard = ({ cardId, stackId, question, answer, validAnswers, answerMatc
         <div className="flashcard-inner">
           <div className="flashcard-front">
             <h3>{question}</h3>
-            <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()} className="flashcard-form">
               <input
                 type="text"
                 value={input}

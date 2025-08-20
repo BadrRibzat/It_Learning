@@ -20,3 +20,4 @@ router.post('/reset/:stackId', requireAuth, resetProgress);
 router.get('/checklist/:stackId', requireAuth, getChecklist);
 
 export default router;
+

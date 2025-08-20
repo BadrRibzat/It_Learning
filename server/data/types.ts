@@ -46,3 +46,4 @@ export interface FlashcardsPayload {
     strings: Record<string, Record<Lang, string>>;
   };
 }
+

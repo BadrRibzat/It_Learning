@@ -11,3 +11,4 @@ data.stacks.forEach((stack: Stack) => {
 });
 
 console.log("\n🌍 UI Translations loaded for:", data.ui_translations.languages_supported.join(", "));
+
