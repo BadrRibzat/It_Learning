@@ -1,10 +1,7 @@
 // src/main.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 // Import i18n configuration
 import './i18n';
@@ -53,4 +50,11 @@ const router = createBrowserRouter(
       v7_relativeSplatPath: true,
     },
   }
+);
+
+// ✅ This was missing
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <AuthProvider>
+    <RouterProvider router={router} />
+  </AuthProvider>
 );

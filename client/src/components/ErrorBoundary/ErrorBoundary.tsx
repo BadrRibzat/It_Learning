@@ -1,32 +1,34 @@
 // src/components/ErrorBoundary/ErrorBoundary.tsx
-import React from 'react';
+import React, { Component, ErrorInfo } from 'react';
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(): ErrorBoundaryState {
     return { hasError: true };
   }
 
-  componentDidCatch(error, info) {
-    console.error('Error caught by boundary:', error, info.componentStack);
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Error caught by boundary:', error, info);
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{
-          padding: '2rem',
-          background: '#ffebee',
-          border: '1px solid #ffcdd2',
-          borderRadius: '8px',
-          color: '#c62828'
-        }}>
-          <h3>Something went wrong.</h3>
-          <p>Please refresh or try again later.</p>
+        <div style={{ padding: '2rem', color: 'red', textAlign: 'center' }}>
+          <h2>Something went wrong.</h2>
+          <p>Please refresh the page or try again later.</p>
         </div>
       );
     }
