@@ -16,6 +16,12 @@
     "jsx": "react-jsx",
     "types": ["vite/client"]
   },
+  {
+  "compilerOptions": {
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  }
+},
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },

@@ -18,33 +18,36 @@ const Flashcard = ({ cardId, stackId, question, answer, validAnswers, answerMatc
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const { user } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const isCorrect = validAnswers.some(ans => ans.toLowerCase() === input.toLowerCase());
-    setFeedback(isCorrect ? 'correct' : 'incorrect');
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const isCorrect = validAnswers.some(ans => ans.toLowerCase() === input.toLowerCase());
+      setFeedback(isCorrect ? 'correct' : 'incorrect');
 
-    // Submit to backend
-    try {
-      const token = localStorage.getItem('token');
-      await fetch('/api/progress/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          userId: user?._id,
-          stackId,
-          cardId,
-          isCorrect
-        })
-      });
-    } catch (err) {
-      console.error('Failed to submit progress');
-    }
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/progress/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            userId: user?._id,
+            stackId,
+            cardId,
+            isCorrect
+          })
+        });
+
+        if (response.ok) {
+          setTimeout(() => setFlipped(true), 1000);
+        }
+      } catch (err) {
+        console.error('Failed to submit progress');
+      }
 
     setTimeout(() => setFlipped(true), 1000);
-  };
+    };
 
   return (
       <div className={`flashcard ${flipped ? 'flipped' : ''}`} onClick={() => setFlipped(!flipped)}>
