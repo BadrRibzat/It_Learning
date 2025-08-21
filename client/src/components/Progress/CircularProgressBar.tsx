@@ -14,7 +14,10 @@ const CircularProgressBar = ({ correct, total }: ProgressBarProps) => {
   const progressColor = percentage >= 50 ? '#2ecc71' : '#e74c3c';
 
   return (
-    <div className="circular-progress" style={{ '--progress-color': progressColor }}>
+      <div
+          className="circular-progress-bar"
+          style={{ '--progress-color': '#4facfe' } as React.CSSProperties}
+        >
       <span className="progress-text">
         {safeCorrect} vs {safeTotal}
       </span>

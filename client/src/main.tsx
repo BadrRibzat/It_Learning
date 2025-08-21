@@ -3,9 +3,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-// Import i18n configuration
-import './i18n';
-
 // Import components
 import App from './App';
 import Home from './components/Home/Home';
@@ -20,38 +17,29 @@ import Verification from './components/Auth/Verification';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/Layout/PrivateRoute';
 
-const router = createBrowserRouter(
-  [
-    {
-      path: '/',
-      element: <App />,
-      children: [
-        { index: true, element: <Home /> },
-        { path: 'about', element: <About /> },
-        { path: 'features', element: <Features /> },
-        { path: 'login', element: <Login /> },
-        { path: 'register', element: <Register /> },
-        { path: 'verify/:token', element: <Verification /> },
-        {
-          path: 'dashboard',
-          element: (
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          ),
-        },
-      ],
-    },
-  ],
+const router = createBrowserRouter([
   {
-    future: {
-      v7_startTransition: true,
-      v7_relativeSplatPath: true,
-    },
-  }
-);
+    path: '/',
+    element: <App />,
+    children: [
+      { index: true, element: <Home /> },
+      { path: 'about', element: <About /> },
+      { path: 'features', element: <Features /> },
+      { path: 'login', element: <Login /> },
+      { path: 'register', element: <Register /> },
+      { path: 'verify/:token', element: <Verification /> },
+      {
+        path: 'dashboard',
+        element: (
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        ),
+      },
+    ],
+  },
+]);
 
-// ✅ This was missing
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <AuthProvider>
     <RouterProvider router={router} />

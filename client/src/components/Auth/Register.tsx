@@ -68,7 +68,7 @@ const Register = () => {
         )}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '1rem' }}>
-            <label>Email</label>
+            <label>UserName</label>
             <input
               type="text"
               value={username}
