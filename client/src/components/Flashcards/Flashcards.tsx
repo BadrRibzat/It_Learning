@@ -100,7 +100,6 @@ const Flashcards = ({ stackId }) => {
                 <div key={card.cardId} className="flashcard-grid-item">
                   <div className="card-number">{index + 1}</div>
                   <Flashcard
-                    variant="grid"
                     cardId={card.cardId}
                     stackId={stackId}
                     question={card.question_translations?.en || 'No question'}
@@ -124,7 +123,6 @@ const Flashcards = ({ stackId }) => {
 
               <Flashcard
                 key={currentCard.cardId}
-                variant="single"
                 cardId={currentCard.cardId}
                 stackId={stackId}
                 question={currentCard.question_translations?.en || 'No question'}

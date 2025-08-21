@@ -1,5 +1,5 @@
 // src/components/ErrorBoundary/ErrorBoundary.tsx
-import React, { Component, ErrorInfo } from 'react';
+import React, { Component, type ErrorInfo } from 'react'; // ✅ type-only import
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
