@@ -40,8 +40,8 @@ const Dashboard = () => {
     }
   }, [ring]);
 
-  const safeCorrect = typeof ring?.correct === 'number' ? ring.correct : 0;
-  const safeTotal = typeof ring?.total === 'number' && ring.total > 0 ? ring.total : 1;
+  const safeCorrect = ring && typeof ring.correct === 'number' ? ring.correct : 0;
+  const safeTotal = ring && typeof ring.total === 'number' && ring.total > 0 ? ring.total : 1;
 
   const handleStackChange = (stackId: string) => {
     setActiveStack(stackId);
