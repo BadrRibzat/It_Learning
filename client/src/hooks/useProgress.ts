@@ -1,28 +1,40 @@
 // src/hooks/useProgress.ts
 import { useState, useEffect } from 'react';
 
+interface RingProgress {
+  correct: number;
+  total: number;
+}
+
 export const useProgress = (stackId: string) => {
-  const [ring, setRing] = useState(null);
-  const [checklist, setChecklist] = useState(null);
+  const [ring, setRing] = useState<RingProgress | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProgress = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (!token) return;
+        if (!token) {
+          setLoading(false);
+          return;
+        }
 
-        const headers = { 'Authorization': `Bearer ${token}` };
+        const headers = { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
 
-        const [ringRes, checklistRes] = await Promise.all([
-          fetch(`/api/progress/ring/${stackId}`, { headers }),
-          fetch(`/api/progress/checklist/${stackId}`, { headers })
-        ]);
-
-        if (ringRes.ok) setRing(await ringRes.json());
-        if (checklistRes.ok) setChecklist(await checklistRes.json());
+        const res = await fetch(`/api/progress/ring/${stackId}`, { headers });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setRing(data);
+        } else {
+          setRing({ correct: 0, total: 0 });
+        }
       } catch (err) {
         console.error('Failed to fetch progress:', err);
+        setRing({ correct: 0, total: 0 });
       } finally {
         setLoading(false);
       }
@@ -31,5 +43,5 @@ export const useProgress = (stackId: string) => {
     fetchProgress();
   }, [stackId]);
 
-  return { ring, checklist, loading };
+  return { ring, loading };
 };

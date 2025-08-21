@@ -18,7 +18,7 @@ const Flashcard = ({ cardId, stackId, question, answer, validAnswers, answerMatc
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const { user } = useAuth();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const isCorrect = validAnswers.some(ans => ans.toLowerCase() === input.toLowerCase());
     setFeedback(isCorrect ? 'correct' : 'incorrect');

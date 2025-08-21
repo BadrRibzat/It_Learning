@@ -11,6 +11,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [activeStack, setActiveStack] = useState('bash');
   const { ring, loading: progressLoading } = useProgress(activeStack);
+  const progressPercentage = ring ? Math.round((ring.correct / ring.total) * 100) : 0;
 
   const [stats, setStats] = useState({
     totalCards: 0,
@@ -102,7 +103,7 @@ const Dashboard = () => {
                 ></div>
               </div>
               <span className="main-progress-text">
-                {ring ? `${safeCorrect}/${ring.total ?? 0} completed` : 'Loading...'}
+                {ring ? `${ring.correct}/${ring.total} completed` : 'Loading...'}
               </span>
             </div>
           </div>

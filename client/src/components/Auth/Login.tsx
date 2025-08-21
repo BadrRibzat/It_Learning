@@ -10,16 +10,16 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    const result = await login(email, password);
-    if (result === 'success') {
-      navigate('/dashboard');
-    } else {
-      setError(result);
-    }
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError('');
+      const result = await login(email, password);
+      if (result === 'success') {
+        navigate('/dashboard');
+      } else {
+        setError(result);
+      }
+    };
 
   return (
     <div className="auth-container" style={{ padding: '4rem 1rem' }}>
