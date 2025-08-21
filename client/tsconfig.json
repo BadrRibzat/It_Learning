@@ -6,7 +6,6 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "strict": false,
-    "noEmit": false,
     "esModuleInterop": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -16,13 +15,11 @@
     "types": ["vite/client"],
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "noEmit": false,
+    "composite": false
   },
   "include": [
     "src"
-  ],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
   ]
 }
