@@ -21,12 +21,11 @@ WORKDIR /app
 # Copy built artifacts from builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/data ./data  # Include data directory if needed for runtime
 
 # Install only production dependencies
 RUN npm install --only=production
 
-# Expose the port (will be overridden by env var)
+# Expose the port
 EXPOSE 8080
 
 # Start the server
