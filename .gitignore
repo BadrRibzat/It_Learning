@@ -1,21 +1,3 @@
-# Updated .gitignore for Python/Flask/MongoDB and Vue.js/Vite project
-
-### Python ###
-# Byte-compiled / optimized / DLL files
-**/__pycache__/
-**/*.py[cod]
-**/*$py.class
-**/*.so
-.Python
-
-# Virtual Environments
-**/env/
-**/.venv/
-**/venv/
-**/ENV/
-env.bak/
-venv.bak/
-
 # Distribution / packaging
 **/*.egg-info/
 **/*.egg
@@ -34,44 +16,15 @@ venv.bak/
 .env.development.local
 .env.test.local
 .env.production.local
-
-# Testing
-.coverage
-.pytest_cache/
-htmlcov/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
+server/.env
+server/.env.production
+server/node_modules/
+server/dist/
+clien/.env
 
 # OS artifacts
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-logs/
-
-# ML/AI
-**/*.pkl
-**/*.model
-**/*.bin
-**/*.cfg
-**/chatbot/model/
-
-# Database
-*.sql
-*.sqlite
-
-# Docker
-docker-compose.override.yml
-
-# Local development
-tmp/
-temp/
 
 ### Frontend ###
 # Node.js
@@ -99,15 +52,5 @@ dist-ssr/
 .env.local
 .env.development.local
 .env.test.local
-.env.production.local
+.env.production
 
-# Special cases (pip internal files)
-**/pip-*.dist-info/
-**/pip/_vendor/
-**/pip/_internal/
-
-# .gitignore
-uploads/profile_pictures/*
-!uploads/profile_pictures/.gitkeep
-!uploads/profile_pictures/test/
-.env

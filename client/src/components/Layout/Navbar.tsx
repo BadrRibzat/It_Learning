@@ -26,7 +26,7 @@ const Navbar = () => {
       <div className="navbar-container">
         <Link to="/" className="logo" onClick={handleLinkClick}>
           <img src="/logo.png" alt="CLI Mastery" className="logo-image" />
-          <span className="logo-text">{t('app_title')}</span>
+          <span className="logo-text">{t('IT-Learning Groups')}</span>
         </Link>
         
         <button 
