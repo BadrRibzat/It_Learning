@@ -1,6 +1,7 @@
 // src/components/Auth/Verification.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import api from '../../utils/api';
 
 const Verification = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -10,7 +11,6 @@ const Verification = () => {
 
   useEffect(() => {
     const verify = async () => {
-      // Extract token from /verify/TOKEN (not ?token=TOKEN)
       const pathParts = location.pathname.split('/');
       const token = pathParts[2]; // /verify/:token
 
@@ -21,23 +21,16 @@ const Verification = () => {
       }
 
       try {
-        const res = await fetch(`/api/auth/verify/${token}`);
-        const data = await res.json();
+        const res = await api.get(`/auth/verify/${token}`);
+        const data = res.data;
 
-        if (!res.ok) {
-          setStatus('error');
-          setMessage(data.message || 'Verification failed. Link may be expired.');
-          return;
-        }
-
-        // ✅ Save token and go to login
         localStorage.setItem('token', data.token);
         setStatus('success');
         setMessage('Your email has been verified! Redirecting to dashboard...');
         setTimeout(() => navigate('/dashboard'), 1500);
-      } catch (err) {
+      } catch (err: any) {
         setStatus('error');
-        setMessage('Network error. Please try again.');
+        setMessage(err.response?.data?.message || 'Verification failed. Link may be expired.');
       }
     };
 
@@ -58,7 +51,7 @@ const Verification = () => {
             padding: '0.75rem 1.5rem',
             borderRadius: '8px',
             marginTop: '1rem',
-            cursor: 'pointer'
+            cursor: 'pointer',
           }}
         >
           Try Again
@@ -69,3 +62,4 @@ const Verification = () => {
 };
 
 export default Verification;
+
