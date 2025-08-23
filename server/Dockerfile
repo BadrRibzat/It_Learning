@@ -10,7 +10,7 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Build TypeScript to JavaScript
+# Build TypeScript
 RUN npm run build
 
 # Stage 2: Production image
@@ -29,4 +29,5 @@ RUN npm install --only=production
 EXPOSE 8080
 
 # Start the server
-CMD ["npm", "start"]
+CMD ["node", "dist/server.js"]
+
