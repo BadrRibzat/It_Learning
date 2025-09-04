@@ -34,6 +34,37 @@
   "next": "Weiter",
   "finish": "Abschließen",
   "congratulations": "Herzlichen Glückwunsch!",
-  "you_completed": "Sie haben abgeschlossen"
+  "you_completed": "Sie haben abgeschlossen",
+  "errors": {
+    "passwords_do_not_match": "Passwörter stimmen nicht überein",
+    "user_exists": "Benutzer existiert bereits",
+    "invalid_user_data": "Ungültige Benutzerdaten",
+    "failed_verification_email": "Fehler beim Senden der Bestätigungs-E-Mail",
+    "invalid_credentials": "Ungültige Anmeldedaten",
+    "email_not_verified": "Bitte bestätigen Sie zuerst Ihre E-Mail",
+    "user_not_found": "Benutzer nicht gefunden",
+    "invalid_token": "Ungültiger oder abgelaufener Token",
+    "stack_not_found": "Stack {{stackId}} nicht gefunden",
+    "card_not_found": "Karte {{cardId}} nicht gefunden",
+    "unknown_stack": "Unbekannter Stack {{stackId}}",
+    "server_error": "Serverfehler"
+  },
+  "messages": {
+    "email_verified": "E-Mail erfolgreich bestätigt",
+    "logged_out": "Erfolgreich abgemeldet"
+  },
+  "flashcards": {
+    "loaded": "Flashcards erfolgreich geladen",
+    "correct_answer": "Richtige Antwort!",
+    "incorrect_answer": "Falsche Antwort"
+  },
+  "progress": {
+    "loaded": "Fortschritt erfolgreich geladen",
+    "no_progress": "Kein Fortschritt gefunden",
+    "checklist_loaded": "Checkliste geladen",
+    "ring_data": "Fortschrittsringdaten geladen",
+    "submission_saved": "Einreichung gespeichert",
+    "failed_cards": "Fehlgeschlagene Karten abgerufen",
+    "progress_reset": "Fortschritt zurückgesetzt"
+  }
 }
-

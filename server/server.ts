@@ -5,6 +5,10 @@ import connectDB from './config/db';
 import authRoutes from './routes/authRoutes';
 import flashcardRoutes from './routes/flashcardRoutes';
 import progressRoutes from './routes/progressRoutes';
+import swaggerUi from 'swagger-ui-express';
+import specs from './swaggerConfig';
+import { i18nMiddleware } from './middleware/i18n';
+import mongoose from 'mongoose';
 
 // Remove dotenv.config();
 
@@ -16,6 +20,20 @@ app.use(cors({
   credentials: true 
 }));
 app.use(express.json());
+app.use(i18nMiddleware);
+
+// Swagger documentation
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs));
+
+// Health check endpoint
+app.get('/api/health', (req: Request, res: Response) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  res.json({ 
+    status: 'ok', 
+    db: dbStatus,
+    timestamp: new Date().toISOString()
+  });
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flashcards', flashcardRoutes);

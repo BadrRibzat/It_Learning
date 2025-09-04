@@ -34,5 +34,37 @@
   "next": "Next",
   "finish": "Finish",
   "congratulations": "Congratulations!",
-  "you_completed": "You've completed"
+  "you_completed": "You've completed",
+  "errors": {
+    "passwords_do_not_match": "Passwords do not match",
+    "user_exists": "User already exists",
+    "invalid_user_data": "Invalid user data",
+    "failed_verification_email": "Failed to send verification email",
+    "invalid_credentials": "Invalid credentials",
+    "email_not_verified": "Please verify your email first",
+    "user_not_found": "User not found",
+    "invalid_token": "Invalid or expired token",
+    "stack_not_found": "Stack {{stackId}} not found",
+    "card_not_found": "Card {{cardId}} not found",
+    "unknown_stack": "Unknown stack {{stackId}}",
+    "server_error": "Server error"
+  },
+  "messages": {
+    "email_verified": "Email verified successfully",
+    "logged_out": "Logged out successfully"
+  },
+  "flashcards": {
+    "loaded": "Flashcards loaded successfully",
+    "correct_answer": "Correct answer!",
+    "incorrect_answer": "Incorrect answer"
+  },
+  "progress": {
+    "loaded": "Progress loaded successfully",
+    "no_progress": "No progress found",
+    "checklist_loaded": "Checklist loaded successfully",
+    "ring_data": "Progress ring data loaded",
+    "submission_saved": "Submission saved successfully",
+    "failed_cards": "Failed cards retrieved",
+    "progress_reset": "Progress reset successfully"
+  }
 }

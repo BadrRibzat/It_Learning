@@ -20,7 +20,7 @@
   "flashcard_mode": "Modo Flashcards",
   "qa_mode": "Modo Preguntas/Respuestas",
   "reset_progress": "Restablecer progreso",
-  "reset_progress_confirm": "¿Realmente deseas restablecer tu progreso? Esta acción no se puede deshacer.",
+  "reset_progress_confirm": "¿Estás seguro de que deseas restablecer tu progreso? Esta acción no se puede deshacer.",
   "dashboard": "Panel",
   "progress": "Progreso",
   "profile": "Perfil",
@@ -34,6 +34,37 @@
   "next": "Siguiente",
   "finish": "Finalizar",
   "congratulations": "¡Felicidades!",
-  "you_completed": "Has completado"
+  "you_completed": "Has completado",
+  "errors": {
+    "passwords_do_not_match": "Las contraseñas no coinciden",
+    "user_exists": "El usuario ya existe",
+    "invalid_user_data": "Datos de usuario inválidos",
+    "failed_verification_email": "Error al enviar el correo de verificación",
+    "invalid_credentials": "Credenciales inválidas",
+    "email_not_verified": "Por favor verifica tu correo primero",
+    "user_not_found": "Usuario no encontrado",
+    "invalid_token": "Token inválido o expirado",
+    "stack_not_found": "Stack {{stackId}} no encontrado",
+    "card_not_found": "Tarjeta {{cardId}} no encontrada",
+    "unknown_stack": "Stack desconocido {{stackId}}",
+    "server_error": "Error del servidor"
+  },
+  "messages": {
+    "email_verified": "Correo verificado con éxito",
+    "logged_out": "Cierre de sesión exitoso"
+  },
+  "flashcards": {
+    "loaded": "Flashcards cargadas con éxito",
+    "correct_answer": "¡Respuesta correcta!",
+    "incorrect_answer": "Respuesta incorrecta"
+  },
+  "progress": {
+    "loaded": "Progreso cargado con éxito",
+    "no_progress": "No se encontró progreso",
+    "checklist_loaded": "Lista de verificación cargada",
+    "ring_data": "Datos del anillo de progreso cargados",
+    "submission_saved": "Envío guardado con éxito",
+    "failed_cards": "Tarjetas fallidas recuperadas",
+    "progress_reset": "Progreso reiniciado"
+  }
 }
-

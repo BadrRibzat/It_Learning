@@ -14,13 +14,13 @@
   "no_account_yet": "Vous n'avez pas encore de compte ?",
   "create_account": "Créer un compte",
   "verify_email_title": "Vérifiez votre email",
-  "verify_email_body": "Nous avons envoyé un lien de vérification à votre email. Vérifiez votre boîte de réception.",
+  "verify_email_body": "Nous avons envoyé un lien de vérification à votre email. Veuillez vérifier votre boîte de réception.",
   "email_verified": "Email vérifié avec succès !",
-  "continue_to_login": "Continuer vers la connexion",
+  "continue_to_login": " Continuer vers la connexion",
   "flashcard_mode": "Mode Flashcards",
   "qa_mode": "Mode Q/R",
   "reset_progress": "Réinitialiser la progression",
-  "reset_progress_confirm": "Voulez-vous vraiment réinitialiser votre progression ? Cette action est irréversible.",
+  "reset_progress_confirm": "Voulez-vous vraiment réinitialiser votre progression ? Action irréversible.",
   "dashboard": "Tableau de bord",
   "progress": "Progression",
   "profile": "Profil",
@@ -34,6 +34,37 @@
   "next": "Suivant",
   "finish": "Terminer",
   "congratulations": "Félicitations !",
-  "you_completed": "Vous avez terminé"
+  "you_completed": "Vous avez terminé",
+  "errors": {
+    "passwords_do_not_match": "Les mots de passe ne correspondent pas",
+    "user_exists": "L'utilisateur existe déjà",
+    "invalid_user_data": "Données utilisateur invalides",
+    "failed_verification_email": "Échec de l'envoi de l'email de vérification",
+    "invalid_credentials": "Identifiants invalides",
+    "email_not_verified": "Veuillez vérifier votre email d'abord",
+    "user_not_found": "Utilisateur non trouvé",
+    "invalid_token": "Token invalide ou expiré",
+    "stack_not_found": "Stack {{stackId}} non trouvé",
+    "card_not_found": "Carte {{cardId}} non trouvée",
+    "unknown_stack": "Stack inconnu {{stackId}}",
+    "server_error": "Erreur serveur"
+  },
+  "messages": {
+    "email_verified": "Email vérifié avec succès",
+    "logged_out": "Déconnexion réussie"
+  },
+  "flashcards": {
+    "loaded": "Flashcards chargées avec succès",
+    "correct_answer": "Réponse correcte !",
+    "incorrect_answer": "Réponse incorrecte"
+  },
+  "progress": {
+    "loaded": "Progression chargée avec succès",
+    "no_progress": "Aucune progression trouvée",
+    "checklist_loaded": "Liste de vérification chargée",
+    "ring_data": "Données du cercle de progression chargées",
+    "submission_saved": "Soumission enregistrée",
+    "failed_cards": "Cartes échouées récupérées",
+    "progress_reset": "Progression réinitialisée"
+  }
 }
-

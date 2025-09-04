@@ -1,7 +1,9 @@
+// controllers/progressController.ts
 import { Request, Response } from 'express';
 import { AuthedRequest } from '../middleware/auth';
 import UserProgress from '../models/UserProgress';
 import { data } from '../data/flashcards';
+import i18next from 'i18next';
 
 const ensureUserProgress = async (userId: string) => {
   const exists = await UserProgress.findOne({ userId });
@@ -28,7 +30,10 @@ export const getChecklist = async (req: Request, res: Response) => {
   try {
     const progressDoc = await UserProgress.findOne({ userId });
     if (!progressDoc) {
-      return res.status(404).json({ passed: [] });
+      return res.status(404).json({ 
+        passed: [],
+        message: i18next.t('progress.no_progress')
+      });
     }
 
     const stackProgress = progressDoc.stacks[stackId] || { passed: [], failed: [] };
@@ -46,15 +51,23 @@ export const getChecklist = async (req: Request, res: Response) => {
       }
     });
 
-    res.json({ passed: checklist });
+    res.json({ 
+      passed: checklist,
+      message: i18next.t('progress.checklist_loaded')
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      message: i18next.t('errors.server_error') 
+    });
   }
 };
 
 export const getProgress = async (req: AuthedRequest, res: Response) => {
   const up = await ensureUserProgress(req.userId!);
-  res.json(up);
+  res.json({ 
+    progress: up,
+    message: i18next.t('progress.loaded')
+  });
 };
 
 // completed vs total (for the circular ring)
@@ -62,10 +75,17 @@ export const getRing = async (req: AuthedRequest, res: Response) => {
   const { stackId } = req.params;
   const up = await ensureUserProgress(req.userId!);
   const s = up.stacks[stackId];
-  if (!s) return res.status(404).json({ message: 'Unknown stack' });
+  if (!s) return res.status(404).json({ 
+    message: i18next.t('errors.unknown_stack', { stackId }) 
+  });
   const completed = s.passed.length;
   const total = s.totalCards || 0;
-  res.json({ completed, total, label: `${completed} vs ${total}` });
+  res.json({ 
+    completed, 
+    total, 
+    label: `${completed} vs ${total}`,
+    message: i18next.t('progress.ring_data')
+  });
 };
 
 // store a submission, update passed/failed, record lastSubmitted
@@ -73,7 +93,9 @@ export const submitCard = async (req: AuthedRequest, res: Response) => {
   const { stackId, cardId, correct, answer } = req.body as { stackId: string; cardId: string; correct: boolean; answer: string };
   const up = await ensureUserProgress(req.userId!);
   const s = up.stacks[stackId];
-  if (!s) return res.status(404).json({ message: 'Unknown stack' });
+  if (!s) return res.status(404).json({ 
+    message: i18next.t('errors.unknown_stack', { stackId }) 
+  });
 
   s.lastSubmitted[cardId] = { answer, correct, timestamp: new Date() };
 
@@ -89,15 +111,24 @@ export const submitCard = async (req: AuthedRequest, res: Response) => {
 
   up.lastActivityAt = new Date();
   await up.save();
-  res.json({ stacks: up.stacks[stackId] });
+  res.json({ 
+    stacks: up.stacks[stackId],
+    message: i18next.t('progress.submission_saved')
+  });
 };
 
 export const getFailed = async (req: AuthedRequest, res: Response) => {
   const { stackId } = req.params;
   const up = await ensureUserProgress(req.userId!);
   const s = up.stacks[stackId];
-  if (!s) return res.status(404).json({ message: 'Unknown stack' });
-  res.json({ failed: s.failed, lastSubmitted: s.lastSubmitted });
+  if (!s) return res.status(404).json({ 
+    message: i18next.t('errors.unknown_stack', { stackId }) 
+  });
+  res.json({ 
+    failed: s.failed, 
+    lastSubmitted: s.lastSubmitted,
+    message: i18next.t('progress.failed_cards')
+  });
 };
 
 export const resetProgress = async (req: AuthedRequest, res: Response) => {
@@ -114,10 +145,13 @@ export const resetProgress = async (req: AuthedRequest, res: Response) => {
     up.stacks[stackId].failed = [];
     up.stacks[stackId].lastSubmitted = {};
   } else {
-    return res.status(404).json({ message: 'Unknown stack' });
+    return res.status(404).json({ 
+      message: i18next.t('errors.unknown_stack', { stackId }) 
+    });
   }
   up.lastActivityAt = new Date();
   await up.save();
-  res.json({ message: 'Progress reset' });
+  res.json({ 
+    message: i18next.t('progress.progress_reset')
+  });
 };
-

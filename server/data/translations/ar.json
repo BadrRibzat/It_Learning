@@ -18,9 +18,9 @@
   "email_verified": "تم التحقق من البريد الإلكتروني بنجاح!",
   "continue_to_login": "الانتقال إلى تسجيل الدخول",
   "flashcard_mode": "وضع الفلاش كارد",
-  "qa_mode": "وضع السؤال/الإجابة",
+  "qa_mode": "وضع سؤال/جواب",
   "reset_progress": "إعادة تعيين التقدم",
-  "reset_progress_confirm": "هل تريد حقًا إعادة تعيين تقدمك؟ لا يمكن التراجع عن هذا الإجراء.",
+  "reset_progress_confirm": "هل تريد حقًا إعادة تعيين تقدمك؟ لا يمكن التراجع عن ذلك.",
   "dashboard": "لوحة التحكم",
   "progress": "التقدم",
   "profile": "الملف الشخصي",
@@ -34,5 +34,37 @@
   "next": "التالي",
   "finish": "إنهاء",
   "congratulations": "تهانينا!",
-  "you_completed": "لقد أكملت"
+  "you_completed": "لقد أكملت",
+  "errors": {
+    "passwords_do_not_match": "كلمات المرور لا تطابق",
+    "user_exists": "المستخدم موجود بالفعل",
+    "invalid_user_data": "بيانات مستخدم غير صالحة",
+    "failed_verification_email": "فشل في إرسال بريد التحقق",
+    "invalid_credentials": "بيانات اعتماد غير صالحة",
+    "email_not_verified": "يرجى التحقق من بريدك الإلكتروني أولاً",
+    "user_not_found": "لم يتم العثور على المستخدم",
+    "invalid_token": "رمز غير صالح أو منتهي",
+    "stack_not_found": "المكدس {{stackId}} غير موجود",
+    "card_not_found": "البطاقة {{cardId}} غير موجودة",
+    "unknown_stack": "مكدس غير معروف {{stackId}}",
+    "server_error": "خطأ في الخادم"
+  },
+  "messages": {
+    "email_verified": "تم التحقق من البريد الإلكتروني بنجاح",
+    "logged_out": "تم تسجيل الخروج بنجاح"
+  },
+  "flashcards": {
+    "loaded": "تم تحميل البطاقات التعليمية بنجاح",
+    "correct_answer": "إجابة صحيحة!",
+    "incorrect_answer": "إجابة خاطئة"
+  },
+  "progress": {
+    "loaded": "تم تحميل التقدم بنجاح",
+    "no_progress": "لم يتم العثور على تقدم",
+    "checklist_loaded": "تم تحميل قائمة التحقق",
+    "ring_data": "تم تحميل بيانات حلقة التقدم",
+    "submission_saved": "تم حفظ التقديم",
+    "failed_cards": "تم استرداد البطاقات الفاشلة",
+    "progress_reset": "تم إعادة ضبط التقدم"
+  }
 }

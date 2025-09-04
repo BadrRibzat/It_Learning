@@ -1,9 +1,11 @@
+// controllers/authController.ts
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/User'; // <-- Make sure IUser is exported from User model
+import User, { IUser } from '../models/User';
 import { sendVerificationEmail } from '../utils/email';
 import UserProgress from '../models/UserProgress';
 import { data } from '../data/flashcards';
+import i18next from 'i18next';
 
 const generateToken = (id: string) =>
   jwt.sign({ id }, process.env.SECRET_KEY!, { expiresIn: '30d' });
@@ -27,21 +29,21 @@ const initProgressDoc = async (userId: string) => {
 export const registerUser = async (req: Request, res: Response) => {
   const { username, email, password, confirmPassword } = req.body;
   if (password !== confirmPassword)
-    return res.status(400).json({ message: 'Passwords do not match' });
+    return res.status(400).json({ message: i18next.t('errors.passwords_do_not_match') });
 
   const userExists = await User.findOne({ email }) as IUser | null;
   if (userExists)
-    return res.status(400).json({ message: 'User already exists' });
+    return res.status(400).json({ message: i18next.t('errors.user_exists') });
 
   const user = await User.create({ username, email, password }) as IUser;
   if (!user)
-    return res.status(400).json({ message: 'Invalid user data' });
+    return res.status(400).json({ message: i18next.t('errors.invalid_user_data') });
 
   const token = generateToken(user._id.toString());
   const verifyLink = `${process.env.CLIENT_URL}/verify/${token}`;
   const emailSent = await sendVerificationEmail(user.email, verifyLink);
   if (!emailSent)
-    return res.status(500).json({ message: 'Failed to send verification email' });
+    return res.status(500).json({ message: i18next.t('errors.failed_verification_email') });
 
   await initProgressDoc(user._id.toString());
 
@@ -59,13 +61,13 @@ export const loginUser = async (req: Request, res: Response) => {
     .select('+password') as IUser | null;
 
   if (!user)
-    return res.status(401).json({ message: 'Invalid credentials' });
+    return res.status(401).json({ message: i18next.t('errors.invalid_credentials') });
   if (!user.isVerified)
-    return res.status(401).json({ message: 'Please verify your email first' });
+    return res.status(401).json({ message: i18next.t('errors.email_not_verified') });
 
   const isMatch = await user.comparePassword(password);
   if (!isMatch)
-    return res.status(401).json({ message: 'Invalid credentials' });
+    return res.status(401).json({ message: i18next.t('errors.invalid_credentials') });
 
   const token = generateToken(user._id.toString());
   res.json({
@@ -83,7 +85,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     const decoded = jwt.verify(token, process.env.SECRET_KEY!) as { id: string };
     const user = await User.findById(decoded.id) as IUser | null;
     if (!user)
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: i18next.t('errors.user_not_found') });
 
     user.isVerified = true;
     await user.save();
@@ -95,7 +97,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     // ✅ Return JSON instead of redirect
     return res.json({
       success: true,
-      message: 'Email verified successfully',
+      message: i18next.t('messages.email_verified'),
       token: freshToken,
       user: {
         _id: user._id,
@@ -104,11 +106,10 @@ export const verifyEmail = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    return res.status(400).json({ message: 'Invalid or expired token' });
+    return res.status(400).json({ message: i18next.t('errors.invalid_token') });
   }
 };
 
 export const logoutUser = async (_req: Request, res: Response) => {
-  res.json({ message: 'Logged out successfully' });
+  res.json({ message: i18next.t('messages.logged_out') });
 };
-

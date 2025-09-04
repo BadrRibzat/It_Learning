@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { data } from '../data/flashcards';
 import { isAnswerValid } from '../utils/validate';
+import i18next from 'i18next';
 
 /**
  * GET /api/flashcards/stacks
@@ -14,7 +15,11 @@ export const getStacks = (req: Request, res: Response) => {
     description: s.description,
     totalCardCount: s.totalCardCount || s.flashcards.length
   }));
-  res.json({ stacks: lite, ui: data.ui_translations });
+  res.json({ 
+    stacks: lite, 
+    ui: data.ui_translations,
+    message: i18next.t('flashcards.loaded')
+  });
 };
 
 /**
@@ -26,7 +31,9 @@ export const getStackCards = (req: Request, res: Response) => {
   const stack = data.stacks.find(s => s.id === stackId);
 
   if (!stack) {
-    return res.status(404).json({ message: 'Stack not found' });
+    return res.status(404).json({ 
+      message: i18next.t('errors.stack_not_found', { stackId }) 
+    });
   }
 
   return res.json(stack);
@@ -40,11 +47,14 @@ export const validateAnswer = (req: Request, res: Response) => {
   const { stackId, cardId, input } = req.body as { stackId: string; cardId: string; input: string };
 
   const stack = data.stacks.find(s => s.id === stackId);
-  if (!stack) return res.status(404).json({ message: 'Stack not found' });
+  if (!stack) return res.status(404).json({ message: i18next.t('errors.stack_not_found', { stackId }) });
 
   const card = stack.flashcards.find(c => c.cardId === cardId);
-  if (!card) return res.status(404).json({ message: 'Card not found' });
+  if (!card) return res.status(404).json({ message: i18next.t('errors.card_not_found', { cardId }) });
 
   const ok = isAnswerValid(input, card.valid_answers, card.answer_match);
-  res.json({ correct: ok });
+  res.json({ 
+    correct: ok,
+    message: ok ? i18next.t('flashcards.correct_answer') : i18next.t('flashcards.incorrect_answer')
+  });
 };
