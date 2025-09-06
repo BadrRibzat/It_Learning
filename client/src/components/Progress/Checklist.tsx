@@ -1,12 +1,15 @@
 // src/components/Progress/Checklist.tsx
 import React from 'react';
 import './Checklist.css';
+import { useTranslation } from 'react-i18next';
 
 interface ChecklistProps {
   passed: boolean[];
 }
 
 const Checklist = ({ passed }: ChecklistProps) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="checklist">
       {passed.map((status, index) => (

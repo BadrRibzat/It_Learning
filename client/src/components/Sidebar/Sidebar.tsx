@@ -66,6 +66,32 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
         </button>
       </div>
 
+          {/* Add floating toggle button when sidebar is closed */}
+    {!isOpen && (
+      <button
+        onClick={() => setIsOpen(true)}
+        className="toggle-btn floating"
+        aria-label="Open sidebar"
+        style={{
+          position: 'fixed',
+          left: '10px',
+          top: '10px',
+          background: 'rgba(255, 255, 255, 0.25)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
+          borderRadius: '50%',
+          width: '40px',
+          height: '40px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}
+      >
+        ◀
+      </button>
+    )}
+
       {/* User Info */}
       {user && (
         <div className="sidebar-user">

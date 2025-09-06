@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import './Flashcard.css';
+import { validateAnswer } from '../../services/flashcardService';
+import { submitAnswer } from '../../services/progressService';
 
 interface FlashcardProps {
   cardId: string;
@@ -24,27 +26,10 @@ const Flashcard = ({ cardId, stackId, question, answer, validAnswers, answerMatc
     setFeedback(isCorrect ? 'correct' : 'incorrect');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/progress/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          userId: user?._id,
-          stackId,
-          cardId,
-          isCorrect
-        })
-      });
-
-      if (response.ok) {
-        setTimeout(() => setFlipped(true), 1000);
-      }
+      await submitAnswer(stackId, cardId, isCorrect);
+      setTimeout(() => setFlipped(true), 1000);
     } catch (err) {
       console.error('Failed to submit progress');
-      // Still flip after delay even if submit fails
       setTimeout(() => setFlipped(true), 1000);
     }
   };

@@ -2,6 +2,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n';
 
 // Import components
 import App from './App';
@@ -17,6 +19,18 @@ import Verification from './components/Auth/Verification';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/Layout/PrivateRoute';
 
+// Add ErrorPage component
+const ErrorPage = () => {
+  return (
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <h2>Error</h2>
+      <p>Something went wrong. Please try again later.</p>
+      <a href="/">Go back to home</a>
+    </div>
+  );
+};
+
+// Define router OUTSIDE component
 const router = createBrowserRouter([
   {
     path: '/',
@@ -36,12 +50,15 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+      { path: 'error', element: <ErrorPage /> },
     ],
   },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <AuthProvider>
-    <RouterProvider router={router} />
-  </AuthProvider>
+  <I18nextProvider i18n={i18n}>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  </I18nextProvider>
 );

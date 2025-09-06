@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Flashcard from '../Flashcard/Flashcard';
 import QAItem from '../QA/QAItem';
 import './Flashcards.css';
+import { getStack } from '../../services/flashcardService';
 
 const Flashcards = ({ stackId }) => {
   const [data, setData] = useState<any>(null);
@@ -17,12 +18,8 @@ const Flashcards = ({ stackId }) => {
     (async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`/api/flashcards/stacks/${stackId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const payload = await res.json();
-        if (!res.ok) throw new Error(payload.message || 'Failed to load');
-        if (!cancelled) setData(payload);
+        const res = await getStack(stackId);
+        if (!cancelled) setData(res);
       } catch (err) {
         console.error('Failed to load stack:', err);
         if (!cancelled) setData(null);
@@ -182,4 +179,3 @@ const Flashcards = ({ stackId }) => {
 };
 
 export default Flashcards;
-

@@ -1,5 +1,6 @@
 // src/hooks/useProgress.ts
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface RingProgress {
   correct: number;
@@ -9,6 +10,7 @@ interface RingProgress {
 export const useProgress = (stackId: string) => {
   const [ring, setRing] = useState<RingProgress | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -30,6 +32,7 @@ export const useProgress = (stackId: string) => {
           const data = await res.json();
           setRing(data);
         } else {
+          console.error('Progress fetch failed:', await res.text());
           setRing({ correct: 0, total: 0 });
         }
       } catch (err) {

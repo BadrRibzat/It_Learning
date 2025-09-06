@@ -1,6 +1,7 @@
 // src/components/Progress/CircularProgressBar.tsx
 import React from 'react';
 import './CircularProgressBar.css';
+import { useTranslation } from 'react-i18next';
 
 interface ProgressBarProps {
   correct: number;
@@ -12,14 +13,15 @@ const CircularProgressBar = ({ correct, total }: ProgressBarProps) => {
   const safeTotal = typeof total === 'number' && total > 0 ? total : 1;
   const percentage = (safeCorrect / safeTotal) * 100;
   const progressColor = percentage >= 50 ? '#2ecc71' : '#e74c3c';
+  const { t } = useTranslation();
 
   return (
-      <div
-          className="circular-progress-bar"
-          style={{ '--progress-color': '#4facfe' } as React.CSSProperties}
-        >
+    <div
+      className="circular-progress-bar"
+      style={{ '--progress-color': '#4facfe' } as React.CSSProperties}
+    >
       <span className="progress-text">
-        {safeCorrect} vs {safeTotal}
+        {t('progress.label', { correct: safeCorrect, total: safeTotal })}
       </span>
     </div>
   );

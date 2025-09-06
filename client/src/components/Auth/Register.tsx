@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const Register = () => {
   const [username, setUsername] = useState('');
@@ -12,15 +13,15 @@ const Register = () => {
   const [success, setSuccess] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
-  // ✅ Added 'async' here
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
 
     if (password !== confirmPassword) {
-      return setError('Passwords do not match');
+      return setError(t('errors.passwords_do_not_match'));
     }
 
     try {
@@ -31,124 +32,77 @@ const Register = () => {
         setError(result);
       }
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+      setError(t('errors.registration_failed'));
       console.error('Registration failed:', err);
     }
   };
 
   if (success) {
     return (
-      <div style={{ padding: '4rem 1rem', textAlign: 'center' }}>
-        <h2>Check Your Email</h2>
-        <p>We've sent a verification link to <strong>{email}</strong>.</p>
-        <p>Please click the link to verify your account.</p>
-        <button
-          onClick={() => navigate('/login')}
-          style={{
-            background: '#6750a4',
-            color: 'white',
-            border: 'none',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            cursor: 'pointer'
-          }}
-        >
-          Back to Login
-        </button>
+      <div className="auth-container">
+        <div className="auth-form">
+          <h2>{t('verify_email_title')}</h2>
+          <p>{t('verify_email_body')}</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="auth-button"
+          >
+            {t('continue_to_login')}
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="auth-container" style={{ padding: '4rem 1rem' }}>
-      <div className="auth-form" style={{ maxWidth: '400px', margin: '0 auto' }}>
-        <h2>Create Account</h2>
-        {error && (
-          <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>
-        )}
+    <div className="auth-container">
+      <div className="auth-form">
+        <h2>{t('register')}</h2>
+        {error && <div className="error">{error}</div>}
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label>UserName</label>
+          <div className="form-group">
+            <label>{t('username')}</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px'
-              }}
             />
           </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <label>Email</label>
+          <div className="form-group">
+            <label>{t('email')}</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px'
-              }}
             />
           </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <label>Password</label>
+          <div className="form-group">
+            <label>{t('password')}</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px'
-              }}
             />
           </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <label>Confirm Password</label>
+          <div className="form-group">
+            <label>{t('confirm_password')}</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px'
-              }}
             />
           </div>
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              background: '#6750a4',
-              color: 'white',
-              border: 'none',
-              padding: '0.75rem',
-              borderRadius: '8px'
-            }}
-          >
-            Register
+          <button type="submit" className="auth-button">
+            {t('register')}
           </button>
         </form>
-        <p style={{ marginTop: '1.5rem' }}>
-          Already have an account?{' '}
-          <a
-            onClick={() => navigate('/login')}
-            style={{ color: '#6750a4', cursor: 'pointer' }}
-          >
-            Login
-          </a>
+        <p className="auth-link">
+          {t('already_have_account')}{' '}
+          <a onClick={() => navigate('/login')}>{t('login')}</a>
         </p>
       </div>
     </div>

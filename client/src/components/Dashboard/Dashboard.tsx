@@ -3,9 +3,11 @@ import { useAuth } from '../../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { useProgress } from '../../hooks/useProgress';
 import Sidebar from '../Sidebar/Sidebar';
+import { useTranslation } from 'react-i18next';
 import Flashcards from '../Flashcards/Flashcards';
 import ErrorBoundary from '../ErrorBoundary/ErrorBoundary';
 import './Dashboard.css';
+import { getProgress } from '../../services/progressService';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -57,7 +59,6 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-layout">
-      {/* Sidebar with logout in footer */}
       <Sidebar
         activeStack={activeStack}
         onSelectStack={handleStackChange}
@@ -65,9 +66,7 @@ const Dashboard = () => {
         loading={progressLoading}
       />
 
-      {/* Main Content */}
       <main className="dashboard-main">
-        {/* Compact Stats Bar */}
         <div className="stats-bar">
           <div className="stat-item">
             <span className="stat-icon">📚</span>
@@ -91,7 +90,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Current Stack Progress */}
         <div className="current-stack-info">
           <div className="stack-header">
             <h2>Currently Learning: <span className="stack-name">{activeStack.toUpperCase()}</span></h2>
@@ -109,7 +107,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Flashcards Section */}
         <div className="flashcards-section">
           <ErrorBoundary>
             <Flashcards stackId={activeStack} />

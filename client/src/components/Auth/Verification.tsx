@@ -2,21 +2,23 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../utils/api';
+import { useTranslation } from 'react-i18next';
 
 const Verification = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('Verifying your email...');
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const verify = async () => {
       const pathParts = location.pathname.split('/');
-      const token = pathParts[2]; // /verify/:token
+      const token = pathParts[2];
 
       if (!token) {
         setStatus('error');
-        setMessage('Invalid verification link.');
+        setMessage(t('errors.invalid_verification_link'));
         return;
       }
 
@@ -26,40 +28,33 @@ const Verification = () => {
 
         localStorage.setItem('token', data.token);
         setStatus('success');
-        setMessage('Your email has been verified! Redirecting to dashboard...');
+        setMessage(t('messages.email_verified'));
         setTimeout(() => navigate('/dashboard'), 1500);
       } catch (err: any) {
         setStatus('error');
-        setMessage(err.response?.data?.message || 'Verification failed. Link may be expired.');
+        setMessage(err.response?.data?.message || t('errors.verification_failed'));
       }
     };
 
     verify();
-  }, [location, navigate]);
+  }, [location, navigate, t]);
 
   return (
-    <div style={{ padding: '4rem 1rem', textAlign: 'center' }}>
-      <h2>Email Verification</h2>
-      <p>{message}</p>
-      {status === 'error' && (
-        <button
-          onClick={() => navigate('/register')}
-          style={{
-            background: '#6750a4',
-            color: 'white',
-            border: 'none',
-            padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            marginTop: '1rem',
-            cursor: 'pointer',
-          }}
-        >
-          Try Again
-        </button>
-      )}
+    <div className="auth-container">
+      <div className="auth-form">
+        <h2>{t('verify_email_title')}</h2>
+        <p>{message}</p>
+        {status === 'error' && (
+          <button
+            onClick={() => navigate('/register')}
+            className="auth-button"
+          >
+            {t('try_again')}
+          </button>
+        )}
+      </div>
     </div>
   );
 };
 
 export default Verification;
-

@@ -1,4 +1,4 @@
-// Enhanced Navbar.tsx with theme toggle and modern styling
+// src/components/Layout/Navbar.tsx
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +25,7 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="logo" onClick={handleLinkClick}>
-          <img src="/logo.png" alt="CLI Mastery" className="logo-image" />
+          <img src="/logo.png" alt={t('app_title')} className="logo-image" />
           <span className="logo-text">{t('IT-Learning Groups')}</span>
         </Link>
         
@@ -48,7 +48,7 @@ const Navbar = () => {
               className={isActive('/') ? 'active' : ''}
               onClick={handleLinkClick}
             >
-              {t('home', 'Home')}
+              {t('home')}
             </Link>
           </li>
           <li>
@@ -57,7 +57,7 @@ const Navbar = () => {
               className={isActive('/features') ? 'active' : ''}
               onClick={handleLinkClick}
             >
-              {t('features', 'Features')}
+              {t('features')}
             </Link>
           </li>
           <li>
@@ -66,7 +66,7 @@ const Navbar = () => {
               className={isActive('/about') ? 'active' : ''}
               onClick={handleLinkClick}
             >
-              {t('about', 'About')}
+              {t('about')}
             </Link>
           </li>
           
@@ -130,4 +130,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

@@ -1,22 +1,10 @@
 // src/components/Layout/Footer.tsx
+import { useTranslation } from 'react-i18next';
+
 const Footer = () => {
   return (
-    <footer style={{
-      backgroundColor: '#f0f0f0',
-      padding: '1.5rem 2rem',
-      borderTop: '1px solid #ddd',
-      marginTop: 'auto',
-      fontSize: '0.9rem',
-      color: '#555',
-    }}>
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '2rem',
-        textAlign: 'center',
-      }}>
+    <footer style={{ backgroundColor: '#f0f0f0', padding: '1.5rem 2rem', borderTop: '1px solid #ddd', marginTop: 'auto', fontSize: '0.9rem', color: '#555' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', textAlign: 'center' }}>
         <div>
           <h3 style={{ color: '#6750a4', marginBottom: '0.5rem' }}>IT-Learning</h3>
           <p>Master CLI commands through interactive flashcards.</p>

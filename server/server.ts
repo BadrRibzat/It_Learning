@@ -13,7 +13,7 @@ import mongoose from 'mongoose';
 // Remove dotenv.config();
 
 const app = express();
-const port = Number(process.env.PORT) || 8080;
+const port = Number(process.env.PORT) || 5000;
 
 app.use(cors({ 
   origin: process.env.CLIENT_URL, 

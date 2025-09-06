@@ -11,21 +11,11 @@ import esTranslations from './locales/es.json';
 import frTranslations from './locales/fr.json';
 
 const resources = {
-  en: {
-    translation: enTranslations
-  },
-  ar: {
-    translation: arTranslations
-  },
-  de: {
-    translation: deTranslations
-  },
-  es: {
-    translation: esTranslations
-  },
-  fr: {
-    translation: frTranslations
-  }
+  en: { translation: enTranslations },
+  ar: { translation: arTranslations },
+  de: { translation: deTranslations },
+  es: { translation: esTranslations },
+  fr: { translation: frTranslations }
 };
 
 i18n
@@ -35,11 +25,7 @@ i18n
     resources,
     fallbackLng: 'en',
     debug: false,
-    
-    interpolation: {
-      escapeValue: false
-    },
-    
+    interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage']
