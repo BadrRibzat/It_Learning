@@ -1,4 +1,11 @@
-node_modules/
-dist/
+node_modules
+dist
 .env
-.env.production
+.env.*
+*.log
+.git
+.gitignore
+README.md
+Dockerfile
+fly.toml
+.dockerignore
