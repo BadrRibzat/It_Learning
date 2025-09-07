@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import CircularProgressBar from '../Progress/CircularProgressBar';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
+import { useTranslation } from 'react-i18next';
 import './Sidebar.css';
 
 const stacks = [
@@ -32,6 +33,7 @@ interface SidebarProps {
 const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const { logout, user } = useAuth();
+  const { t } = useTranslation();
 
   const handleStackSelect = (stackId: string) => {
     onSelectStack(stackId);
@@ -52,8 +54,8 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
       {/* Header */}
       <div className="sidebar-header">
         <div className="sidebar-title">
-          <h3>Tech Stacks</h3>
-          <span className="sidebar-subtitle">Master CLI Commands</span>
+          <h3>{t('tech_stacks_sidebar')}</h3>
+          <span className="sidebar-subtitle">{t('master_cli_commands')}</span>
         </div>
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -66,31 +68,31 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
         </button>
       </div>
 
-          {/* Add floating toggle button when sidebar is closed */}
-    {!isOpen && (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="toggle-btn floating"
-        aria-label="Open sidebar"
-        style={{
-          position: 'fixed',
-          left: '10px',
-          top: '10px',
-          background: 'rgba(255, 255, 255, 0.25)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
-          borderRadius: '50%',
-          width: '40px',
-          height: '40px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}
-      >
-        ◀
-      </button>
-    )}
+      {/* Add floating toggle button when sidebar is closed */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="toggle-btn floating"
+          aria-label="Open sidebar"
+          style={{
+            position: 'fixed',
+            left: '10px',
+            top: '10px',
+            background: 'rgba(255, 255, 255, 0.25)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+        >
+          ◀
+        </button>
+      )}
 
       {/* User Info */}
       {user && (
@@ -99,7 +101,7 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
             {user.email?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div className="user-info">
-            <span className="user-name">Welcome back!</span>
+            <span className="user-name">{t('welcome_back')}</span>
             <span className="user-email">{user.email}</span>
           </div>
         </div>
@@ -108,7 +110,7 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
       {/* Navigation */}
       <nav className="sidebar-nav">
         <div className="nav-section">
-          <h4 className="nav-section-title">Learning Paths</h4>
+          <h4 className="nav-section-title">{t('learning_paths')}</h4>
           {stacks.map((stack, index) => (
             <button
               key={stack.id}
@@ -117,7 +119,7 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               <span className="stack-icon">{stack.icon}</span>
-              <span className="stack-name">{stack.name}</span>
+              <span className="stack-name">{t(stack.id)}</span>
               <span className="stack-indicator"></span>
             </button>
           ))}
@@ -125,6 +127,19 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
       </nav>
 
       {/* Progress Section */}
+      {progress && !loading && (
+        <div className="sidebar-progress">
+          <CircularProgressBar
+            percentage={progressPercentage}
+            size={80}
+            strokeWidth={8}
+            showPercentage={true}
+          />
+          <span className="progress-label">
+            {progress.correct} / {progress.total} {t('completed')}
+          </span>
+        </div>
+      )}
 
       {/* Theme Toggle */}
       <div className="sidebar-theme">
@@ -138,7 +153,7 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
           className="logout-btn"
         >
           <span className="logout-icon">🚪</span>
-          <span className="logout-text">Logout</span>
+          <span className="logout-text">{t('logout_sidebar')}</span>
         </button>
       </div>
     </aside>
@@ -146,4 +161,3 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
 };
 
 export default Sidebar;
-

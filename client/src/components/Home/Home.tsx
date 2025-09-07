@@ -22,33 +22,33 @@ const Home = () => {
         </div>
         <div className="hero-content">
           <h1 className="hero-title">
-            Master the <span className="gradient-text">Command Line</span>
-            <br />Like a Pro
+            {t('master_cli')} <span className="gradient-text">{t('command_line')}</span>
+            <br />{t('like_a_pro')}
           </h1>
           <p className="hero-subtitle">
-            Transform from tutorial follower to confident engineer. Learn the CLI commands that power real-world systems through interactive flashcards and hands-on practice.
+            {t('hero_subtitle')}
           </p>
           <div className="hero-stats">
             <div className="stat-item">
               <span className="stat-number">11</span>
-              <span className="stat-label">Tech Stacks</span>
+              <span className="stat-label">{t('tech_stacks')}</span>
             </div>
             <div className="stat-item">
               <span className="stat-number">500+</span>
-              <span className="stat-label">Commands</span>
+              <span className="stat-label">{t('commands')}</span>
             </div>
             <div className="stat-item">
               <span className="stat-number">5</span>
-              <span className="stat-label">Languages</span>
+              <span className="stat-label">{t('languages')}</span>
             </div>
           </div>
           <div className="hero-actions">
             <Link to="/register" className="cta-button primary">
-              Start Learning Free
+              {t('start_learning')}
               <span className="button-arrow">→</span>
             </Link>
             <Link to="/features" className="cta-button secondary">
-              Explore Features
+              {t('explore_features')}
             </Link>
           </div>
         </div>
@@ -58,16 +58,16 @@ const Home = () => {
       <section className="why-cli-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Why CLI Skills Are Non-Negotiable</h2>
+            <h2 className="section-title">{t('why_cli_matters')}</h2>
             <p className="section-subtitle">
-              In modern software development, the command line isn't optional — it's the foundation of everything you build.
+              {t('cli_foundation')}
             </p>
           </div>
           <div className="benefits-grid">
             <div className="benefit-card">
               <div className="benefit-icon">🛠️</div>
-              <h3>DevOps & Deployment</h3>
-              <p>Deploy containers, scale services, debug pods — all with kubectl, docker, and shell scripts.</p>
+              <h3>{t('devops')}</h3>
+              <p>{t('devops_desc')}</p>
               <div className="benefit-tags">
                 <span className="tag">Docker</span>
                 <span className="tag">Kubernetes</span>
@@ -76,8 +76,8 @@ const Home = () => {
             </div>
             <div className="benefit-card">
               <div className="benefit-icon">💾</div>
-              <h3>Data & Databases</h3>
-              <p>Backup PostgreSQL, query MongoDB, flush Redis — without GUIs, using only CLI tools.</p>
+              <h3>{t('data_databases')}</h3>
+              <p>{t('data_databases_desc')}</p>
               <div className="benefit-tags">
                 <span className="tag">PostgreSQL</span>
                 <span className="tag">MongoDB</span>
@@ -86,8 +86,8 @@ const Home = () => {
             </div>
             <div className="benefit-card">
               <div className="benefit-icon">🔧</div>
-              <h3>System Administration</h3>
-              <p>Monitor logs, manage processes, fix permissions — Linux CLI is your first responder.</p>
+              <h3>{t('system_admin')}</h3>
+              <p>{t('system_admin_desc')}</p>
               <div className="benefit-tags">
                 <span className="tag">Linux</span>
                 <span className="tag">Bash</span>
@@ -96,8 +96,8 @@ const Home = () => {
             </div>
             <div className="benefit-card">
               <div className="benefit-icon">☁️</div>
-              <h3>Cloud Engineering</h3>
-              <p>Spin up VMs, manage buckets, configure networks — AWS, GCP, and Azure all start in the terminal.</p>
+              <h3>{t('cloud_engineering')}</h3>
+              <p>{t('cloud_engineering_desc')}</p>
               <div className="benefit-tags">
                 <span className="tag">AWS</span>
                 <span className="tag">GCP</span>
@@ -112,30 +112,30 @@ const Home = () => {
       <section className="how-it-works-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Learn Like a Pro</h2>
+            <h2 className="section-title">{t('learn_like_a_pro')}</h2>
             <p className="section-subtitle">
-              Interactive flashcards that adapt to your learning style
+              {t('interactive_flashcards_desc')}
             </p>
           </div>
           <div className="demo-flashcard">
             <div className="flashcard-demo">
               <div className="demo-front">
-                <h4>Question</h4>
-                <p>List all running pods in Kubernetes</p>
+                <h4>{t('question')}</h4>
+                <p>{t('list_all_pods')}</p>
                 <div className="demo-input-group">
                   <input 
                     type="text" 
-                    placeholder="Type the command..."
+                    placeholder={t('type_command_placeholder')}
                     className="demo-input"
                   />
-                  <button className="demo-check-btn">Check</button>
+                  <button className="demo-check-btn">{t('check')}</button>
                 </div>
               </div>
               <div className="demo-back">
-                <h4>Answer</h4>
+                <h4>{t('answer')}</h4>
                 <code>kubectl get pods</code>
                 <p className="demo-explanation">
-                  This command displays all pods in the current namespace with their status, age, and restart count.
+                  {t('pods_explanation')}
                 </p>
               </div>
             </div>
@@ -147,55 +147,55 @@ const Home = () => {
       <section className="tech-stacks-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Master Essential Technologies</h2>
+            <h2 className="section-title">{t('tech_stacks')}</h2>
             <p className="section-subtitle">
-              From basics to advanced, cover the tools that power modern development
+              {t('cover_modern_tools')}
             </p>
           </div>
           <div className="tech-grid">
             <div className="tech-item">
               <span className="tech-icon">🐚</span>
-              <span className="tech-name">Bash</span>
+              <span className="tech-name">{t('bash')}</span>
             </div>
             <div className="tech-item">
               <span className="tech-icon">🐳</span>
-              <span className="tech-name">Docker</span>
+              <span className="tech-name">{t('docker')}</span>
             </div>
             <div className="tech-item">
               <span className="tech-icon">📚</span>
-              <span className="tech-name">Git</span>
+              <span className="tech-name">{t('git')}</span>
             </div>
             <div className="tech-item">
               <span className="tech-icon">☸️</span>
-              <span className="tech-name">Kubernetes</span>
+              <span className="tech-name">{t('kubernetes')}</span>
             </div>
             <div className="tech-item">
               <span className="tech-icon">☁️</span>
-              <span className="tech-name">Cloud</span>
+              <span className="tech-name">{t('cloud')}</span>
             </div>
             <div className="tech-item">
               <span className="tech-icon">🐧</span>
-              <span className="tech-name">Linux</span>
+              <span className="tech-name">{t('linux')}</span>
             </div>
             <div className="tech-item">
               <span className="tech-icon">🍃</span>
-              <span className="tech-name">MongoDB</span>
+              <span className="tech-name">{t('mongodb')}</span>
             </div>
             <div className="tech-item">
               <span className="tech-icon">📦</span>
-              <span className="tech-name">NPM</span>
+              <span className="tech-name">{t('npm')}</span>
             </div>
             <div className="tech-item">
               <span className="tech-icon">🐘</span>
-              <span className="tech-name">PostgreSQL</span>
+              <span className="tech-name">{t('postgresql')}</span>
             </div>
             <div className="tech-item">
               <span className="tech-icon">🐍</span>
-              <span className="tech-name">Python</span>
+              <span className="tech-name">{t('python')}</span>
             </div>
             <div className="tech-item">
               <span className="tech-icon">🔴</span>
-              <span className="tech-name">Redis</span>
+              <span className="tech-name">{t('redis')}</span>
             </div>
           </div>
         </div>
@@ -205,10 +205,10 @@ const Home = () => {
       <section className="cta-section">
         <div className="container">
           <div className="cta-content">
-            <h2>Ready to Level Up Your CLI Skills?</h2>
-            <p>Join thousands of developers who've transformed their careers through command line mastery.</p>
+            <h2>{t('ready_to_level_up')}</h2>
+            <p>{t('join_developers')}</p>
             <Link to="/register" className="cta-button primary large">
-              Start Your Journey
+              {t('start_your_journey')}
               <span className="button-arrow">→</span>
             </Link>
           </div>

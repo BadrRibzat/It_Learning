@@ -14,7 +14,7 @@ const Checklist = ({ passed }: ChecklistProps) => {
     <div className="checklist">
       {passed.map((status, index) => (
         <div key={index} className={`check-item ${status ? 'passed' : 'failed'}`}>
-          {status ? '✓' : '✗'}
+          {status ? t('checklist.passed') : t('checklist.failed')}
         </div>
       ))}
     </div>

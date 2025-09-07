@@ -1,32 +1,30 @@
-// Enhanced ThemeToggle.tsx with improved functionality
+// src/components/ThemeToggle/ThemeToggle.tsx
 import React, { useState, useEffect } from 'react';
 import './ThemeToggle.css';
+import { useTranslation } from 'react-i18next';
 
 const ThemeToggle = () => {
+  const { t } = useTranslation();
   const [isDark, setIsDark] = useState(() => {
-    // Check localStorage for saved theme preference
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
       return savedTheme === 'dark';
     }
-    // Check system preference
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   useEffect(() => {
-    // Apply theme on component mount
     if (isDark) {
       document.body.classList.add('dark-mode');
     } else {
       document.body.classList.remove('dark-mode');
     }
-  }, []);
+  }, [isDark]);
 
   const toggleTheme = () => {
     const newTheme = !isDark;
     setIsDark(newTheme);
     
-    // Update body class
     if (newTheme) {
       document.body.classList.add('dark-mode');
       localStorage.setItem('theme', 'dark');
@@ -35,7 +33,6 @@ const ThemeToggle = () => {
       localStorage.setItem('theme', 'light');
     }
 
-    // Add transition class for smooth animation
     const toggle = document.querySelector('.theme-toggle');
     if (toggle) {
       toggle.classList.add('transitioning');
@@ -46,12 +43,12 @@ const ThemeToggle = () => {
   };
 
   return (
-    <button onClick={toggleTheme} className="theme-toggle" aria-label="Toggle theme">
+    <button onClick={toggleTheme} className="theme-toggle" aria-label={t('theme.toggle')}>
       <span className="theme-toggle-icon">
         {isDark ? '☀️' : '🌙'}
       </span>
       <span className="theme-toggle-text">
-        {isDark ? 'Light' : 'Dark'}
+        {isDark ? t('theme.light') : t('theme.dark')}
       </span>
     </button>
   );
@@ -59,6 +56,7 @@ const ThemeToggle = () => {
 
 // Alternative switch-style toggle component
 export const ThemeToggleSwitch = () => {
+  const { t } = useTranslation();
   const [isDark, setIsDark] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
@@ -73,7 +71,7 @@ export const ThemeToggleSwitch = () => {
     } else {
       document.body.classList.remove('dark-mode');
     }
-  }, []);
+  }, [isDark]);
 
   const toggleTheme = () => {
     const newTheme = !isDark;
@@ -93,7 +91,7 @@ export const ThemeToggleSwitch = () => {
       className={`theme-toggle-switch ${isDark ? 'dark' : ''}`}
       onClick={toggleTheme}
       role="button"
-      aria-label="Toggle theme"
+      aria-label={t('theme.toggle')}
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -106,5 +104,3 @@ export const ThemeToggleSwitch = () => {
 };
 
 export default ThemeToggle;
-
-

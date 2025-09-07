@@ -13,11 +13,11 @@ const About = () => {
         <div className="container">
           <div className="hero-content">
             <h1 className="hero-title">
-              Built by a <span className="gradient-text">Self-Taught Developer</span>
-              <br />For Self-Taught Developers
+              {t('built_by')} <span className="gradient-text">{t('self_taught_dev')}</span>
+              <br />{t('for_self_taught_devs')}
             </h1>
             <p className="hero-subtitle">
-              A platform that bridges the gap between tutorial knowledge and real-world engineering confidence.
+              {t('bridges_the_gap')}
             </p>
           </div>
         </div>
@@ -28,25 +28,25 @@ const About = () => {
         <div className="container">
           <div className="content-grid">
             <div className="content-text">
-              <h2 className="section-title">Our Mission</h2>
+              <h2 className="section-title">{t('our_mission')}</h2>
               <p className="large-text">
-                <strong>IT-Learning</strong> was created to solve a critical problem in developer education: the gap between knowing syntax and having the confidence to work with real systems.
+                <strong>IT-Learning</strong> {t('mission_statement_part1')}
               </p>
               <p>
-                Too many developers learn frameworks and languages but freeze when faced with a terminal. We believe that <strong>CLI mastery is the key to confidence, employability, and autonomy</strong> in tech.
+                {t('cli_mastery_is_key')}
               </p>
               <div className="mission-stats">
                 <div className="mission-stat">
                   <span className="stat-number">500+</span>
-                  <span className="stat-label">Real Commands</span>
+                  <span className="stat-label">{t('real_commands')}</span>
                 </div>
                 <div className="mission-stat">
                   <span className="stat-number">11</span>
-                  <span className="stat-label">Tech Stacks</span>
+                  <span className="stat-label">{t('tech_stacks')}</span>
                 </div>
                 <div className="mission-stat">
                   <span className="stat-number">5</span>
-                  <span className="stat-label">Languages</span>
+                  <span className="stat-label">{t('languages')}</span>
                 </div>
               </div>
             </div>
@@ -58,7 +58,7 @@ const About = () => {
                     <span className="btn yellow"></span>
                     <span className="btn green"></span>
                   </div>
-                  <span className="terminal-title">Terminal</span>
+                  <span className="terminal-title">{t('terminal')}</span>
                 </div>
                 <div className="terminal-body">
                   <div className="terminal-line">
@@ -88,96 +88,94 @@ const About = () => {
       {/* Tech Stack Section */}
       <section className="tech-stack-section">
         <div className="container">
-          <h2 className="section-title">The Tech Stack You Need</h2>
+          <h2 className="section-title">{t('the_tech_stack_you_need')}</h2>
           <p className="section-subtitle">
-            We focus on the tools that power real systems and drive career growth
+            {t('focus_real_systems')}
           </p>
           <div className="tech-categories">
             <div className="tech-category">
               <div className="category-header">
                 <div className="category-icon">🛠️</div>
-                <h3>DevOps & Infrastructure</h3>
+                <h3>{t('devops_infrastructure')}</h3>
               </div>
               <div className="tech-list">
                 <div className="tech-item">
                   <span className="tech-emoji">🐳</span>
                   <div className="tech-info">
-                    <strong>Docker</strong>
-                    <span>Containerization and deployment</span>
+                    <strong>{t('docker')}</strong>
+                    <span>{t('containerization_deployment')}</span>
                   </div>
                 </div>
                 <div className="tech-item">
                   <span className="tech-emoji">☸️</span>
                   <div className="tech-info">
-                    <strong>Kubernetes</strong>
-                    <span>Container orchestration</span>
+                    <strong>{t('kubernetes')}</strong>
+                    <span>{t('container_orchestration')}</span>
                   </div>
                 </div>
                 <div className="tech-item">
                   <span className="tech-emoji">☁️</span>
                   <div className="tech-info">
-                    <strong>Cloud CLI</strong>
-                    <span>AWS, GCP, Azure management</span>
+                    <strong>{t('cloud_cli')}</strong>
+                    <span>{t('cloud_management')}</span>
                   </div>
                 </div>
               </div>
             </div>
-
             <div className="tech-category">
               <div className="category-header">
                 <div className="category-icon">💾</div>
-                <h3>Databases & Storage</h3>
+                <h3>{t('databases_storage')}</h3>
               </div>
               <div className="tech-list">
                 <div className="tech-item">
                   <span className="tech-emoji">🐘</span>
                   <div className="tech-info">
-                    <strong>PostgreSQL</strong>
-                    <span>Relational database management</span>
+                    <strong>{t('postgresql')}</strong>
+                    <span>{t('relational_db')}</span>
                   </div>
                 </div>
                 <div className="tech-item">
                   <span className="tech-emoji">🍃</span>
                   <div className="tech-info">
-                    <strong>MongoDB</strong>
-                    <span>NoSQL database operations</span>
+                    <strong>{t('mongodb')}</strong>
+                    <span>{t('nosql_db')}</span>
                   </div>
                 </div>
                 <div className="tech-item">
                   <span className="tech-emoji">🔴</span>
                   <div className="tech-info">
-                    <strong>Redis</strong>
-                    <span>Caching and session management</span>
+                    <strong>{t('redis')}</strong>
+                    <span>{t('caching_sessions')}</span>
                   </div>
                 </div>
               </div>
             </div>
-
             <div className="tech-category">
               <div className="category-header">
                 <div className="category-icon">🔧</div>
-                <h3>System & Development</h3>
+                <h3>{t('system_development')}</h3>
               </div>
               <div className="tech-list">
                 <div className="tech-item">
                   <span className="tech-emoji">🐧</span>
                   <div className="tech-info">
-                    <strong>Linux</strong>
-                    <span>System administration</span>
+                    <strong>{t('linux')}</strong>
+                    <span>{t('system_admin')}</span>
                   </div>
                 </div>
                 <div className="tech-item">
                   <span className="tech-emoji">🐚</span>
                   <div className="tech-info">
-                    <strong>Bash</strong>
-                    <span>Shell scripting and automation</span>
+                    <strong>{t('bash')}</strong>
+                    <span>{t('shell_scripting')}</span>
                   </div>
                 </div>
                 <div className="tech-item">
                   <span className="tech-emoji">📚</span>
                   <div className="tech-info">
-                    <strong>Git</strong>
-                    <span>Version control mastery</span>
+                    <strong>{t('git')}</strong>
+                    <span>{t('version_control')}</span>
                   </div>
                 </div>
               </div>
@@ -191,49 +189,45 @@ const About = () => {
         <div className="container">
           <div className="story-content">
             <div className="story-header">
-              <h2 className="section-title">My Journey as a Self-Taught Developer</h2>
+              <h2 className="section-title">{t('my_journey')}</h2>
               <p className="section-subtitle">
-                From struggling with tutorials to building production systems
+                {t('from_tutorials_to_production')}
               </p>
             </div>
-            
             <div className="story-timeline">
               <div className="timeline-item">
                 <div className="timeline-marker"></div>
                 <div className="timeline-content">
-                  <h3>The Struggle</h3>
+                  <h3>{t('the_struggle')}</h3>
                   <p>
-                    I'm <strong>Badr</strong>, a self-taught developer from Morocco. I started with no access to bootcamps, no mentorship, and limited resources. Every tutorial felt like a dead end when it came to real-world application.
+                    {t('im_badr_intro')} <strong>{t('badr')}</strong>, {t('self_taught_dev_from_morocco')}.
                   </p>
                 </div>
               </div>
-              
               <div className="timeline-item">
                 <div className="timeline-marker"></div>
                 <div className="timeline-content">
-                  <h3>The Gap</h3>
+                  <h3>{t('the_gap')}</h3>
                   <p>
-                    I could build React apps and write Python scripts, but I froze when faced with deployment, server management, or debugging production issues. The command line was my biggest weakness.
+                    {t('could_build_apps')} {t('but_froze_terminal')}.
                   </p>
                 </div>
               </div>
-              
               <div className="timeline-item">
                 <div className="timeline-marker"></div>
                 <div className="timeline-content">
-                  <h3>The Solution</h3>
+                  <h3>{t('the_solution')}</h3>
                   <p>
-                    I built <strong>IT-Learning</strong> to solve my own problem: retaining CLI commands and building real confidence with systems. This platform represents hundreds of hours of research, development, and testing.
+                    {t('built_it_learning')} {t('solve_my_own_problem')}.
                   </p>
                 </div>
               </div>
-              
               <div className="timeline-item">
                 <div className="timeline-marker"></div>
                 <div className="timeline-content">
-                  <h3>The Mission</h3>
+                  <h3>{t('the_mission')}</h3>
                   <p>
-                    This isn't just an app — it's proof that self-taught developers can compete globally. It's my contribution to the community that taught me everything I know.
+                    {t('this_isnt_just_an_app')}
                   </p>
                 </div>
               </div>
@@ -245,41 +239,40 @@ const About = () => {
       {/* Portfolio Section */}
       <section className="portfolio-section">
         <div className="container">
-          <h2 className="section-title">Full-Stack MERN Development</h2>
+          <h2 className="section-title">{t('full_stack_mern')}</h2>
           <p className="section-subtitle">
-            This project showcases modern web development practices and technologies
+            {t('modern_web_practices')}
           </p>
-          
           <div className="tech-showcase">
             <div className="showcase-item">
               <div className="showcase-icon">⚛️</div>
-              <h3>React & TypeScript</h3>
-              <p>Modern frontend with type safety, hooks, and responsive design</p>
+              <h3>{t('react_typescript')}</h3>
+              <p>{t('frontend_desc')}</p>
             </div>
             <div className="showcase-item">
               <div className="showcase-icon">🟢</div>
-              <h3>Node.js & Express</h3>
-              <p>RESTful API with authentication, validation, and error handling</p>
+              <h3>{t('node_express')}</h3>
+              <p>{t('backend_desc')}</p>
             </div>
             <div className="showcase-item">
               <div className="showcase-icon">🍃</div>
-              <h3>MongoDB & Mongoose</h3>
-              <p>NoSQL database with schema design and data relationships</p>
+              <h3>{t('mongodb_mongoose')}</h3>
+              <p>{t('database_desc')}</p>
             </div>
             <div className="showcase-item">
               <div className="showcase-icon">🎨</div>
-              <h3>Modern UI/UX</h3>
-              <p>Glassmorphism design, animations, and mobile-first approach</p>
+              <h3>{t('modern_ui_ux')}</h3>
+              <p>{t('ui_ux_desc')}</p>
             </div>
             <div className="showcase-item">
               <div className="showcase-icon">🌍</div>
-              <h3>Internationalization</h3>
-              <p>Multi-language support with React i18next and RTL layouts</p>
+              <h3>{t('internationalization')}</h3>
+              <p>{t('i18n_desc')}</p>
             </div>
             <div className="showcase-item">
               <div className="showcase-icon">🔐</div>
-              <h3>Security & Auth</h3>
-              <p>JWT authentication, email verification, and secure practices</p>
+              <h3>{t('security_auth')}</h3>
+              <p>{t('security_desc')}</p>
             </div>
           </div>
         </div>

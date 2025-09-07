@@ -1,22 +1,29 @@
 // src/components/QA/QAItem.tsx
 import React, { useState } from 'react';
 import './QAItem.css';
+import { useTranslation } from 'react-i18next';
 
-const QAItem = ({ question, explanation }) => {
+interface QAItemProps {
+  question: string;
+  explanation: string;
+}
+
+const QAItem = ({ question, explanation }: QAItemProps) => {
   const [revealed, setRevealed] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <div className={`qa-item ${revealed ? 'revealed' : ''}`} onClick={() => setRevealed(!revealed)}>
       <div className="qa-question">
-        <strong>Q:</strong> {question}
+        <strong>{t('qa.question_prefix')}</strong> {question}
       </div>
       {revealed && (
         <div className="qa-answer">
-          <strong>A:</strong> {explanation}
+          <strong>{t('qa.answer_prefix')}</strong> {explanation}
         </div>
       )}
       <div className="qa-hint">
-        {revealed ? 'Click to hide' : 'Click to reveal answer'}
+        {revealed ? t('qa.click_to_hide') : t('qa.click_to_reveal')}
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import './Flashcard.css';
 import { validateAnswer } from '../../services/flashcardService';
 import { submitAnswer } from '../../services/progressService';
+import { useTranslation } from 'react-i18next';
 
 interface FlashcardProps {
   cardId: string;
@@ -19,6 +20,7 @@ const Flashcard = ({ cardId, stackId, question, answer, validAnswers, answerMatc
   const [input, setInput] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,19 +46,21 @@ const Flashcard = ({ cardId, stackId, question, answer, validAnswers, answerMatc
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type the command..."
+              placeholder={t('flashcard.type_command_placeholder')}
               className="flashcard-input"
             />
-            <button type="submit" className="flashcard-submit">Check</button>
+            <button type="submit" className="flashcard-submit">
+              {t('flashcard.check_button')}
+            </button>
           </form>
           {feedback && (
             <div className={`feedback ${feedback}`}>
-              {feedback === 'correct' ? '✅ Correct!' : '❌ Try again'}
+              {feedback === 'correct' ? t('flashcard.correct_feedback') : t('flashcard.incorrect_feedback')}
             </div>
           )}
         </div>
         <div className="flashcard-back">
-          <p><strong>Answer:</strong> <code>{answer}</code></p>
+          <p><strong>{t('flashcard.answer_label')}</strong> <code>{answer}</code></p>
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -66,7 +70,7 @@ const Flashcard = ({ cardId, stackId, question, answer, validAnswers, answerMatc
             }}
             className="flashcard-reset"
           >
-            Reset
+            {t('flashcard.reset_button')}
           </button>
         </div>
       </div>

@@ -9,72 +9,72 @@ const Features = () => {
   const features = [
     {
       icon: "🃏",
-      title: "Interactive Flashcards",
-      description: "Flip cards to learn commands with real-world explanations and use cases. Each card includes context, examples, and best practices.",
-      highlights: ["Real-world scenarios", "Command variations", "Best practices"]
+      title: t('interactive_flashcards'),
+      description: t('flashcards_desc'),
+      highlights: [t('real_world_scenarios'), t('command_variations'), t('best_practices')]
     },
     {
       icon: "🎯",
-      title: "Smart Answer Validation",
-      description: "Accepts command variations and aliases with intelligent regex matching. Learn the way you think, not just one rigid format.",
-      highlights: ["Flexible input", "Alias recognition", "Typo tolerance"]
+      title: t('smart_validation'),
+      description: t('validation_desc'),
+      highlights: [t('flexible_input'), t('alias_recognition'), t('typo_tolerance')]
     },
     {
       icon: "📊",
-      title: "Progress Tracking",
-      description: "Visual progress rings and mastery tracking show your journey from beginner to expert across all tech stacks.",
-      highlights: ["Visual progress", "Mastery levels", "Achievement system"]
+      title: t('progress_tracking'),
+      description: t('tracking_desc'),
+      highlights: [t('visual_progress'), t('mastery_levels'), t('achievement_system')]
     },
     {
       icon: "🌍",
-      title: "Multi-Language Support",
-      description: "Learn in your preferred language with full internationalization support for Arabic, English, French, Spanish, and German.",
-      highlights: ["5 languages", "RTL support", "Cultural adaptation"]
+      title: t('multi_language'),
+      description: t('multi_language_desc'),
+      highlights: [t('five_languages'), t('rtl_support'), t('cultural_adaptation')]
     },
     {
       icon: "📱",
-      title: "Mobile-First Design",
-      description: "Responsive design that works perfectly on all devices. Learn on your phone, tablet, or desktop with the same great experience.",
-      highlights: ["Touch-friendly", "Offline capable", "Cross-platform"]
+      title: t('mobile_first'),
+      description: t('mobile_desc'),
+      highlights: [t('touch_friendly'), t('offline_capable'), t('cross_platform')]
     },
     {
       icon: "⚡",
-      title: "Spaced Repetition",
-      description: "Intelligent algorithm shows you cards when you're about to forget them, maximizing retention and minimizing study time.",
-      highlights: ["Memory optimization", "Adaptive timing", "Efficient learning"]
+      title: t('spaced_repetition'),
+      description: t('repetition_desc'),
+      highlights: [t('memory_optimization'), t('adaptive_timing'), t('efficient_learning')]
     },
     {
       icon: "🔧",
-      title: "Real-World Commands",
-      description: "Every command is used in production environments. No toy examples - only the CLI skills that matter in your career.",
-      highlights: ["Production-ready", "Industry standard", "Career-focused"]
+      title: t('real_world_commands'),
+      description: t('real_world_desc'),
+      highlights: [t('production_ready'), t('industry_standard'), t('career_focused')]
     },
     {
       icon: "🎨",
-      title: "Modern UI/UX",
-      description: "Beautiful glassmorphism design with smooth animations and intuitive interactions that make learning enjoyable.",
-      highlights: ["Glassmorphism", "Smooth animations", "Intuitive design"]
+      title: t('modern_ui'),
+      description: t('modern_ui_desc'),
+      highlights: [t('glassmorphism'), t('smooth_animations'), t('intuitive_design')]
     },
     {
       icon: "🔐",
-      title: "Secure & Private",
-      description: "Your learning data is protected with JWT authentication, email verification, and secure data handling practices.",
-      highlights: ["JWT security", "Email verification", "Data protection"]
+      title: t('secure_private'),
+      description: t('secure_desc'),
+      highlights: [t('jwt_security'), t('email_verification'), t('data_protection')]
     }
   ];
 
   const techStacks = [
-    { name: "Bash", icon: "🐚", commands: 45 },
-    { name: "Docker", icon: "🐳", commands: 52 },
-    { name: "Git", icon: "📚", commands: 38 },
-    { name: "Kubernetes", icon: "☸️", commands: 67 },
-    { name: "Linux", icon: "🐧", commands: 73 },
-    { name: "MongoDB", icon: "🍃", commands: 41 },
-    { name: "PostgreSQL", icon: "🐘", commands: 49 },
-    { name: "Python", icon: "🐍", commands: 35 },
-    { name: "Redis", icon: "🔴", commands: 28 },
-    { name: "Cloud", icon: "☁️", commands: 56 },
-    { name: "NPM", icon: "📦", commands: 33 }
+    { name: t('bash'), icon: "🐚", commands: 45 },
+    { name: t('docker'), icon: "🐳", commands: 52 },
+    { name: t('git'), icon: "📚", commands: 38 },
+    { name: t('kubernetes'), icon: "☸️", commands: 67 },
+    { name: t('linux'), icon: "🐧", commands: 73 },
+    { name: t('mongodb'), icon: "🍃", commands: 41 },
+    { name: t('postgresql'), icon: "🐘", commands: 49 },
+    { name: t('python'), icon: "🐍", commands: 35 },
+    { name: t('redis'), icon: "🔴", commands: 28 },
+    { name: t('cloud'), icon: "☁️", commands: 56 },
+    { name: t('npm'), icon: "📦", commands: 33 }
   ];
 
   return (
@@ -84,10 +84,10 @@ const Features = () => {
         <div className="container">
           <div className="hero-content">
             <h1 className="hero-title">
-              Why <span className="gradient-text">IT-Learning</span> Works
+              {t('why')} <span className="gradient-text">IT-Learning</span> {t('works')}
             </h1>
             <p className="hero-subtitle">
-              Discover the features that make command line mastery achievable, enjoyable, and effective for developers at every level.
+              {t('discover_features')}
             </p>
           </div>
         </div>
@@ -117,9 +117,9 @@ const Features = () => {
       <section className="tech-overview-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Comprehensive Tech Coverage</h2>
+            <h2 className="section-title">{t('comprehensive_coverage')}</h2>
             <p className="section-subtitle">
-              Master the essential technologies that power modern development and operations
+              {t('master_essential_tech')}
             </p>
           </div>
           <div className="tech-stats-grid">
@@ -128,14 +128,14 @@ const Features = () => {
                 <div className="tech-stat-icon">{tech.icon}</div>
                 <div className="tech-stat-info">
                   <h4 className="tech-stat-name">{tech.name}</h4>
-                  <span className="tech-stat-count">{tech.commands} commands</span>
+                  <span className="tech-stat-count">{tech.commands} {t('commands')}</span>
                 </div>
               </div>
             ))}
           </div>
           <div className="total-commands">
             <div className="total-number">500+</div>
-            <div className="total-label">Total Commands Across All Stacks</div>
+            <div className="total-label">{t('total_commands_all_stacks')}</div>
           </div>
         </div>
       </section>
@@ -145,37 +145,37 @@ const Features = () => {
         <div className="container">
           <div className="methodology-content">
             <div className="methodology-text">
-              <h2 className="section-title">Proven Learning Methodology</h2>
+              <h2 className="section-title">{t('proven_methodology')}</h2>
               <p className="section-subtitle">
-                Our approach combines cognitive science with practical application
+                {t('cognitive_science')}
               </p>
               <div className="methodology-steps">
                 <div className="step">
                   <div className="step-number">1</div>
                   <div className="step-content">
-                    <h4>Active Recall</h4>
-                    <p>Type commands from memory instead of passive reading</p>
+                    <h4>{t('active_recall')}</h4>
+                    <p>{t('active_recall_desc')}</p>
                   </div>
                 </div>
                 <div className="step">
                   <div className="step-number">2</div>
                   <div className="step-content">
-                    <h4>Spaced Repetition</h4>
-                    <p>Review commands at optimal intervals for long-term retention</p>
+                    <h4>{t('spaced_repetition_method')}</h4>
+                    <p>{t('repetition_method_desc')}</p>
                   </div>
                 </div>
                 <div className="step">
                   <div className="step-number">3</div>
                   <div className="step-content">
-                    <h4>Contextual Learning</h4>
-                    <p>Understand when and why to use each command in real scenarios</p>
+                    <h4>{t('contextual_learning')}</h4>
+                    <p>{t('contextual_learning_desc')}</p>
                   </div>
                 </div>
                 <div className="step">
                   <div className="step-number">4</div>
                   <div className="step-content">
-                    <h4>Progressive Mastery</h4>
-                    <p>Build from basic commands to advanced system administration</p>
+                    <h4>{t('progressive_mastery')}</h4>
+                    <p>{t('progressive_mastery_desc')}</p>
                   </div>
                 </div>
               </div>
@@ -184,19 +184,19 @@ const Features = () => {
               <div className="learning-cycle">
                 <div className="cycle-step active">
                   <span className="cycle-icon">🎯</span>
-                  <span className="cycle-label">Practice</span>
+                  <span className="cycle-label">{t('practice')}</span>
                 </div>
                 <div className="cycle-step">
                   <span className="cycle-icon">🧠</span>
-                  <span className="cycle-label">Remember</span>
+                  <span className="cycle-label">{t('remember')}</span>
                 </div>
                 <div className="cycle-step">
                   <span className="cycle-icon">📈</span>
-                  <span className="cycle-label">Progress</span>
+                  <span className="cycle-label">{t('progress')}</span>
                 </div>
                 <div className="cycle-step">
                   <span className="cycle-icon">🚀</span>
-                  <span className="cycle-label">Master</span>
+                  <span className="cycle-label">{t('master')}</span>
                 </div>
               </div>
             </div>
@@ -208,15 +208,15 @@ const Features = () => {
       <section className="features-cta-section">
         <div className="container">
           <div className="cta-content">
-            <h2>Ready to Transform Your CLI Skills?</h2>
-            <p>Join thousands of developers who've accelerated their careers through command line mastery.</p>
+            <h2>{t('transform_cli_skills')}</h2>
+            <p>{t('join_developers_desc')}</p>
             <div className="cta-actions">
               <a href="/register" className="cta-button primary">
-                Start Learning Free
+                {t('start_learning_free')}
                 <span className="button-arrow">→</span>
               </a>
               <a href="/about" className="cta-button secondary">
-                Learn More
+                {t('learn_more')}
               </a>
             </div>
           </div>

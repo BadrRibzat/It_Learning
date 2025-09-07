@@ -13,6 +13,8 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [activeStack, setActiveStack] = useState('bash');
   const { ring, loading: progressLoading } = useProgress(activeStack);
+  const { t } = useTranslation();
+
   const progressPercentage = ring ? Math.round((ring.correct / ring.total) * 100) : 0;
 
   const [stats, setStats] = useState({
@@ -65,34 +67,33 @@ const Dashboard = () => {
         progress={ring}
         loading={progressLoading}
       />
-
       <main className="dashboard-main">
         <div className="stats-bar">
           <div className="stat-item">
             <span className="stat-icon">📚</span>
-            <span className="stat-label">Total</span>
+            <span className="stat-label">{t('total')}</span>
             <span className="stat-value">{stats.totalCards}</span>
           </div>
           <div className="stat-item">
             <span className="stat-icon">✅</span>
-            <span className="stat-label">Done</span>
+            <span className="stat-label">{t('done')}</span>
             <span className="stat-value">{stats.completedCards}</span>
           </div>
           <div className="stat-item">
             <span className="stat-icon">🎯</span>
-            <span className="stat-label">Acc</span>
+            <span className="stat-label">{t('acc')}</span>
             <span className="stat-value">{stats.accuracy}%</span>
           </div>
           <div className="stat-item">
             <span className="stat-icon">🔥</span>
-            <span className="stat-label">Streak</span>
+            <span className="stat-label">{t('streak')}</span>
             <span className="stat-value">{stats.streak}</span>
           </div>
         </div>
 
         <div className="current-stack-info">
           <div className="stack-header">
-            <h2>Currently Learning: <span className="stack-name">{activeStack.toUpperCase()}</span></h2>
+            <h2>{t('currently_learning')} <span className="stack-name">{activeStack.toUpperCase()}</span></h2>
             <div className="stack-progress">
               <div className="progress-bar">
                 <div
@@ -101,7 +102,7 @@ const Dashboard = () => {
                 ></div>
               </div>
               <span className="main-progress-text">
-                {ring ? `${ring.correct}/${ring.total} completed` : 'Loading...'}
+                {ring ? `${ring.correct}/${ring.total} ${t('completed')}` : t('loading_progress')}
               </span>
             </div>
           </div>
