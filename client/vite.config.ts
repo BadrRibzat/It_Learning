@@ -11,5 +11,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+  },
   // No server.proxy needed for production — API calls go directly to backend
 });
