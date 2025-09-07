@@ -13,39 +13,38 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
-  const handleLinkClick = () => {
-    setIsOpen(false);
-  };
+  const isActive = (path: string) => location.pathname === path;
+  const handleLinkClick = () => setIsOpen(false);
 
   return (
     <nav className="navbar">
       <div className="navbar-container">
+        {/* Logo */}
         <Link to="/" className="logo" onClick={handleLinkClick}>
           <img src="/logo.png" alt={t('app_title')} className="logo-image" />
           <span className="logo-text">{t('IT-Learning Groups')}</span>
         </Link>
-        
-        <button 
-          className="menu-toggle" 
+
+        {/* Mobile Toggle */}
+        <button
+          type="button"
+          className="menu-toggle"
           onClick={() => setIsOpen(!isOpen)}
-          aria-label={isOpen ? "Close menu" : "Open menu"}
+          aria-label={isOpen ? t('close_menu') : t('open_menu')}
           aria-expanded={isOpen}
         >
-          <span className={`hamburger ${isOpen ? 'active' : ''}`}>
+          <div className={`hamburger ${isOpen ? 'active' : ''}`}>
             <span></span>
             <span></span>
             <span></span>
-          </span>
+          </div>
         </button>
-        
+
+        {/* Navigation Links */}
         <ul className={`nav-links ${isOpen ? 'active' : ''}`}>
           <li>
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className={isActive('/') ? 'active' : ''}
               onClick={handleLinkClick}
             >
@@ -53,8 +52,8 @@ const Navbar = () => {
             </Link>
           </li>
           <li>
-            <Link 
-              to="/features" 
+            <Link
+              to="/features"
               className={isActive('/features') ? 'active' : ''}
               onClick={handleLinkClick}
             >
@@ -62,20 +61,20 @@ const Navbar = () => {
             </Link>
           </li>
           <li>
-            <Link 
-              to="/about" 
+            <Link
+              to="/about"
               className={isActive('/about') ? 'active' : ''}
               onClick={handleLinkClick}
             >
               {t('about')}
             </Link>
           </li>
-          
+
           {user ? (
             <>
               <li>
-                <Link 
-                  to="/dashboard" 
+                <Link
+                  to="/dashboard"
                   className={isActive('/dashboard') ? 'active' : ''}
                   onClick={handleLinkClick}
                 >
@@ -83,7 +82,8 @@ const Navbar = () => {
                 </Link>
               </li>
               <li>
-                <button 
+                <button
+                  type="button"
                   onClick={() => {
                     logout();
                     handleLinkClick();
@@ -97,8 +97,8 @@ const Navbar = () => {
           ) : (
             <>
               <li>
-                <Link 
-                  to="/login" 
+                <Link
+                  to="/login"
                   className={isActive('/login') ? 'active' : ''}
                   onClick={handleLinkClick}
                 >
@@ -106,9 +106,11 @@ const Navbar = () => {
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/register" 
-                  className={`register-btn ${isActive('/register') ? 'active' : ''}`}
+                <Link
+                  to="/register"
+                  className={`register-btn ${
+                    isActive('/register') ? 'active' : ''
+                  }`}
                   onClick={handleLinkClick}
                 >
                   {t('register')}
@@ -116,11 +118,11 @@ const Navbar = () => {
               </li>
             </>
           )}
-          
+
+          {/* Controls */}
           <li className="navbar-controls">
             <LanguageSelector />
           </li>
-          
           <li className="theme-toggle-container">
             <ThemeToggle />
           </li>
@@ -131,3 +133,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
