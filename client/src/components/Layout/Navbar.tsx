@@ -32,7 +32,8 @@ const Navbar = () => {
         <button 
           className="menu-toggle" 
           onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle menu"
+          aria-label={isOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isOpen}
         >
           <span className={`hamburger ${isOpen ? 'active' : ''}`}>
             <span></span>

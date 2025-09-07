@@ -1,5 +1,5 @@
 /* src/components/Progress/CircularProgressBar.css */
-.circular-progress {
+.circular-progress-bar {
   position: relative;
   width: 150px;
   height: 150px;
@@ -8,16 +8,10 @@
     var(--progress-color) 0%,
     #dcdcdc 0%
   );
-  animation: progressAnimation 1s linear forwards;
-}
-
-@keyframes progressAnimation {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
 }
 
 .progress-text {
@@ -25,7 +19,23 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 2rem;
-  font-weight: bold;
-  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+body.dark-mode .progress-text {
+  color: var(--dark-text-primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .circular-progress-bar {
+    width: 120px;
+    height: 120px;
+  }
+
+  .progress-text {
+    font-size: 1rem;
+  }
 }

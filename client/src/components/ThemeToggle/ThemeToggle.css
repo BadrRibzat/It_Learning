@@ -1,5 +1,4 @@
 /* Enhanced ThemeToggle.css with modern styling */
-
 .theme-toggle {
   background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(10px);
@@ -151,10 +150,8 @@ body.dark-mode .theme-toggle-switch {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
-  
+
   .theme-toggle-icon {
     font-size: 1rem;
   }
 }
-
-
