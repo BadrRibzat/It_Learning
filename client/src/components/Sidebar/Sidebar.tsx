@@ -130,10 +130,8 @@ const Sidebar = ({ activeStack, onSelectStack, progress, loading }: SidebarProps
       {progress && !loading && (
         <div className="sidebar-progress">
           <CircularProgressBar
-            percentage={progressPercentage}
-            size={80}
-            strokeWidth={8}
-            showPercentage={true}
+            correct={progress.correct}
+            total={progress.total}
           />
           <span className="progress-label">
             {progress.correct} / {progress.total} {t('completed')}
