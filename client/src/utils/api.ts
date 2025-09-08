@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || 'https://it-learning-backend.fly.dev',
+  baseURL: (import.meta.env.VITE_BACKEND_URL || 'https://it-learning-backend.fly.dev') + '/api', // ✅ NO SPACES
   withCredentials: true,
 });
 
@@ -15,4 +15,3 @@ api.interceptors.request.use((config) => {
 });
 
 export default api;
-
